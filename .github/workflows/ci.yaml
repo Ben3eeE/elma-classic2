@@ -48,6 +48,12 @@ jobs:
         with:
           arch: x86
 
+      - name: Cache Meson subprojects
+        uses: actions/cache@v4
+        with:
+          path: subprojects/packagecache
+          key: ${{ runner.os }}-x86-meson-${{ hashFiles('subprojects/*.wrap') }}
+
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -84,6 +90,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Cache Meson subprojects
+        uses: actions/cache@v4
+        with:
+          path: subprojects/packagecache
+          key: ${{ runner.os }}-meson-${{ hashFiles('subprojects/*.wrap') }}
+          restore-keys: |
+            ${{ runner.os }}-meson-
 
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2

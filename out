@@ -1,0 +1,104 @@
+diff --git a/.github/workflows/ci.yaml b/.github/workflows/ci.yaml
+index 7ac883f..5976e6f 100644
+--- a/.github/workflows/ci.yaml
++++ b/.github/workflows/ci.yaml
+@@ -38,6 +38,51 @@ jobs:
+       - name: Check formatting
+         run: ninja -C build clang-format-check
+ 
++  build_win32:
++    runs-on: [windows-latest]
++
++    steps:
++      - name: Checkout repository
++        uses: actions/checkout@v4
++      - uses: ilammy/msvc-dev-cmd@v1
++        with:
++          arch: x86
++
++      - name: Cache Meson subprojects
++        uses: actions/cache@v4
++        with:
++          path: subprojects/packagecache
++          key: ${{ runner.os }}-x86-meson-${{ hashFiles('subprojects/*.wrap') }}
++          restore-keys: |
++            ${{ runner.os }}-x86-meson-
++
++      - name: Set up ccache
++        uses: hendrikmuhs/ccache-action@v1.2
++        with:
++          variant: sccache
++          key: ${{ runner.os }}
++
++      - name: Set up Python
++        uses: actions/setup-python@v5
++        with:
++          python-version: '3.x'
++
++      - name: Install dependencies
++        run: python -m pip install meson==1.10.0 ninja
++
++      - name: Configure
++        run: meson setup build -Dbuildtype=release --vsenv
++
++      - name: Build
++        run: meson compile -C build
++
++      - name: Upload build artifacts
++        uses: actions/upload-artifact@v4
++        with:
++          name: elma-${{ runner.os }}-x86
++          path: build/elma.exe
++          retention-days: 5
++
+   build:
+     runs-on: ${{ matrix.os }}
+     strategy:
+@@ -48,6 +93,14 @@ jobs:
+       - name: Checkout repository
+         uses: actions/checkout@v4
+ 
++      - name: Cache Meson subprojects
++        uses: actions/cache@v4
++        with:
++          path: subprojects/packagecache
++          key: ${{ runner.os }}-meson-${{ hashFiles('subprojects/*.wrap') }}
++          restore-keys: |
++            ${{ runner.os }}-meson-
++
+       - name: Set up ccache
+         uses: hendrikmuhs/ccache-action@v1.2
+         with:
+@@ -78,3 +131,13 @@ jobs:
+ 
+       - name: Build
+         run: meson compile -C build
++
++      - name: Upload build artifacts
++        uses: actions/upload-artifact@v4
++        with:
++          name: elma-${{ runner.os }}-x64
++          path: |
++            build/elma
++            build/elma.exe
++          retention-days: 5
++          if-no-files-found: ignore
+diff --git a/meson.build b/meson.build
+index ca09a5f..7fec356 100644
+--- a/meson.build
++++ b/meson.build
+@@ -101,7 +101,13 @@ if needs_stub
+     elma_sources += files('H_DUMMY.CPP', 'stub.cpp')
+ endif
+ 
+-sdl2_dep = dependency('sdl2', static: build_machine.system() == 'windows')
++sdl2_dep = dependency('sdl2',
++    static: build_machine.system() == 'windows',
++    default_options: {
++        'test': false,
++        'with_main': false,
++    }
++)
+ 
+ elma = executable(
+     'elma',
