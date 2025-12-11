@@ -96,8 +96,6 @@ jobs:
         with:
           path: subprojects/packagecache
           key: ${{ runner.os }}-meson-${{ hashFiles('subprojects/*.wrap') }}
-          restore-keys: |
-            ${{ runner.os }}-meson-
 
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
