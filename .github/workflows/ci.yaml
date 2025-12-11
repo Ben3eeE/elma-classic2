@@ -71,7 +71,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: elma-${{ runner.os }}
+          name: elma-${{ runner.os }}-x86
           path: build/elma.exe
           retention-days: 5
 
@@ -119,7 +119,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: elma-${{ runner.os }}
+          name: elma-${{ runner.os }}-x64
           path: |
             build/elma
             build/elma.exe
