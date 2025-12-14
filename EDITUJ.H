@@ -1,6 +1,8 @@
 #ifndef EDITUJ_H
 #define EDITUJ_H
 
+#include "abc8.h"
+
 // Uj integralt editor h-ja:
 
 extern topol* Ptop;

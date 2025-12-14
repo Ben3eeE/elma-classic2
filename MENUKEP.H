@@ -1,6 +1,8 @@
 #ifndef MENUKEP_H
 #define MENUKEP_H
 
+#include "abc8.h"
+
 // Ezt mv_main elott meghivja es grafikus hibakiirashoz
 // kell beolvasni peldaul abc-t es hatteret (teljes.cpp-ben):
 // void initmenukep1( void );

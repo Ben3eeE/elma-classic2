@@ -23,8 +23,6 @@
 #include "PIC8.H"
 #include "ANIM.H"
 
-#include "abc8.h"
-
 #include "VEKT2.H"
 #include "physics_init.h"
 #include "BEALLIT.H"
