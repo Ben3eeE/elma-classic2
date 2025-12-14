@@ -1,4 +1,13 @@
-#include "ALL.H"
+#include "abc8.h"
+
+#include <cstddef>
+#include <stdio.h>
+#include <string.h>
+
+#include "M_V.H"
+#include "MENUKEP.H"
+#include "PIC8.H"
+#include "QOPEN.H"
 
 #ifdef DEBUG
 static bool ErrorOnMissingCodepoint = true;

@@ -1,6 +1,8 @@
 #ifndef PIC8_H
 #define PIC8_H
 
+#include <stdio.h>
+
 // Ezt nyugodtan ki lehet venni, ha nem jonnek hibauzenetek:
 #define PIC8TEST
 

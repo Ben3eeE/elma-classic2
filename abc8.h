@@ -1,6 +1,8 @@
 #ifndef ABC8_H
 #define ABC8_H
 
+#include "PIC8.H"
+
 typedef pic8* ptrpic8;
 
 class abc8 {
