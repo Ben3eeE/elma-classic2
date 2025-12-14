@@ -19,7 +19,6 @@
 
 // #define TEST
 
-#include "MAIN.H"
 #include "PIC8.H"
 #include "ANIM.H"
 
