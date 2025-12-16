@@ -1,4 +1,5 @@
 #include "ALL.H"
+#include <chrono>
 
 // Jatek modja ket fele lehet:
 int Single = 1;
@@ -509,6 +510,8 @@ long lejatszo(const char* filenev) {
             fogocska(eddig);
         }
 
+        //auto physics_start = std::chrono::high_resolution_clock::now();
+
         if (Single) {
             setsurlodas(valt1.inf.surlero);
             setmotor(1, valt1.inf.frekvencia, valt1.inf.gaz);
@@ -526,8 +529,22 @@ long lejatszo(const char* filenev) {
                       meghalt2);
         }
 
+        //auto physics_end = std::chrono::high_resolution_clock::now();
+        //auto render_start = std::chrono::high_resolution_clock::now();
+
         kirajzol320(eddig, &valt1, &valt2, Viewtime1.viewkinplay, Viewtime1.timekinplay,
                     Viewtime2.viewkinplay, Viewtime2.timekinplay);
+
+        //auto render_end = std::chrono::high_resolution_clock::now();
+        
+        /*double physics_us = std::chrono::duration<double, std::micro>(physics_end - physics_start).count();
+        double render_us = std::chrono::duration<double, std::micro>(render_end - render_start).count();
+        static int frame_count = 0;
+        if (++frame_count % 60 == 0) {
+            printf("Physics: %.1fµs, Render: %.1fµs, Total: %.1fµs (%.1f FPS max)\n",
+                   physics_us, render_us, physics_us + render_us,
+                   1000000.0 / (physics_us + render_us));
+        }*/
 
         if (palmegnincs) {
             palmegnincs = 0;

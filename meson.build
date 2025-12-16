@@ -1,5 +1,10 @@
 project('elma', 'cpp', version: '1.4', default_options: ['cpp_std=c++20'])
 
+# Add Objective-C++ on macOS for Metal support
+if host_machine.system() == 'darwin'
+    add_languages('objcpp', native: false)
+endif
+
 if get_option('buildtype') == 'debug'
     add_project_arguments('-DDEBUG', language: 'cpp')
 endif
@@ -63,6 +68,14 @@ elma_sources = files(
     'input.cpp',
 )
 
+# Add Metal renderer on macOS
+metal_dep = []
+if host_machine.system() == 'darwin'
+    elma_sources += files('metal_renderer.mm')
+    # Add Metal and Foundation frameworks as dependencies
+    metal_dep = dependency('appleframeworks', modules: ['Metal', 'QuartzCore', 'Foundation', 'Cocoa'])
+endif
+
 link_args = []
 win_subsystem = 'console'
 needs_stub = true
@@ -107,6 +120,6 @@ elma = executable(
     elma_sources,
     cpp_args: cpp_args,
     link_args: link_args,
-    dependencies: [sdl2_dep],
+    dependencies: [sdl2_dep, metal_dep],
     win_subsystem: win_subsystem,
 )

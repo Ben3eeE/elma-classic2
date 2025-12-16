@@ -1,5 +1,6 @@
 #include "ALL.H"
 #include <algorithm>
+#include <chrono>
 
 // Ezek mindig beallitodnak Kepmeret-bol kirajzol320-ban:
 
@@ -575,6 +576,7 @@ static void kibike(int ajatekos, pic8* ppic, double t, vekt2 sarok, motorst* pmo
 
 static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, valtozok* pvalt,
                              int viewki, int timeki, motorst* pmot2, valtozok* pvalt2) {
+    //auto total_start = std::chrono::high_resolution_clock::now();
 
     // Kiszamoljuk kepernyo bal also sarkat:
     vekt2 motorkozep = pmot->bike.r;
@@ -582,11 +584,14 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
     vekt2 sarok(motorkozep.x - (Mo_bal + pvalt->baljobbv_h.baljobb * Mo_dx), motorkozep.y - Mo_y);
 
     // ppic->fillbox( 100 );
+    //auto ecset_start = std::chrono::high_resolution_clock::now();
     Pecsetalso->kitesz(ajatekos, ppic, sarok, 0, 0, Cxsize - 1, Cysize - 1);
+    //auto ecset_end = std::chrono::high_resolution_clock::now();
 
     hang(/*"Ecsetalso utan"*/);
 
     // Objektumok kirajzolasa, de view-ba csak kesobb kerulnek:
+    //auto objects_start = std::chrono::high_resolution_clock::now();
     int balalsox, balalsoy;
     Pecsetalso->getbalalso_int(sarok, &balalsox, &balalsoy);
     int objminx = balalsox - 2 * OBJECT_PIXEL_RADIUS - 2;
@@ -646,8 +651,10 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
 
         blt8(ppic, pobjpic, pker->rxint - balalsox, pker->ryint - balalsoy + dy);
     }
+    //auto objects_end = std::chrono::high_resolution_clock::now();
 
     // Motorosok kirajzolasa:
+    //auto bike_start = std::chrono::high_resolution_clock::now();
     motkepek* pmkepek1 = &Plgr->mkepek1;
     motkepek* pmkepek2 = &Plgr->mkepek2;
     if ((State->aplayerabike && !ajatekos) || (!State->aplayerabike && ajatekos)) {
@@ -667,10 +674,14 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
 
     // Motoros kirajzolasa:
     kibike(ajatekos, ppic, t, sarok, pmot, pvalt, pmkepek1);
+    //auto bike_end = std::chrono::high_resolution_clock::now();
 
     // Felso ecset kitevese:
+    //auto ecsetfelso_start = std::chrono::high_resolution_clock::now();
     Pecsetfelso->kitesz(ajatekos, ppic, sarok, 0, 0, Cxsize - 1, Cysize - 1);
+    //auto ecsetfelso_end = std::chrono::high_resolution_clock::now();
 
+    //auto ui_start = std::chrono::high_resolution_clock::now();
     if (viewki) {
         if (Single) {
             kiview(ajatekos, ppic, pvalt->baljobbv_h.baljobb, motorkozep, NULL);
@@ -711,6 +722,22 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
             kidigit(Ezenlegjobbido, -1.0, t, ppic, Cxsize, Cysize);
         }
     }
+    //auto ui_end = std::chrono::high_resolution_clock::now();
+    
+    //auto total_end = std::chrono::high_resolution_clock::now();
+    
+    /*static int draw_prof_count = 0;
+    if (++draw_prof_count % 60 == 0) {
+        double ecset_us = std::chrono::duration<double, std::micro>(ecset_end - ecset_start).count();
+        double objects_us = std::chrono::duration<double, std::micro>(objects_end - objects_start).count();
+        double bike_us = std::chrono::duration<double, std::micro>(bike_end - bike_start).count();
+        double ecsetfelso_us = std::chrono::duration<double, std::micro>(ecsetfelso_end - ecsetfelso_start).count();
+        double ui_us = std::chrono::duration<double, std::micro>(ui_end - ui_start).count();
+        double total_us = std::chrono::duration<double, std::micro>(total_end - total_start).count();
+        
+        printf("    Draw breakdown - EcsetAlso: %.1fµs, Objects: %.1fµs, Bike: %.1fµs, EcsetFelso: %.1fµs, UI: %.1fµs (Total: %.1fµs)\n",
+               ecset_us, objects_us, bike_us, ecsetfelso_us, ui_us, total_us);
+    }*/
 }
 
 static pic8* Bpic = NULL;
@@ -719,6 +746,7 @@ extern int Ucsosurlodas;
 
 void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int timeki1,
                  int viewki2, int timeki2) {
+    //auto total_start = std::chrono::high_resolution_clock::now();
 
     int splitscreen = 0;
     int fulljatekosA = 1;
@@ -740,9 +768,11 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
         }
     }
 
+    //auto lock_start = std::chrono::high_resolution_clock::now();
     Locky0_alul = 1;
     pic8* npic = lockbackbuffer_pic();
     Locky0_alul = 0;
+    //auto lock_end = std::chrono::high_resolution_clock::now();
 
     if (!Bpic) {
         Bpic = new pic8(10, SCREEN_HEIGHT);
@@ -750,6 +780,7 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
 
     // hiba( "Itt van 11!" ); idejott
 
+    //auto fill_start = std::chrono::high_resolution_clock::now();
     if (Kitoltestmegrak > 0) {
         Kitoltestmegrak--;
         beallitmereteket(splitscreen);
@@ -758,9 +789,11 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
 
         kitolthatteret(npic);
     }
+    //auto fill_end = std::chrono::high_resolution_clock::now();
 
     // hiba( "Itt van 12!" ); ide nemjon
 
+    //auto draw_start = std::chrono::high_resolution_clock::now();
     if (splitscreen) {
         // 1. Jatekos:
         Bpic->keszitbelsot(Cx1, Cy1, Cx2, Cy2, npic);
@@ -779,9 +812,12 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
             kirakegyjatekost(0, Bpic, t, Motor2, pvalt2, viewki2, timeki2, Motor1, pvalt1);
         }
     }
+    //auto draw_end = std::chrono::high_resolution_clock::now();
 
     // Mentes lemezre:
+    //auto save_start = std::chrono::high_resolution_clock::now();
     menteshakell(npic);
+    //auto save_end = std::chrono::high_resolution_clock::now();
 
     // for( int i = 0; i < Ucsosurlodas; i++ )
     //	npic->ppixel( i, 100, 0 );
@@ -812,7 +848,24 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
 
     hang(/*"unlock elott"*/);
 
+    //auto unlock_start = std::chrono::high_resolution_clock::now();
     Locky0_alul = 1;
     unlockbackbuffer_pic();
     Locky0_alul = 0;
+    //auto unlock_end = std::chrono::high_resolution_clock::now();
+    
+    //auto total_end = std::chrono::high_resolution_clock::now();
+    
+    /*static int prof_count = 0;
+    if (++prof_count % 60 == 0) {
+        double lock_us = std::chrono::duration<double, std::micro>(lock_end - lock_start).count();
+        double fill_us = std::chrono::duration<double, std::micro>(fill_end - fill_start).count();
+        double draw_us = std::chrono::duration<double, std::micro>(draw_end - draw_start).count();
+        double save_us = std::chrono::duration<double, std::micro>(save_end - save_start).count();
+        double unlock_us = std::chrono::duration<double, std::micro>(unlock_end - unlock_start).count();
+        double total_us = std::chrono::duration<double, std::micro>(total_end - total_start).count();
+        
+        printf("  Render breakdown - Lock: %.1fµs, Fill: %.1fµs, Draw: %.1fµs, Save: %.1fµs, Unlock: %.1fµs (Total: %.1fµs)\n",
+               lock_us, fill_us, draw_us, save_us, unlock_us, total_us);
+    }*/
 }
