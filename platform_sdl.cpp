@@ -4,10 +4,27 @@
 #include "main.h"
 #include <SDL.h>
 #include "scancodes_windows.h"
+#include <chrono>
+
+#ifdef __APPLE__
+#include "metal_renderer.h"
+#include <SDL_syswm.h>
+#endif
 
 SDL_Window* SDLWindow;
 SDL_Surface* SDLSurfaceMain;
 SDL_Surface* SDLSurfacePaletted;
+
+#ifdef __APPLE__
+static bool use_metal = true;
+static Uint32 CurrentPalette[256];
+#endif
+
+// FPS tracking
+static Uint32 fps_frame_count = 0;
+static Uint32 fps_last_time = 0;
+static double fps_current = 0.0;
+
 
 static bool LeftMouseDownPrev = false;
 static bool RightMouseDownPrev = false;
@@ -36,18 +53,53 @@ void platform_init() {
     SDL_EventState(SDL_DROPFILE, SDL_DISABLE);
     SDL_EventState(SDL_DROPTEXT, SDL_DISABLE);
 
-    SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
-    if (!SDLSurfaceMain) {
-        internal_error(SDL_GetError());
-        return;
+#ifdef __APPLE__
+    // Initialize Metal renderer for GPU palette lookup
+    SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    if (SDL_GetWindowWMInfo(SDLWindow, &wmInfo)) {
+        void* nsWindow = (void*)wmInfo.info.cocoa.window;
+        if (metal_init(nsWindow, SCREEN_WIDTH, SCREEN_HEIGHT) == 0) {
+            use_metal = true;
+            printf("Metal renderer initialized successfully!\n");
+            
+            // Initialize default palette
+            for (int i = 0; i < 256; i++) {
+                CurrentPalette[i] = 0xFF000000 | (i << 16) | (i << 8) | i;
+            }
+            metal_update_palette(CurrentPalette);
+        } else {
+            use_metal = false;
+            printf("Metal renderer initialization failed, falling back to SDL\n");
+        }
+    } else {
+        use_metal = false;
+        printf("Failed to get window info, using SDL renderer\n");
     }
-    SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SDLSurfaceMain->w, SDLSurfaceMain->h, 0,
+    
+    if (!use_metal)
+#endif
+    {
+        SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
+        if (!SDLSurfaceMain) {
+            internal_error(SDL_GetError());
+            return;
+        }
+    }
+
+    SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SCREEN_WIDTH, SCREEN_HEIGHT, 0,
                                                         SDL_PIXELFORMAT_INDEX8);
     if (!SDLSurfacePaletted) {
-        internal_error(SDL_GetError());
+        internal_error(SDL_GetError());''
         return;
     }
+
+    // Initialize FPS counter
+    fps_last_time = SDL_GetTicks();
+
+    return;
 }
+
 
 static unsigned char* SurfaceBuffer[SCREEN_HEIGHT];
 static bool SurfaceLocked = false;
@@ -81,6 +133,30 @@ void unlock_backbuffer() {
         internal_error("unlock_backbuffer !SurfaceLocked!");
     }
     SurfaceLocked = false;
+
+#ifdef __APPLE__
+    if (use_metal) {
+        // Upload 8-bit indices directly to GPU - Metal shader does palette lookup!
+        metal_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
+        metal_present();
+        
+        // Update FPS counter
+        fps_frame_count++;
+        Uint32 current_time = SDL_GetTicks();
+        Uint32 elapsed = current_time - fps_last_time;
+        
+        if (elapsed >= 500) {
+            fps_current = (fps_frame_count * 1000.0) / elapsed;
+            fps_frame_count = 0;
+            fps_last_time = current_time;
+            
+            char title[128];
+            snprintf(title, sizeof(title), "Elasto Mania - FPS: %.1f (Metal)", fps_current);
+            SDL_SetWindowTitle(SDLWindow, title);
+        }
+        return;
+    }
+#endif
 
     SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
     SDL_UpdateWindowSurface(SDLWindow);
@@ -116,7 +192,18 @@ palette::palette(unsigned char* palette_data) {
 palette::~palette() { delete[] (SDL_Color*)data; }
 
 void palette::set() {
-    SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);
+#ifdef __APPLE__
+    if (use_metal) {
+        // Update Metal GPU palette texture
+        for (int i = 0; i < 256; i++) {
+            CurrentPalette[i] = ((SDL_Color*)data)[i].a << 24 | ((SDL_Color*)data)[i].r << 16 | ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
+        }
+        metal_update_palette(CurrentPalette);
+    } else
+#endif
+    {
+        SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);
+    }
 }
 
 void handle_events() {

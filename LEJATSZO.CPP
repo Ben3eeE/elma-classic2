@@ -504,6 +504,8 @@ long lejatszo(const char* filenev) {
             flagtag(eddig);
         }
 
+        //auto physics_start = std::chrono::high_resolution_clock::now();
+
         if (Single) {
             setsurlodas(valt1.inf.surlero);
             setmotor(1, valt1.inf.frekvencia, valt1.inf.gaz);
