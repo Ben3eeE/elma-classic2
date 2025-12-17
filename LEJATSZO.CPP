@@ -73,7 +73,7 @@ static int spritefeldolgoz(int sorszam, int* pkajaszam, motorst* pmot) {
 
 static double Fordido = 0.5;
 static double baljobbszamol(double eltelt, int hatra) {
-#ifdef TEST
+#ifdef DEBUG
     if (eltelt < 0) {
         hiba("baljobbszamol-ban eltelt < 0!");
     }
@@ -242,7 +242,7 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
 
     // Kirajzolashoz kellenek:
     pvalt->forgas = (eddig - pvalt->ucsoforgas) / Forgasido;
-#ifdef TEST
+#ifdef DEBUG
     if (pvalt->forgas < 0.0) {
         hiba("lejatszo-ban forgas < 0.0!");
     }
@@ -281,7 +281,7 @@ static void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
     if (pvalt->ugrasnagysag < 0) {
         pvalt->ugrasnagysag = 0;
     }
-#ifdef TEST
+#ifdef DEBUG
     if (pvalt->ugrasnagysag > 1.00001) {
         hiba("pvalt->ugrasnagysag > 1.00001!");
     }
@@ -678,7 +678,7 @@ static int replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, recor
     if (pvalt->ugrasnagysag < 0) {
         pvalt->ugrasnagysag = 0;
     }
-#ifdef TEST
+#ifdef DEBUG
     if (pvalt->ugrasnagysag > 1.00001) {
         hiba("pvalt->ugrasnagysag > 1.00001!");
     }
