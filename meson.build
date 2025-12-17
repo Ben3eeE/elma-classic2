@@ -52,7 +52,7 @@ elma_sources = files(
     'SDL.CPP',
     'SKIP.CPP',
     'SPRITE.CPP',
-    'STATE.CPP',
+    'state.cpp',
     'SZAKASZ.CPP',
     'TELJES.CPP',
     'TOPOL.CPP',

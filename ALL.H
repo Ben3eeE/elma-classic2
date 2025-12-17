@@ -53,7 +53,7 @@
 #include "KISKEP.H"
 #include "DOBOZ.H"
 
-#include "STATE.H"
+#include "state.h"
 
 #include "TELJES.H"
 
