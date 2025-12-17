@@ -14,7 +14,7 @@
 // osszes levelt igy ki is menti:
 // #define BELSOTIR
 
-static char Levelnevek[MAXPALYASZAM + 2][14] = {
+static char Levelnevek[STATE_LEVEL_COUNT + 2][14] = {
     "nulla.leb",    "a01.leb",    "a02.leb",      "a03.leb",   "a04.leb",     "a05.leb",
     "a06.leb",      "a07.leb",    "ujtag.leb",    "a08.leb",   "a09.leb",     "ujgrav.leb",
     "a10.leb",
@@ -49,7 +49,7 @@ void kiirdesceket(void) {
 
     int nemolvastobbet = 0;
     for (int i = 0; i < MAXBEEPLEVELSZAM; i++) {
-        if (nemolvastobbet || i >= MAXPALYASZAM) {
+        if (nemolvastobbet || i >= STATE_LEVEL_COUNT) {
             fprintf(h, "Itt nincs nev\n");
             continue;
         }
@@ -820,7 +820,7 @@ int nevanalizis(const char* nev) {
         return 0;
     }
 
-    if (sum <= Palyaszam) {
+    if (sum <= INTERNAL_LEVEL_COUNT) {
         return sum;
     }
     return 0;
@@ -846,15 +846,15 @@ void beallitlegjobbidot(const char* filenev, int single) {
     }
 
     int belsopalyaszam = nevanalizis(filenev);
-    palyaidok* idok = NULL;
+    topten_set* idok = NULL;
     if (belsopalyaszam > 0) {
         belsopalyaszam--; // Mivel eggyel nagyobb tomb indexenel
                           // Belso palya:
-        if (belsopalyaszam >= Palyaszam) {
+        if (belsopalyaszam >= INTERNAL_LEVEL_COUNT) {
             hiba("67467524");
         }
 
-        idok = &State->palyakidejei[belsopalyaszam];
+        idok = &State->toptens[belsopalyaszam];
     } else {
         // Kulso palya:
         if (!Ptop) {
@@ -863,15 +863,15 @@ void beallitlegjobbidot(const char* filenev, int single) {
         idok = &Ptop->idok;
     }
 
-    palyaegyfeleidok* egyfeleidok = NULL;
+    topten* egyfeleidok = NULL;
     if (single) {
-        egyfeleidok = &idok->singleidok;
+        egyfeleidok = &idok->single;
     } else {
-        egyfeleidok = &idok->multiidok;
+        egyfeleidok = &idok->multi;
     }
 
-    if (egyfeleidok->idokszama > 0) {
-        centiseconds_to_string(egyfeleidok->idok[0], Ezenlegjobbido);
+    if (egyfeleidok->times_count > 0) {
+        centiseconds_to_string(egyfeleidok->times[0], Ezenlegjobbido);
     } else {
         Ezenlegjobbido[0] = 0;
     }
@@ -883,7 +883,7 @@ static char* Lgrtabla[110] = {NULL, NULL}; // 1-es indexut figyeli hogy init-e
 static char Szo[50] = "";
 
 static void makelgrtabla(void) {
-    if (Palyaszam > 105) {
+    if (INTERNAL_LEVEL_COUNT > 105) {
         hiba("uierty895");
     }
 
@@ -893,12 +893,12 @@ static void makelgrtabla(void) {
 
     static char* chartomb = NULL;
 
-    chartomb = new char[10 * (Palyaszam + 2)];
+    chartomb = new char[10 * (INTERNAL_LEVEL_COUNT + 2)];
     if (!chartomb) {
         hiba("memory");
     }
 
-    for (int i = 1; i <= Palyaszam; i++) {
+    for (int i = 1; i <= INTERNAL_LEVEL_COUNT; i++) {
         Lgrtabla[i] = &chartomb[10 * (i - 1)];
         strcpy(Lgrtabla[i], "default");
     }
@@ -918,7 +918,7 @@ static void makelgrtabla(void) {
         if (sscanf(Sor, "%d%s", &levelszam, Szo) != 2) {
             continue;
         }
-        if (levelszam < 1 || levelszam > Palyaszam) {
+        if (levelszam < 1 || levelszam > INTERNAL_LEVEL_COUNT) {
             continue;
         }
         strlwr(Szo);
@@ -973,7 +973,7 @@ topol::topol(const char* filenev_p) {
         loadbelso(filenev);
         // Sajat tablabol vesszuk lgr neveket:
         // #ifdef TEST 		Demo miatt most nem ellenorizzuk
-        //	if( belsopalyaszam < 0 || belsopalyaszam > Palyaszam )
+        //	if( belsopalyaszam < 0 || belsopalyaszam > INTERNAL_LEVEL_COUNT )
         //		hiba( "4i4fyuif" );
         // #endif
         char tmp[40];

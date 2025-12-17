@@ -92,7 +92,7 @@ int floadlevel_e(const char* nev, int forceload) {
             levoltzarva = 1;
 
             char szoveg[80];
-            sprintf(szoveg, "The file '%s' is locked, you cannot edit it!", State->editfilenev);
+            sprintf(szoveg, "The file '%s' is locked, you cannot edit it!", State->editor_filename);
 
             dialog(szoveg);
             delete Ptop;
@@ -111,7 +111,7 @@ int floadlevel_e(const char* nev, int forceload) {
     Pszak = NULL;
 
     // Ha vannak benne idok, figyelmeztetes:
-    if (Ptop->idok.singleidok.idokszama > 0 || Ptop->idok.multiidok.idokszama > 0) {
+    if (Ptop->idok.single.times_count > 0 || Ptop->idok.multi.times_count > 0) {
         dialog("Warning!", "The level file you are opening has some best times.",
                "If you save this level file, these times will be erased!");
     }

@@ -42,11 +42,11 @@ static void betolt(const char* nev) {
     if (strlen(tmp) > 12) {
         hiba("betolt-ben strlen( tmp ) > 12!");
     }
-    strcpy(State->editfilenev, tmp);
+    strcpy(State->editor_filename, tmp);
 
     Valtozott = 0;
     if (!floadlevel_e(tmp, 1)) {
-        State->editfilenev[0] = 0;
+        State->editor_filename[0] = 0;
     }
 
     kitolt();
@@ -179,12 +179,12 @@ void tolt_open(void) {
         char tmp[50];
         strcpy(tmp, &Soknev[i * 10]);
         strcat(tmp, ".lev");
-        if (strcmpi(tmp, State->editfilenev) == 0) {
+        if (strcmpi(tmp, State->editor_filename) == 0) {
             kur = i;
         }
     }
 
-    // State->editfilenev[0] = 0; Igy nem lesz unnamed CANCEL utan
+    // State->editor_filename[0] = 0; Igy nem lesz unnamed CANCEL utan
 
     // Koordok megadasa:
     int helyszam = 10;
@@ -358,7 +358,7 @@ void kivalasztkezdetit(void) {
     ficlose();
 
     if (nevszam < 1) {
-        State->editfilenev[0] = 0;
+        State->editor_filename[0] = 0;
         return;
     }
 
@@ -369,12 +369,12 @@ void kivalasztkezdetit(void) {
         char tmp[50];
         strcpy(tmp, &Soknev[i * 10]);
         strcat(tmp, ".lev");
-        if (strcmpi(tmp, State->editfilenev) == 0) {
+        if (strcmpi(tmp, State->editor_filename) == 0) {
             kur = i;
         }
     }
 
-    State->editfilenev[0] = 0;
+    State->editor_filename[0] = 0;
 
     // Koordok megadasa:
     int helyszam = 10;
@@ -412,8 +412,8 @@ void kivalasztkezdetit(void) {
                 if (strlen(nev) > 8) {
                     hiba("iovfgsdgffiufi");
                 }
-                strcpy(State->editfilenev, nev);
-                strcat(State->editfilenev, ".lev");
+                strcpy(State->editor_filename, nev);
+                strcat(State->editor_filename, ".lev");
                 return;
             }
             if (c == MK_UP) {
@@ -453,7 +453,7 @@ void kivalasztkezdetit(void) {
                 return;
             }
             if (boxban(ujx, ujy, boxnew)) {
-                State->editfilenev[0] = 0;
+                State->editor_filename[0] = 0;
                 return;
             }
             if (ujx > lx1 && ujx < lx2 && ujy > ly1 && ujy < ly2) {
@@ -467,8 +467,8 @@ void kivalasztkezdetit(void) {
                         if (strlen(nev) > 8) {
                             hiba("iovfgsdgffiufi");
                         }
-                        strcpy(State->editfilenev, nev);
-                        strcat(State->editfilenev, ".lev");
+                        strcpy(State->editor_filename, nev);
+                        strcat(State->editor_filename, ".lev");
                         return;
                     }
                 }
@@ -527,18 +527,18 @@ void tolt_new(void) {
 
     Valtozott = 0;
     floadlevel_e("_uj_topol_");
-    State->editfilenev[0] = 0;
+    State->editor_filename[0] = 0;
     kitolt();
 }
 
 // Ha sikeresen mentett, akkor igaz:
 int tolt_save(int lokkolhato) {
     invalidateegesz();
-    if (State->editfilenev[0] == 0) {
+    if (State->editor_filename[0] == 0) {
         // Ez a file meg nincsen elnevezve:
         return tolt_save_as(lokkolhato);
     }
-    Ptop->save(State->editfilenev);
+    Ptop->save(State->editor_filename);
     Valtozott = 0;
     return 1;
 }
@@ -620,7 +620,7 @@ int tolt_save_as(int lokkolhato) {
                     }
                 }
                 Ptop->save(nev);
-                strcpy(State->editfilenev, nev);
+                strcpy(State->editor_filename, nev);
                 Valtozott = 0;
                 return 1;
             }
@@ -718,7 +718,7 @@ int tolt_save_as(int lokkolhato) {
                     }
                 }
                 Ptop->save(nev);
-                strcpy(State->editfilenev, nev);
+                strcpy(State->editor_filename, nev);
                 Valtozott = 0;
                 return 1;
             }
@@ -730,7 +730,7 @@ int tolt_save_as(int lokkolhato) {
                 // Most mentunk:
                 // Eloallitjuk nevet:
                 strcat(nev, ".lev");
-                if (strcmpi(nev, State->editfilenev) == 0) {
+                if (strcmpi(nev, State->editor_filename) == 0) {
                     dialog(
                         "You must give a name that is different from the name of the edited file!");
                     return 0;
@@ -760,7 +760,7 @@ int tolt_save_as(int lokkolhato) {
                 Ptop->lezart = 1;
                 Ptop->save(nev);
                 Ptop->lezart = 0;
-                // strcpy( State->editfilenev, nev );
+                // strcpy( State->editor_filename, nev );
                 return 1;
             }
         }

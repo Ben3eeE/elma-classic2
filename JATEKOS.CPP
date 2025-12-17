@@ -1,6 +1,6 @@
 #include "ALL.H"
 
-static int Maxnevhossz = 8; // Ez kisebb kell hogy legyen JATEKOSNEVHOSSZ-nal!
+static int Maxnevhossz = 8; // Ez kisebb kell hogy legyen MAX_PLAYERNAME_LENGTH-nal!
 
 // Siker eseten igazzal ter vissza:
 static int bevesznevet(char* nev, int visszater) {
@@ -62,33 +62,33 @@ static int bevesznevet(char* nev, int visszater) {
 
 void newjatekos(int A, int visszater) {
     // Ellenorzes:
-    if (State->jatekosokszama >= MAXJATEKOS - 1) {
+    if (State->player_count >= MAX_PLAYERS - 1) {
         uzenet("Sorry, no more players can get onto the list!");
     }
     int maxrub = Maxrubrikaszam;
-    if (MAXJATEKOS > maxrub) {
-        hiba("MAXJATEKOS > Maxrubrikaszam!");
+    if (MAX_PLAYERS > maxrub) {
+        hiba("MAX_PLAYERS > Maxrubrikaszam!");
     }
 
-    if (bevesznevet(State->jatekosok[int(State->jatekosokszama)].nev, visszater)) {
+    if (bevesznevet(State->players[int(State->player_count)].name, visszater)) {
         if (A) {
-            strcpy(State->jatekosa, State->jatekosok[int(State->jatekosokszama)].nev);
-            State->jatekosokszama++;
-            if (State->jatekosokszama == 1) {
-                strcpy(State->jatekosb, State->jatekosa);
+            strcpy(State->player1, State->players[int(State->player_count)].name);
+            State->player_count++;
+            if (State->player_count == 1) {
+                strcpy(State->player2, State->player1);
             }
         } else {
-            strcpy(State->jatekosb, State->jatekosok[int(State->jatekosokszama)].nev);
-            State->jatekosokszama++;
-            if (State->jatekosokszama == 1) {
-                strcpy(State->jatekosa, State->jatekosb);
+            strcpy(State->player2, State->players[int(State->player_count)].name);
+            State->player_count++;
+            if (State->player_count == 1) {
+                strcpy(State->player1, State->player2);
             }
         }
     } else {
         visszater = 1; // Ha elescapelte, akkor visszamegyunk menube
     }
 
-    if (State->jatekosokszama == 0) {
+    if (State->player_count == 0) {
         kilep();
     }
 
@@ -105,9 +105,9 @@ void jatekosvalasztas(int A, int visszater) {
     pval = new valaszt2;
     char* eddigjatekos = NULL;
     if (A) {
-        eddigjatekos = State->jatekosa;
+        eddigjatekos = State->player1;
     } else {
-        eddigjatekos = State->jatekosb;
+        eddigjatekos = State->player2;
     }
     pval->egykepen = LISTegykepen;
     pval->x0 = LISTx0;
@@ -118,18 +118,18 @@ void jatekosvalasztas(int A, int visszater) {
 
     strcpy(Rubrikak[0], "Create New Player");
     pval->kur = 0;
-    for (int i = 0; i < State->jatekosokszama; i++) {
-        if (strlen(State->jatekosok[i].nev) > MAXRUBRIKAHOSSZ) {
+    for (int i = 0; i < State->player_count; i++) {
+        if (strlen(State->players[i].name) > MAXRUBRIKAHOSSZ) {
             hiba("Tul hosszu nev jatekosvalasztas-ban!");
         }
-        strcpy(Rubrikak[i + 1], State->jatekosok[i].nev);
+        strcpy(Rubrikak[i + 1], State->players[i].name);
 
-        if (strcmp(eddigjatekos, State->jatekosok[i].nev) == 0) {
+        if (strcmp(eddigjatekos, State->players[i].name) == 0) {
             pval->kur = i + 1;
         }
     }
 
-    pval->bead(State->jatekosokszama + 1);
+    pval->bead(State->player_count + 1);
 
     RECidokellhet = 1;
     RECidokellis = 0;
@@ -152,7 +152,7 @@ void jatekosvalasztas(int A, int visszater) {
 
     if (RECidokellis && visszater) {
         // Ezt a jatekost akarja torolni (opciokbol hivva):
-        if (State->jatekosokszama <= 1) {
+        if (State->player_count <= 1) {
             return;
         }
 
@@ -160,35 +160,35 @@ void jatekosvalasztas(int A, int visszater) {
 
         // Megjegyezzuk hogy A vagy B nem torolt jatekos-e veletlenul:
         int atorlodott = 0;
-        if (strcmp(State->jatekosa, State->jatekosok[torlendo].nev) == 0) {
+        if (strcmp(State->player1, State->players[torlendo].name) == 0) {
             atorlodott = 1;
         }
         int btorlodott = 0;
-        if (strcmp(State->jatekosb, State->jatekosok[torlendo].nev) == 0) {
+        if (strcmp(State->player2, State->players[torlendo].name) == 0) {
             btorlodott = 1;
         }
 
         // Toroljuk jatekost, tobbit elore hozzuk eggyel:
-        for (int i = torlendo; i < State->jatekosokszama - 1; i++) {
+        for (int i = torlendo; i < State->player_count - 1; i++) {
             // i-edik helyre elore hozzuk i+1-edik helyrol:
-            State->jatekosok[i] = State->jatekosok[i + 1];
+            State->players[i] = State->players[i + 1];
         }
-        State->jatekosokszama--;
+        State->player_count--;
 
         if (atorlodott) {
-            strcpy(State->jatekosa, State->jatekosok[0].nev);
+            strcpy(State->player1, State->players[0].name);
         }
         if (btorlodott) {
-            strcpy(State->jatekosb, State->jatekosok[0].nev);
+            strcpy(State->player2, State->players[0].name);
         }
 
         return;
     }
 
     if (A) {
-        strcpy(State->jatekosa, State->jatekosok[eredmeny - 1].nev);
+        strcpy(State->player1, State->players[eredmeny - 1].name);
     } else {
-        strcpy(State->jatekosb, State->jatekosok[eredmeny - 1].nev);
+        strcpy(State->player2, State->players[eredmeny - 1].name);
     }
 
     if (visszater) {

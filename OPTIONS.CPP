@@ -50,7 +50,7 @@ void help(void) {
 
 // Egyben allithato:
 void options(void) {
-    int origsecondary = State->secondarybuffer;
+    int origsecondary = State->compatibility_mode;
 
     int kurrens = 0;
     while (1) {
@@ -75,7 +75,7 @@ void options(void) {
 
         if (vantagis) {
             strcpy(Rubrikak[1], "Flag Tag:");
-            if (State->tag) {
+            if (State->flag_tag) {
                 strcpy(Rubrikak_tab[1], "On");
             } else {
                 strcpy(Rubrikak_tab[1], "Off");
@@ -84,48 +84,48 @@ void options(void) {
 
         // Jatekos valasztas:
         sprintf(Rubrikak[1 + vantagis], "Player A:");
-        sprintf(Rubrikak_tab[1 + vantagis], State->jatekosa);
+        sprintf(Rubrikak_tab[1 + vantagis], State->player1);
 
         sprintf(Rubrikak[2 + vantagis], "Player B:");
-        sprintf(Rubrikak_tab[2 + vantagis], State->jatekosb);
+        sprintf(Rubrikak_tab[2 + vantagis], State->player2);
 
         strcpy(Rubrikak[3 + vantagis], "Sound:");
-        if (State->soundon) {
+        if (State->sound_on) {
             sprintf(Rubrikak_tab[3 + vantagis], "Enabled");
         } else {
             sprintf(Rubrikak_tab[3 + vantagis], "Disabled");
         }
 
         strcpy(Rubrikak[4 + vantagis], "Sound Optimization:");
-        if (State->secondarybuffer) {
+        if (State->compatibility_mode) {
             sprintf(Rubrikak_tab[4 + vantagis], "Compatibility");
         } else {
             sprintf(Rubrikak_tab[4 + vantagis], "Best Quality");
         }
 
         sprintf(Rubrikak[5 + vantagis], "Animated Menus:");
-        if (State->animatedmenus) {
+        if (State->animated_menus) {
             sprintf(Rubrikak_tab[5 + vantagis], "Yes");
         } else {
             sprintf(Rubrikak_tab[5 + vantagis], "No");
         }
 
         sprintf(Rubrikak[6 + vantagis], "Video Detail:");
-        if (State->highquality) {
+        if (State->high_quality) {
             sprintf(Rubrikak_tab[6 + vantagis], "High");
         } else {
             sprintf(Rubrikak_tab[6 + vantagis], "Low");
         }
 
         sprintf(Rubrikak[7 + vantagis], "Animated Objects:");
-        if (State->animatedobjects) {
+        if (State->animated_objects) {
             sprintf(Rubrikak_tab[7 + vantagis], "Yes");
         } else {
             sprintf(Rubrikak_tab[7 + vantagis], "No");
         }
 
         sprintf(Rubrikak[8 + vantagis], "Swap Bikes:");
-        if (State->aplayerabike) {
+        if (State->player1_bike1) {
             sprintf(Rubrikak_tab[8 + vantagis], "No");
         } else {
             sprintf(Rubrikak_tab[8 + vantagis], "Yes");
@@ -140,7 +140,7 @@ void options(void) {
 
         if (kurrens < 0) {
             // State->save_aaa(); majd programbol valo kilepeskor kiirjuk
-            if (origsecondary != State->secondarybuffer && Hangmarmegy) {
+            if (origsecondary != State->compatibility_mode && Hangmarmegy) {
                 // Kiirunk egy dialogust, hogy ujra kell inditani ehhez:
                 szoveglista szl;
                 szl.addszoveg_kozep("You modified the sound buffer", 320, 140);
@@ -167,7 +167,7 @@ void options(void) {
         }
 
         if (kurrens == 1 && vantagis) {
-            State->tag = !State->tag;
+            State->flag_tag = !State->flag_tag;
         }
 
         if (vantagis) {
@@ -183,28 +183,28 @@ void options(void) {
         }
 
         if (kurrens == 3) {
-            State->soundon = !State->soundon;
+            State->sound_on = !State->sound_on;
         }
 
         if (kurrens == 4) {
-            State->secondarybuffer = !State->secondarybuffer;
+            State->compatibility_mode = !State->compatibility_mode;
         }
 
         if (kurrens == 5) {
-            State->animatedmenus = !State->animatedmenus;
+            State->animated_menus = !State->animated_menus;
         }
 
         if (kurrens == 6) {
-            State->highquality = !State->highquality;
+            State->high_quality = !State->high_quality;
             invalidate_ptop();
         }
 
         if (kurrens == 7) {
-            State->animatedobjects = !State->animatedobjects;
+            State->animated_objects = !State->animated_objects;
         }
 
         if (kurrens == 8) {
-            State->aplayerabike = !State->aplayerabike;
+            State->player1_bike1 = !State->player1_bike1;
         }
 
         if (kurrens == 9) {

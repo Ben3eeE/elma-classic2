@@ -134,7 +134,7 @@ void playextmenu(void) {
         char tmp[50];
         strcpy(tmp, Rubrikak[i]);
         // strcat( tmp, ".lev" );
-        if (strcmpi(tmp, State->playextfilenev) == 0) {
+        if (strcmpi(tmp, State->external_filename) == 0) {
             kezdo = i;
         }
     }
@@ -163,7 +163,7 @@ void playextmenu(void) {
         }
         strcpy(filenev, val.rubrikak[eredmeny]);
 
-        strcpy(State->playextfilenev, filenev);
+        strcpy(State->external_filename, filenev);
 
         while (1) {
             kiirloading();

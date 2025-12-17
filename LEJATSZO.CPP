@@ -16,14 +16,14 @@ struct viewtimest {
 };
 
 static void initsoundlejatszoban(void) {
-    if (State->soundon && !Hangmarmegy) {
+    if (State->sound_on && !Hangmarmegy) {
         Hangmarmegy = 1;
         Hangenabled = 1;
 
         Mute = 1;
         starthanghigh();
         void initdsound(int);
-        initdsound(State->secondarybuffer);
+        initdsound(State->compatibility_mode);
     }
 }
 
@@ -98,20 +98,20 @@ static double Forgasido = 0.35;
 // static int Marvoltgaz = 0;
 
 // Ide csak *pmeghalt == 0-val erkezhet
-static void belsoresz(motorst* pmot, jatekosopciok* popciok, valtozok* pvalt, recorder* prec,
+static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                       long* pmegvanido, int* pmeghalt, double eddig, double dt) {
     // Ugras elintezese:
     int ugrik1 = 0, ugrik2 = 0;
     if (eddig > pvalt->utolsougras + VoltDelay) {
-        if ((mk_getstate(popciok->billugras1) && Sajatugras) ||
-            (mk_getstate(popciok->billugras2) && !Sajatugras)) {
+        if ((mk_getstate(popciok->right_volt) && Sajatugras) ||
+            (mk_getstate(popciok->left_volt) && !Sajatugras)) {
             ugrik1 = 1;
             pvalt->utolsougras = eddig;
             pvalt->ugras1volt = 1;
             startwavegyujto(WAV_UGRAS1, 0.99, -1);
         }
-        if ((mk_getstate(popciok->billugras2) && Sajatugras) ||
-            (mk_getstate(popciok->billugras1) && !Sajatugras)) {
+        if ((mk_getstate(popciok->left_volt) && Sajatugras) ||
+            (mk_getstate(popciok->right_volt) && !Sajatugras)) {
             ugrik2 = 1;
             pvalt->utolsougras = eddig;
             pvalt->ugras1volt = 0;
@@ -121,8 +121,7 @@ static void belsoresz(motorst* pmot, jatekosopciok* popciok, valtozok* pvalt, re
 
     // LEPTET!!!!!!!:
     // 0-meghalt, 1-megnyerte, 2-semmi kulonos
-    leptet(pmot, eddig, dt, mk_getstate(popciok->billgaz), mk_getstate(popciok->billfek), ugrik1,
-           ugrik2);
+    leptet(pmot, eddig, dt, mk_getstate(popciok->gas), mk_getstate(popciok->brake), ugrik1, ugrik2);
 
     int eredmeny = vizsgalat(pmot);
     if (eredmeny == 0) {
@@ -175,7 +174,7 @@ static void belsoresz(motorst* pmot, jatekosopciok* popciok, valtozok* pvalt, re
     }
     pvalt->inf.frekvencia = 2.0 - exp(-pvalt->inf.frekvencia);
 
-    pvalt->inf.gaz = (char)mk_getstate(popciok->billgaz);
+    pvalt->inf.gaz = (char)mk_getstate(popciok->gas);
     prec->store(pmot, eddig, &pvalt->inf);
 
     // Egyedi hangok:
@@ -199,10 +198,10 @@ static void belsoresz(motorst* pmot, jatekosopciok* popciok, valtozok* pvalt, re
     }
 }
 
-static void toggleresz(jatekosopciok* popciok, valtozok* pvalt, int* pviewkin, int* ptimekin,
+static void toggleresz(player_keys* popciok, valtozok* pvalt, int* pviewkin, int* ptimekin,
                        int* pmasikshow) {
     // Showkep:
-    if (!pvalt->showkepnyomva && mk_getstate(popciok->billshowkep)) {
+    if (!pvalt->showkepnyomva && mk_getstate(popciok->toggle_visibility)) {
         Kitoltestmegrak = Kitoltestmegrakkezd;
         if (!*pmasikshow) {
             // Ha masik jatekos ablaka nem latszott, mindegyik fog latszani:
@@ -212,17 +211,17 @@ static void toggleresz(jatekosopciok* popciok, valtozok* pvalt, int* pviewkin, i
             pvalt->showkep = !pvalt->showkep;
         }
     }
-    pvalt->showkepnyomva = mk_getstate(popciok->billshowkep);
+    pvalt->showkepnyomva = mk_getstate(popciok->toggle_visibility);
     // View ablak:
-    if (!pvalt->viewnyomva && mk_getstate(popciok->billview)) {
+    if (!pvalt->viewnyomva && mk_getstate(popciok->toggle_minimap)) {
         *pviewkin = !*pviewkin;
     }
-    pvalt->viewnyomva = mk_getstate(popciok->billview);
+    pvalt->viewnyomva = mk_getstate(popciok->toggle_minimap);
     // Ido kint legyen vagy ne:
-    if (!pvalt->timenyomva && mk_getstate(popciok->billtime)) {
+    if (!pvalt->timenyomva && mk_getstate(popciok->toggle_timer)) {
         *ptimekin = !*ptimekin;
     }
-    pvalt->timenyomva = mk_getstate(popciok->billtime);
+    pvalt->timenyomva = mk_getstate(popciok->toggle_timer);
 }
 
 static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig, int hatra) {
@@ -257,17 +256,17 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
     pvalt->baljobb = baljobbszamol(eddig - pvalt->ucsoford, hatra);
 }
 
-static void kulsoresz(motorst* pmot, jatekosopciok* popciok, valtozok* pvalt, recorder* prec,
+static void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                       viewtimest* pvt, double eddig, int* pmasikshow, int meghalt) {
     toggleresz(popciok, pvalt, &pvt->viewkinplay, &pvt->timekinplay, pmasikshow);
 
     // Hatra fordulas elintezes:
     if (!meghalt) {
-        if (!pvalt->hatranyomva && mk_getstate(popciok->billfordul)) {
+        if (!pvalt->hatranyomva && mk_getstate(popciok->turn)) {
             pmot->flipped_bike = !pmot->flipped_bike;
             szamitfejr(pmot);
         }
-        pvalt->hatranyomva = mk_getstate(popciok->billfordul);
+        pvalt->hatranyomva = mk_getstate(popciok->turn);
     }
     baljobbelintez(&pvalt->baljobbv_f, prec, eddig, pmot->flipped_bike);
 
@@ -313,7 +312,7 @@ long lejatszo(const char* filenev) {
 
     // Jatekmod eldontese:
     Single = State->single;
-    Tag = State->tag;
+    Tag = State->flag_tag;
     Prec1->settag(Tag);
     Prec2->settag(Tag);
 
@@ -408,7 +407,7 @@ long lejatszo(const char* filenev) {
             }
 
             // char tmp[10];
-            // sprintf( tmp, "Gaz kodja: %d", (int)State->opciok1.billgaz );
+            // sprintf( tmp, "Gaz kodja: %d", (int)State->keys1.gas );
             // uzenet( tmp );
             // double dt = 0.003; // Ez it 1.2-es verzionak megfelelo
             // double dt = 0.006; // Ez itt uj lepeskoz (jol mukodik regen)
@@ -423,13 +422,11 @@ long lejatszo(const char* filenev) {
             }
 
             if (!meghalt1) {
-                belsoresz(Motor1, &State->opciok1, &valt1, Prec1, &megvanido1, &meghalt1, eddig,
-                          dt);
+                belsoresz(Motor1, &State->keys1, &valt1, Prec1, &megvanido1, &meghalt1, eddig, dt);
             }
 
             if (!Single && !meghalt2) {
-                belsoresz(Motor2, &State->opciok2, &valt2, Prec2, &megvanido2, &meghalt2, eddig,
-                          dt);
+                belsoresz(Motor2, &State->keys2, &valt2, Prec2, &megvanido2, &meghalt2, eddig, dt);
             }
 
             if (!(meghalt1 && meghalt2)) {
@@ -517,11 +514,11 @@ long lejatszo(const char* filenev) {
             setmotor(0, valt2.inf.frekvencia, valt2.inf.gaz);
         }
 
-        kulsoresz(Motor1, &State->opciok1, &valt1, Prec1, &Viewtime1, eddig, &valt2.showkep,
+        kulsoresz(Motor1, &State->keys1, &valt1, Prec1, &Viewtime1, eddig, &valt2.showkep,
                   meghalt1);
 
         if (!Single) {
-            kulsoresz(Motor2, &State->opciok2, &valt2, Prec2, &Viewtime2, eddig, &valt1.showkep,
+            kulsoresz(Motor2, &State->keys2, &valt2, Prec2, &Viewtime2, eddig, &valt1.showkep,
                       meghalt2);
         }
 
@@ -535,20 +532,20 @@ long lejatszo(const char* filenev) {
 
         // Egy par kozos toggle:
         // Plusz elintezes:
-        if (!plussznyomva && mk_getstate(State->billplussz)) {
+        if (!plussznyomva && mk_getstate(State->key_increase_screen_size)) {
             novelkepmeret();
         }
-        plussznyomva = mk_getstate(State->billplussz);
+        plussznyomva = mk_getstate(State->key_increase_screen_size);
         // Minusz elintezes:
-        if (!minusznyomva && mk_getstate(State->billminusz)) {
+        if (!minusznyomva && mk_getstate(State->key_decrease_screen_size)) {
             csokkentkepmeret();
         }
-        minusznyomva = mk_getstate(State->billminusz);
+        minusznyomva = mk_getstate(State->key_decrease_screen_size);
         // Snap nyomas elintezese:
-        if (!snapnyomva && mk_getstate(State->billsnap)) {
+        if (!snapnyomva && mk_getstate(State->key_screenshot)) {
             Legkozment = 1;
         }
-        snapnyomva = mk_getstate(State->billsnap);
+        snapnyomva = mk_getstate(State->key_screenshot);
 
         // Vizsgalat kilepesre:
         if (mk_getstate(MK_ESC)) {
@@ -650,7 +647,7 @@ long lejatszo(const char* filenev) {
 // char Ccc[] = "Cs1_2";
 
 // Hamissal ter vissza, ha nincsen mar tobb:
-static int replaymag(motorst* pmot, jatekosopciok* popciok, valtozok* pvalt, recorder* prec,
+static int replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                      double eddig, viewtimest* pvt, int* pmasikshow) {
 
     toggleresz(popciok, pvalt, &pvt->viewkinreplay, &pvt->timekinreplay, pmasikshow);
@@ -776,12 +773,12 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         double eddig = mv_stopperido() * 0.0024;
         // recall koordokat es Hatra-t is beallitja:
         int befejezte1 =
-            !replaymag(Motor1, &State->opciok1, &valt1, Prec1, eddig, &Viewtime1, &valt2.showkep);
+            !replaymag(Motor1, &State->keys1, &valt1, Prec1, eddig, &Viewtime1, &valt2.showkep);
 
         int befejezte2 = 0;
         if (!Single) {
-            befejezte2 = !replaymag(Motor2, &State->opciok2, &valt2, Prec2, eddig, &Viewtime2,
-                                    &valt1.showkep);
+            befejezte2 =
+                !replaymag(Motor2, &State->keys2, &valt2, Prec2, eddig, &Viewtime2, &valt1.showkep);
         }
 
         if ((Single && befejezte1) || (!Single && befejezte1 && befejezte2)) {
@@ -842,23 +839,23 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         // Egy par kozos toggle:
         // Plusz elintezes:
-        if (!plussznyomva && mk_getstate(State->billplussz)) {
+        if (!plussznyomva && mk_getstate(State->key_increase_screen_size)) {
             novelkepmeret();
 
             // extern int Mostirdki;
             // Mostirdki = 1;
         }
-        plussznyomva = mk_getstate(State->billplussz);
+        plussznyomva = mk_getstate(State->key_increase_screen_size);
         // Minusz elintezes:
-        if (!minusznyomva && mk_getstate(State->billminusz)) {
+        if (!minusznyomva && mk_getstate(State->key_decrease_screen_size)) {
             csokkentkepmeret();
         }
-        minusznyomva = mk_getstate(State->billminusz);
+        minusznyomva = mk_getstate(State->key_decrease_screen_size);
         // Snap nyomas elintezese:
-        if (!snapnyomva && mk_getstate(State->billsnap)) {
+        if (!snapnyomva && mk_getstate(State->key_screenshot)) {
             Legkozment = 1;
         }
-        snapnyomva = mk_getstate(State->billsnap);
+        snapnyomva = mk_getstate(State->key_screenshot);
 
         // Vizsgalat kilepesre:
         if (mk_getstate(MK_ESC)) {

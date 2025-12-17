@@ -62,8 +62,8 @@ void centiseconds_to_string(long time, char* text, bool show_hours) {
 // PlayerAName               00:14:00 (Single)
 // PlayerAName  PlayerBName  00:14:00 (Multi)
 // LongPlayerAName LongPlaye 00:14:00 (truncated)
-static void render_topten(palyaegyfeleidok* tten, const char* header, int single) {
-    if (tten->idokszama == 0) {
+static void render_topten(topten* tten, const char* header, int single) {
+    if (tten->times_count == 0) {
         return;
     }
 
@@ -79,12 +79,12 @@ static void render_topten(palyaegyfeleidok* tten, const char* header, int single
         player_x = 80;
         time_x = 400;
     }
-    for (int i = 0; i < tten->idokszama; i++) {
+    for (int i = 0; i < tten->times_count; i++) {
         char player_text[50];
-        strcpy(player_text, tten->nevek1[i]);
+        strcpy(player_text, tten->names1[i]);
         if (!single) {
             strcat(player_text, "  ");
-            strcat(player_text, tten->nevek2[i]);
+            strcat(player_text, tten->names2[i]);
         }
         // Truncate the player names so it doesn't overlap with the times
         while (Pmenuabc->len(player_text) > time_x - player_x - 4) {
@@ -93,7 +93,7 @@ static void render_topten(palyaegyfeleidok* tten, const char* header, int single
 
         men.addszoveg(player_text, player_x, 110 + i * (SM + 19));
         char time_text[30];
-        centiseconds_to_string(tten->idok[i], time_text);
+        centiseconds_to_string(tten->times[i], time_text);
         men.addszoveg(time_text, time_x, 110 + i * (SM + 19));
     }
 
@@ -116,9 +116,9 @@ void menu_internal_topten(int level, bool single) {
     strcat(header, ": ");
     strcat(header, getleveldescription(level));
 
-    palyaegyfeleidok* tten = &State->palyakidejei[level].singleidok;
+    topten* tten = &State->toptens[level].single;
     if (!single) {
-        tten = &State->palyakidejei[level].multiidok;
+        tten = &State->toptens[level].multi;
     }
 
     render_topten(tten, header, single);
@@ -127,9 +127,9 @@ void menu_internal_topten(int level, bool single) {
 // Render the external best times list
 void menu_external_topten(topol* top, bool single) {
     if (single) {
-        render_topten(&top->idok.singleidok, top->levelname, single);
+        render_topten(&top->idok.single, top->levelname, single);
     } else {
-        render_topten(&top->idok.multiidok, top->levelname, single);
+        render_topten(&top->idok.multi, top->levelname, single);
     }
 }
 
@@ -138,16 +138,16 @@ void menu_external_topten(topol* top, bool single) {
 void menu_best_times_choose_level(bool single) {
     // Find the last level anyone has unlocked
     int visible_levels = 0;
-    for (int i = 0; i < State->jatekosokszama; i++) {
-        if (State->jatekosok[i].sikerespalyakszama > visible_levels) {
-            visible_levels = int(State->jatekosok[i].sikerespalyakszama);
+    for (int i = 0; i < State->player_count; i++) {
+        if (State->players[i].levels_completed > visible_levels) {
+            visible_levels = int(State->players[i].levels_completed);
         }
     }
     // Also show the last uncompleted level
     visible_levels++;
     // Disallow "More Levels"
-    if (visible_levels >= Palyaszam) {
-        visible_levels = Palyaszam - 1;
+    if (visible_levels >= INTERNAL_LEVEL_COUNT) {
+        visible_levels = INTERNAL_LEVEL_COUNT - 1;
     }
 
     valaszt2 nav;
@@ -166,9 +166,9 @@ void menu_best_times_choose_level(bool single) {
 
     // Draw "1 Warm Up         bestplayer"
     for (int i = 0; i < visible_levels; i++) {
-        palyaegyfeleidok* tten = &State->palyakidejei[i].singleidok;
+        topten* tten = &State->toptens[i].single;
         if (!single) {
-            tten = &State->palyakidejei[i].multiidok;
+            tten = &State->toptens[i].multi;
         }
 
         // "1 Warm Up"
@@ -178,11 +178,11 @@ void menu_best_times_choose_level(bool single) {
 
         // Best player, if exists
         strcpy(Rubrikak_tab[i], "-");
-        if (tten->idokszama > 0) {
-            strcpy(Rubrikak_tab[i], tten->nevek1[0]);
+        if (tten->times_count > 0) {
+            strcpy(Rubrikak_tab[i], tten->names1[0]);
             if (!single) {
                 strcat(Rubrikak_tab[i], "  ");
-                strcat(Rubrikak_tab[i], tten->nevek2[0]);
+                strcat(Rubrikak_tab[i], tten->names2[0]);
             }
         }
     }

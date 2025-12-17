@@ -106,15 +106,15 @@ void seteditorpal(void) {
 }
 
 static int hanypalyavanmeg(void) {
-    int jatekosindex = getjatekosindex(State->jatekosa);
-    jatekos* pjatekos = &State->jatekosok[jatekosindex];
+    int jatekosindex = get_player_index(State->player1);
+    player* pjatekos = &State->players[jatekosindex];
     int skippelt = 0;
-    for (int i = 0; i < pjatekos->sikerespalyakszama; i++) {
-        if (pjatekos->skippedtomb[i]) {
+    for (int i = 0; i < pjatekos->levels_completed; i++) {
+        if (pjatekos->skipped[i]) {
             skippelt++;
         }
     }
-    return pjatekos->sikerespalyakszama - skippelt;
+    return pjatekos->levels_completed - skippelt;
 }
 
 // EGER EGER EGER EGER EGER EGER EGER EGER EGER EGER EGER EGER
@@ -428,15 +428,15 @@ static void ujrarajzol(int egesz) {
     Buffsima->fillbox(1, 1, SCREEN_WIDTH - 2, Savy - 2, Hatterindex);
     // Kiirjuk file nevet:
     Pabc1->write(Buffsima, 6, 15, "File:");
-    strupr(State->editfilenev);
+    strupr(State->editor_filename);
     int len = 0;
     int xfile = 41;
-    if (State->editfilenev[0] == 0) {
+    if (State->editor_filename[0] == 0) {
         Pabc2->write(Buffsima, xfile, 15, "UNNAMED");
         len = Pabc2->len("UNNAMED");
     } else {
-        Pabc2->write(Buffsima, xfile, 15, State->editfilenev);
-        len = Pabc2->len(State->editfilenev);
+        Pabc2->write(Buffsima, xfile, 15, State->editor_filename);
+        len = Pabc2->len(State->editor_filename);
     }
     if (Valtozott) {
         Pabc1->write(Buffsima, xfile + len + 3, 15, "(Changed)");
@@ -633,11 +633,11 @@ void editor(void) {
     kivalasztkezdetit();
 
     Valtozott = 0;
-    if (State->editfilenev[0] == 0) {
+    if (State->editor_filename[0] == 0) {
         floadlevel_e("_uj_topol_");
     } else {
-        if (!floadlevel_e(State->editfilenev)) {
-            State->editfilenev[0] = 0;
+        if (!floadlevel_e(State->editor_filename)) {
+            State->editor_filename[0] = 0;
         }
     }
 

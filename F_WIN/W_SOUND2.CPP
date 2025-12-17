@@ -6,7 +6,7 @@ static int Pribuffersize_byte = 0;
 static int Bitmode16 = 0;
 
 // AppCreateWritePrimaryBuffer eleje allitja be,
-// State->secondarybuffer alapjan parameterkent kapja:
+// State->compatibility_mode alapjan parameterkent kapja:
 int Hangsecondaryeloir = 0;
 
 void dsoundfinish(void) {
@@ -197,7 +197,7 @@ void AppCreateWritePrimaryBuffer(int secondaryeloir_p) {
 
 static int Dsoundinited = 0;
 
-// Parametert State->secondarybuffer alapjan kapja:
+// Parametert State->compatibility_mode alapjan kapja:
 void initdsound(int secondaryeloir) {
     if (Dsoundinited) {
         hiba("78egry78yt7");

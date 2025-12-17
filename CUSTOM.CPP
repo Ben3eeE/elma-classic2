@@ -382,23 +382,23 @@ static void bejegyez0(void) {
     Rubrikak_tab[1][0] = 0;
     strcpy(Rubrikak[2], "Customize Player B");
     Rubrikak_tab[2][0] = 0;
-    betolt(Pbilltomb0, 3, "Inc. Screen Size", &State->billplussz);
-    betolt(Pbilltomb0, 4, "Dec. Screen Size", &State->billminusz);
-    betolt(Pbilltomb0, 5, "Make a Screenshot", &State->billsnap);
+    betolt(Pbilltomb0, 3, "Inc. Screen Size", &State->key_increase_screen_size);
+    betolt(Pbilltomb0, 4, "Dec. Screen Size", &State->key_decrease_screen_size);
+    betolt(Pbilltomb0, 5, "Make a Screenshot", &State->key_screenshot);
 }
 
-static void bejegyez12(billmuttomb bmuttomb, jatekosopciok* pjatopc) {
-    betolt(bmuttomb, 0, "Throttle", &pjatopc->billgaz);
-    betolt(bmuttomb, 1, "Brake", &pjatopc->billfek);
-    betolt(bmuttomb, 2, "Rotate left", &pjatopc->billugras2);
-    betolt(bmuttomb, 3, "Rotate right", &pjatopc->billugras1);
-    betolt(bmuttomb, 4, "Change direction", &pjatopc->billfordul);
-    betolt(bmuttomb, 5, "Toggle Navigator", &pjatopc->billview);
-    betolt(bmuttomb, 6, "Toggle Time", &pjatopc->billtime);
-    betolt(bmuttomb, 7, "Toggle Show/Hide", &pjatopc->billshowkep);
+static void bejegyez12(billmuttomb bmuttomb, player_keys* pjatopc) {
+    betolt(bmuttomb, 0, "Throttle", &pjatopc->gas);
+    betolt(bmuttomb, 1, "Brake", &pjatopc->brake);
+    betolt(bmuttomb, 2, "Rotate left", &pjatopc->left_volt);
+    betolt(bmuttomb, 3, "Rotate right", &pjatopc->right_volt);
+    betolt(bmuttomb, 4, "Change direction", &pjatopc->turn);
+    betolt(bmuttomb, 5, "Toggle Navigator", &pjatopc->toggle_minimap);
+    betolt(bmuttomb, 6, "Toggle Time", &pjatopc->toggle_timer);
+    betolt(bmuttomb, 7, "Toggle Show/Hide", &pjatopc->toggle_visibility);
 }
 
-static void customizeplayer(billmuttomb bmuttomb, jatekosopciok* pjatopc, const char* ABjel) {
+static void customizeplayer(billmuttomb bmuttomb, player_keys* pjatopc, const char* ABjel) {
     int kurrens = 0;
     while (1) {
         valaszt2 val;
@@ -430,8 +430,8 @@ static void customizeplayer(billmuttomb bmuttomb, jatekosopciok* pjatopc, const 
 }
 
 void customize(void) {
-    bejegyez12(Pbilltomb1, &State->opciok1);
-    bejegyez12(Pbilltomb2, &State->opciok2);
+    bejegyez12(Pbilltomb1, &State->keys1);
+    bejegyez12(Pbilltomb2, &State->keys2);
 
     int kurrens = 0;
     while (1) {
@@ -457,18 +457,18 @@ void customize(void) {
         }
 
         if (kurrens == 0) {
-            State->resetcontrols();
-            bejegyez12(Pbilltomb1, &State->opciok1);
-            bejegyez12(Pbilltomb2, &State->opciok2);
+            State->reset_keys();
+            bejegyez12(Pbilltomb1, &State->keys1);
+            bejegyez12(Pbilltomb2, &State->keys2);
             bejegyez0();
         }
 
         if (kurrens == 1) {
-            customizeplayer(Pbilltomb1, &State->opciok1, "A");
+            customizeplayer(Pbilltomb1, &State->keys1, "A");
         }
 
         if (kurrens == 2) {
-            customizeplayer(Pbilltomb2, &State->opciok2, "B");
+            customizeplayer(Pbilltomb2, &State->keys2, "B");
         }
 
         if (kurrens >= 3 && kurrens < Rubrikaszam0) {

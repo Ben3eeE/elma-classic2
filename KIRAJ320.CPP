@@ -245,7 +245,7 @@ static void kiview(int ajatekos, pic8* ppic, double baljobb, vekt2 motorkozep, m
     // Eldontjuk szineket:
     unsigned char viewindex1 = Plgr->viewmotorindex1;
     unsigned char viewindex2 = Plgr->viewmotorindex2;
-    if ((State->aplayerabike && !ajatekos) || (!State->aplayerabike && ajatekos)) {
+    if ((State->player1_bike1 && !ajatekos) || (!State->player1_bike1 && ajatekos)) {
         viewindex1 = Plgr->viewmotorindex2;
         viewindex2 = Plgr->viewmotorindex1;
     }
@@ -611,7 +611,7 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
 
         pic8* pobjpic;
         int dy = 0;
-        if (State->animatedobjects) {
+        if (State->animated_objects) {
             switch (pker->tipus) {
             case T_KAJA:
                 pobjpic = Plgr->foodtomb[pker->foodsorszam % Plgr->foodszam]->get_frame_by_time(t);
@@ -650,7 +650,7 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
     // Motorosok kirajzolasa:
     motkepek* pmkepek1 = &Plgr->mkepek1;
     motkepek* pmkepek2 = &Plgr->mkepek2;
-    if ((State->aplayerabike && !ajatekos) || (!State->aplayerabike && ajatekos)) {
+    if ((State->player1_bike1 && !ajatekos) || (!State->player1_bike1 && ajatekos)) {
         pmkepek1 = &Plgr->mkepek2;
         pmkepek2 = &Plgr->mkepek1;
     }

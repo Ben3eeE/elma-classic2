@@ -3,14 +3,14 @@
 int skippelheto(int level) {
     int maxskippelheto = 5;
 
-    int jatekosindex = getjatekosindex(State->jatekosa);
-    jatekos* pjatekos = &State->jatekosok[jatekosindex];
-    if (pjatekos->sikerespalyakszama != level) {
+    int jatekosindex = get_player_index(State->player1);
+    player* pjatekos = &State->players[jatekosindex];
+    if (pjatekos->levels_completed != level) {
         hiba("skippelheto-ben pjatekos->sikerespalyakszam != level!");
     }
     int eddigskippelt = 0;
     for (int i = 0; i < level; i++) {
-        if (pjatekos->skippedtomb[i]) {
+        if (pjatekos->skipped[i]) {
             eddigskippelt++;
         }
     }

@@ -132,7 +132,7 @@ class topol {
     char fgnev[10];
     char bgnev[10];
 
-    palyaidok idok;
+    topten_set idok;
     int idokhelye;
 
     // Igazzal ter vissza, ha volt valtozas:

@@ -1,31 +1,31 @@
 #include "ALL.H"
 
-state_s* State = NULL;
+state* State = NULL;
 
 void cheatplayer(void) {
     // Egyetlen jatekosnak sem szabad lennie:
-    if (State->jatekosokszama != 0) {
+    if (State->player_count != 0) {
         hiba("cheatplayer-ben mar van valaki bejegyezve!");
     }
 
-    State->jatekosokszama = 1;
+    State->player_count = 1;
 
-    int hanypalya = Palyaszam;
+    int hanypalya = INTERNAL_LEVEL_COUNT;
     // hanypalya = 40;
 
-    jatekos* pjat = &State->jatekosok[0];
-    pjat->sikerespalyakszama = hanypalya;
-    strcpy(pjat->nev, "Cheat");
-    pjat->jelenlegipalya = 0;
+    player* pjat = &State->players[0];
+    pjat->levels_completed = hanypalya;
+    strcpy(pjat->name, "Cheat");
+    pjat->selected_level = 0;
 
     for (int i = 0; i < hanypalya; i++) {
-        palyaegyfeleidok* pidok = &State->palyakidejei[i].singleidok;
-        if (pidok->idokszama != 0) {
+        topten* pidok = &State->toptens[i].single;
+        if (pidok->times_count != 0) {
             hiba("cheatplayer-ben bug!");
         }
-        pidok->idokszama = 1;
-        pidok->idok[0] = 180000l;
-        strcpy(pidok->nevek1[0], "Cheat");
+        pidok->times_count = 1;
+        pidok->times[0] = 180000l;
+        strcpy(pidok->names1[0], "Cheat");
     }
 }
 
@@ -46,7 +46,7 @@ void cheatplayer(void) {
 static void mergestatedat(void);
 
 void teljes(void) {
-    State = new state_s;
+    State = new state;
     if (!State) {
         uzenet("memory");
     }
@@ -164,7 +164,7 @@ void teljes(void) {
 
     // kiraklogot();
 
-    if (State->jatekosokszama == 0) {
+    if (State->player_count == 0) {
         newjatekos(1, 0); // Innen nem jon vissza
     } else {
         jatekosvalasztas(1, 0); // Innen nem jon vissza
@@ -206,36 +206,36 @@ void kilep(void) {
     }
 }
 
-static void mergeegyfele(palyaegyfeleidok* pst, palyaegyfeleidok* pmrg, int single) {
-    int idokszama = pst->idokszama + pmrg->idokszama;
-    int idok[MAXIDOK * 2];
-    int ujetomb[MAXIDOK * 2]; // Igaz, ha merge file-bol van ido
-    jatekosnev_type nevek1[MAXIDOK * 2];
-    jatekosnev_type nevek2[MAXIDOK * 2];
+static void mergeegyfele(topten* pst, topten* pmrg, int single) {
+    int idokszama = pst->times_count + pmrg->times_count;
+    int idok[MAX_TIMES * 2];
+    int ujetomb[MAX_TIMES * 2]; // Igaz, ha merge file-bol van ido
+    player_name nevek1[MAX_TIMES * 2];
+    player_name nevek2[MAX_TIMES * 2];
     // Feltoltjuk tablat:
-    for (int i = 0; i < pst->idokszama; i++) {
-        idok[i] = pst->idok[i];
+    for (int i = 0; i < pst->times_count; i++) {
+        idok[i] = pst->times[i];
         ujetomb[i] = 0;
-        strcpy(nevek1[i], pst->nevek1[i]);
+        strcpy(nevek1[i], pst->names1[i]);
         if (single) {
             *(nevek2[i]) = 0;
         } else {
-            strcpy(nevek2[i], pst->nevek2[i]);
+            strcpy(nevek2[i], pst->names2[i]);
         }
 
         // Ezzel minden nem VJ32-es idot 50 percre allitom:
-        // if( strcmp( nevek1[i], "VJ32" ) != 0 && strcmp( nevek2[i], "VJ32" ) )
+        // if( strcmp( names1[i], "VJ32" ) != 0 && strcmp( names2[i], "VJ32" ) )
         //	idok[i] = 300000;
     }
-    for (int i = 0; i < pmrg->idokszama; i++) {
-        int idest = pst->idokszama + i;
-        idok[idest] = pmrg->idok[i];
+    for (int i = 0; i < pmrg->times_count; i++) {
+        int idest = pst->times_count + i;
+        idok[idest] = pmrg->times[i];
         ujetomb[idest] = 1;
-        strcpy(nevek1[idest], pmrg->nevek1[i]);
+        strcpy(nevek1[idest], pmrg->names1[i]);
         if (single) {
             *(nevek2[idest]) = 0;
         } else {
-            strcpy(nevek2[idest], pmrg->nevek2[i]);
+            strcpy(nevek2[idest], pmrg->names2[i]);
         }
     }
     // Rendezzuk oket:
@@ -281,7 +281,7 @@ static void mergeegyfele(palyaegyfeleidok* pst, palyaegyfeleidok* pmrg, int sing
                 ujetomb[j] = ujetomb[j + 1];
                 ujetomb[j + 1] = tmp;
 
-                jatekosnev_type tmpnev;
+                player_name tmpnev;
                 strcpy(tmpnev, nevek1[j]);
                 strcpy(nevek1[j], nevek1[j + 1]);
                 strcpy(nevek1[j + 1], tmpnev);
@@ -315,22 +315,22 @@ static void mergeegyfele(palyaegyfeleidok* pst, palyaegyfeleidok* pmrg, int sing
     }
 
     // Visszairjuk state.dat-ba:
-    if (idokszama > MAXIDOK) {
-        idokszama = MAXIDOK;
+    if (idokszama > MAX_TIMES) {
+        idokszama = MAX_TIMES;
     }
-    pst->idokszama = idokszama;
+    pst->times_count = idokszama;
 
     // Biztonsagi nullazas:
-    for (int i = 0; i < MAXIDOK; i++) {
-        pst->idok[i] = -1;
-        *(pst->nevek1[i]) = 0;
-        *(pst->nevek2[i]) = 0;
+    for (int i = 0; i < MAX_TIMES; i++) {
+        pst->times[i] = -1;
+        *(pst->names1[i]) = 0;
+        *(pst->names2[i]) = 0;
     }
     // Masolas:
     for (int i = 0; i < idokszama; i++) {
-        pst->idok[i] = idok[i];
-        strcpy(pst->nevek1[i], nevek1[i]);
-        strcpy(pst->nevek2[i], nevek2[i]);
+        pst->times[i] = idok[i];
+        strcpy(pst->names1[i], nevek1[i]);
+        strcpy(pst->names2[i], nevek2[i]);
     }
 }
 
@@ -340,17 +340,17 @@ static void mergestatedat(void) {
         return; // Nincsen merge file
     }
 
-    state_s* pmerge = new state_s(nev);
+    state* pmerge = new state(nev);
     if (!pmerge) {
         uzenet("memory");
     }
 
-    State->reloadidok();
+    State->reload_toptens();
 
     // Most osszefesuljuk besttime tablakat:
-    for (int i = 0; i < MAXPALYASZAM; i++) {
-        mergeegyfele(&State->palyakidejei[i].singleidok, &pmerge->palyakidejei[i].singleidok, 1);
-        mergeegyfele(&State->palyakidejei[i].multiidok, &pmerge->palyakidejei[i].multiidok, 0);
+    for (int i = 0; i < STATE_LEVEL_COUNT; i++) {
+        mergeegyfele(&State->toptens[i].single, &pmerge->toptens[i].single, 1);
+        mergeegyfele(&State->toptens[i].multi, &pmerge->toptens[i].multi, 0);
     }
 
     delete pmerge;

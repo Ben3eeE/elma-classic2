@@ -320,10 +320,10 @@ static void kilephakell(void) {
 
     if (eredmeny == 0) {
         // Ezt csak watmment.exe-ben szabad kikomentezni:
-        State->reloadidok();
+        State->reload_toptens();
 
         State->save();
-        State->export_();
+        State->write_stats();
         kilep();
     }
 }

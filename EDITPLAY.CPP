@@ -2,7 +2,7 @@
 
 void editplay(void) {
     invalidateegesz();
-    if (Valtozott || State->editfilenev[0] == 0 || Ptop->hibas) {
+    if (Valtozott || State->editor_filename[0] == 0 || Ptop->hibas) {
         if (!tolt_save(0)) {
             return;
         }
@@ -12,11 +12,11 @@ void editplay(void) {
         return;
     }
 
-    floadlevel_p(State->editfilenev);
+    floadlevel_p(State->editor_filename);
 
-    Prec1->erase(State->editfilenev);
-    Prec2->erase(State->editfilenev);
-    lejatszo(State->editfilenev);
+    Prec1->erase(State->editor_filename);
+    Prec2->erase(State->editor_filename);
+    lejatszo(State->editor_filename);
 
     mk_emptychar();
 

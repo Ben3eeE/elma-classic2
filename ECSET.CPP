@@ -1312,7 +1312,7 @@ ecset::ecset(int view_p) {
     }
 
     // Spriteok beadasa:
-    if (!view && State->highquality) {
+    if (!view && State->high_quality) {
         addspriteok(FAZIS_FOLD);
         addkovetok(FAZIS_FOLD);
         addspriteok(FAZIS_EG);

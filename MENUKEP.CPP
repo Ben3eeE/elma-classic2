@@ -286,7 +286,7 @@ void szoveglista::kirajzol(int nemkellgolyo, pic8* rarakkep1, pic8* rarakkep2, p
     blt8(Tmpbuffer, Buffsima);
 
     for (int i = 0; i < Ngolyok; i++) {
-        if (nemkellgolyo || !State->animatedmenus) {
+        if (nemkellgolyo || !State->animated_menus) {
             break;
         }
 
@@ -299,7 +299,7 @@ void szoveglista::kirajzol(int nemkellgolyo, pic8* rarakkep1, pic8* rarakkep2, p
     }
     if (!nemkellgolyo) {
         pic8* sisakframe = NULL;
-        if (State->animatedmenus) {
+        if (State->animated_menus) {
             sisakframe = Psisak->get_frame_by_time(ujido * 0.0024);
         } else {
             sisakframe = Psisak->get_frame_by_index(25);
@@ -350,7 +350,7 @@ int szoveglista::kirajzolanim(double ido) {
         Scrolly1 = 0;
         double yeltolas = 0.0;
         for (int i = 0; i < Ngolyok; i++) {
-            if (!State->animatedmenus) {
+            if (!State->animated_menus) {
                 break;
             }
 
@@ -408,7 +408,7 @@ int szoveglista::kirajzolanim(double ido) {
     Scrolly1 = SCREEN_HEIGHT - frame;
     double yeltolas = frame - double(SCREEN_HEIGHT);
     for (int i = 0; i < Ngolyok; i++) {
-        if (!State->animatedmenus) {
+        if (!State->animated_menus) {
             break;
         }
 
@@ -431,7 +431,7 @@ int szoveglista::kirajzolanim(double ido) {
 
     // Rarakjuk sisakot:
     pic8* sisakframe = NULL;
-    if (State->animatedmenus) {
+    if (State->animated_menus) {
         sisakframe = Psisak->get_frame_by_time(ido * 0.0024);
     } else {
         sisakframe = Psisak->get_frame_by_index(25);
@@ -587,7 +587,7 @@ void menuproba(void) {
     blt8( Tmpbuffer, Buffsima );
 
     for( int i = 0; i < Ngolyok; i++ ) {
-        if( nemkellgolyo || !State->animatedmenus )
+        if( nemkellgolyo || !State->animated_menus )
             break;
 
         kirajzgolyo( Golyok[i].rmostani, Golyok[i].sug, Buffgolyo );
@@ -601,7 +601,7 @@ void menuproba(void) {
     }
     if( !nemkellgolyo ) {
         pic8* sisakframe = NULL;
-        if( State->animatedmenus )
+        if( State->animated_menus )
             sisakframe = Psisak->get_frame_by_time( ujido*0.0024 );
         else
             sisakframe = Psisak->get_frame_by_index( 25 );
