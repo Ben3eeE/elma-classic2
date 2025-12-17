@@ -3,8 +3,6 @@
 
 static const int STATE_VERSION = 200;
 
-int getstatesoundon() { return State->sound_on; }
-
 static void read_encrypted(void* buffer, int length, FILE* h, const char* filename) {
     if (fread(buffer, 1, length, h) != length) {
         uzenet("Corrupt file, please delete it!", filename);
