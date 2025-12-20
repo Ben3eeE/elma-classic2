@@ -27,9 +27,9 @@ int floadlevel_p(const char* nev) {
         Ptop = new topol(nev);
         if (Ptop->hibas) {
             // Kiir hiba uzenetet:
-            szoveglista szl;
-            szl.addszoveg_kozep("Level file has some topology errors!", 320, 190);
-            szl.addszoveg_kozep("Use the editor to fix them!", 320, 240);
+            menu_pic szl;
+            szl.add_line_centered("Level file has some topology errors!", 320, 190);
+            szl.add_line_centered("Use the editor to fix them!", 320, 240);
             mk_emptychar();
             while (1) {
                 if (mk_kbhit()) {
@@ -38,7 +38,7 @@ int floadlevel_p(const char* nev) {
                         break;
                     }
                 }
-                szl.kirajzol();
+                szl.render();
             }
 
             delete Ptop;
