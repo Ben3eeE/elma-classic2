@@ -33,4 +33,8 @@ void hide_cursor();
 
 bool is_fullscreen();
 
+void fps_counter_init();
+void fps_counter_frame();
+double get_current_fps();
+
 #endif
