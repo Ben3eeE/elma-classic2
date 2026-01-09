@@ -13,6 +13,10 @@ SDL_Window* SDLWindow;
 SDL_Surface* SDLSurfaceMain;
 SDL_Surface* SDLSurfacePaletted;
 
+static Uint32 fps_frame_count = 0;
+static Uint32 fps_last_time = 0;
+static double fps_current = 0.0;
+
 static bool LeftMouseDownPrev = false;
 static bool RightMouseDownPrev = false;
 static bool LeftMouseDown = false;
@@ -51,6 +55,8 @@ void platform_init() {
         internal_error(SDL_GetError());
         return;
     }
+
+    fps_last_time = SDL_GetTicks();
 }
 
 static unsigned char* SurfaceBuffer[SCREEN_HEIGHT];
@@ -88,6 +94,20 @@ void unlock_backbuffer() {
 
     SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
     SDL_UpdateWindowSurface(SDLWindow);
+    
+    fps_frame_count++;
+    Uint32 current_time = SDL_GetTicks();
+    Uint32 elapsed = current_time - fps_last_time;
+    
+    if (elapsed >= 500) {
+        fps_current = (fps_frame_count * 1000.0) / elapsed;
+        fps_frame_count = 0;
+        fps_last_time = current_time;
+        
+        char title[128];
+        snprintf(title, sizeof(title), "Elasto Mania - FPS: %.1f", fps_current);
+        SDL_SetWindowTitle(SDLWindow, title);
+    }
 }
 
 unsigned char** lock_frontbuffer(bool flipped) {
