@@ -1,4 +1,4 @@
-project('elma', 'cpp', version: '1.4', meson_version: '>=1.2.0', default_options: ['cpp_std=c++20'])
+project('elma', 'c', 'cpp', version: '1.4', meson_version: '>=1.2.0', default_options: ['cpp_std=c++20'])
 
 add_project_arguments('-DELMA_VERSION="@0@"'.format(meson.project_version()), language: 'cpp')
 
@@ -67,7 +67,11 @@ elma_sources = files(
     'hhigh.cpp',
     'keys.cpp',
     'fs_utils.cpp',
+    'gl_renderer.cpp',
+    'glad.c',
 )
+
+inc = include_directories('include')
 
 cpp = meson.get_compiler('cpp')
 link_args = []
@@ -101,13 +105,16 @@ sdl2_dep = dependency('sdl2',
     }
 )
 
+gl_dep = dependency('gl', required: true)
+
 nlohmann_json_dep = dependency('nlohmann_json')
 
 elma = executable(
     'elma',
     elma_sources,
+    include_directories: inc,
     cpp_args: cpp_args,
     link_args: link_args,
-    dependencies: [nlohmann_json_dep, sdl2_dep],
+    dependencies: [nlohmann_json_dep, gl_dep, sdl2_dep],
     win_subsystem: win_subsystem,
 )

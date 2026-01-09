@@ -5,6 +5,7 @@
 #include "HANG.H"
 #include "HANGHIGH.H"
 #include "keys.h"
+#include "gl_renderer.h"
 #include "main.h"
 #include <SDL.h>
 #include "scancodes_windows.h"
@@ -12,6 +13,8 @@
 SDL_Window* SDLWindow;
 SDL_Surface* SDLSurfaceMain;
 SDL_Surface* SDLSurfacePaletted;
+
+static bool use_gl = true;
 
 static Uint32 fps_frame_count = 0;
 static Uint32 fps_last_time = 0;
@@ -34,8 +37,16 @@ void platform_init() {
         return;
     }
 
+    if (use_gl) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    }
+
+    int window_flags = use_gl ? SDL_WINDOW_OPENGL : 0;
+
     SDLWindow = SDL_CreateWindow("Elasto Mania", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                 SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+                                 SCREEN_WIDTH, SCREEN_HEIGHT, window_flags);
     if (!SDLWindow) {
         internal_error(SDL_GetError());
         return;
@@ -44,16 +55,31 @@ void platform_init() {
     SDL_EventState(SDL_DROPFILE, SDL_DISABLE);
     SDL_EventState(SDL_DROPTEXT, SDL_DISABLE);
 
-    SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
-    if (!SDLSurfaceMain) {
-        internal_error(SDL_GetError());
-        return;
-    }
-    SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SDLSurfaceMain->w, SDLSurfaceMain->h, 0,
-                                                        SDL_PIXELFORMAT_INDEX8);
-    if (!SDLSurfacePaletted) {
-        internal_error(SDL_GetError());
-        return;
+    if (use_gl) {
+        if (gl_init(SDLWindow, SCREEN_WIDTH, SCREEN_HEIGHT) != 0) {
+            internal_error("Failed to initialize OpenGL renderer");
+            return;
+        }
+
+        SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SCREEN_WIDTH, SCREEN_HEIGHT, 0,
+                                                            SDL_PIXELFORMAT_INDEX8);
+        if (!SDLSurfacePaletted) {
+            internal_error(SDL_GetError());
+            return;
+        }
+        SDLSurfaceMain = nullptr; // Not used in GL mode
+    } else {
+        SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
+        if (!SDLSurfaceMain) {
+            internal_error(SDL_GetError());
+            return;
+        }
+        SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SDLSurfaceMain->w, SDLSurfaceMain->h,
+                                                            0, SDL_PIXELFORMAT_INDEX8);
+        if (!SDLSurfacePaletted) {
+            internal_error(SDL_GetError());
+            return;
+        }
     }
 
     fps_last_time = SDL_GetTicks();
@@ -92,18 +118,24 @@ void unlock_backbuffer() {
     }
     SurfaceLocked = false;
 
-    SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
-    SDL_UpdateWindowSurface(SDLWindow);
-    
+    if (use_gl) {
+        gl_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
+        gl_present();
+        SDL_GL_SwapWindow(SDLWindow);
+    } else {
+        SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
+        SDL_UpdateWindowSurface(SDLWindow);
+    }
+
     fps_frame_count++;
     Uint32 current_time = SDL_GetTicks();
     Uint32 elapsed = current_time - fps_last_time;
-    
+
     if (elapsed >= 500) {
         fps_current = (fps_frame_count * 1000.0) / elapsed;
         fps_frame_count = 0;
         fps_last_time = current_time;
-        
+
         char title[128];
         snprintf(title, sizeof(title), "Elasto Mania - FPS: %.1f", fps_current);
         SDL_SetWindowTitle(SDLWindow, title);
@@ -140,7 +172,17 @@ palette::palette(unsigned char* palette_data) {
 palette::~palette() { delete[] (SDL_Color*)data; }
 
 void palette::set() {
-    SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);
+    if (use_gl) {
+        Uint32 CurrentPalette[256];
+        // Update OpenGL GPU palette texture
+        for (int i = 0; i < 256; i++) {
+            CurrentPalette[i] = ((SDL_Color*)data)[i].a << 24 | ((SDL_Color*)data)[i].r << 16 |
+                                ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
+        }
+        gl_update_palette(CurrentPalette);
+    } else {
+        SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);
+    }
 }
 
 void handle_events() {
