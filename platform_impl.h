@@ -34,4 +34,8 @@ void hide_cursor();
 bool is_fullscreen();
 long long get_milliseconds();
 
+void fps_counter_init();
+void fps_counter_frame();
+double get_current_fps();
+
 #endif
