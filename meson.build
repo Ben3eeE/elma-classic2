@@ -1,4 +1,4 @@
-project('elma', 'c', 'cpp', version: '1.4', meson_version: '>=1.2.0', default_options: ['cpp_std=c++20'])
+project('elma', 'c', 'cpp', 'objcpp', version: '1.4', meson_version: '>=1.2.0', default_options: ['cpp_std=c++20'])
 
 add_project_arguments('-DELMA_VERSION="@0@"'.format(meson.project_version()), language: 'cpp')
 
@@ -68,8 +68,14 @@ elma_sources = files(
     'keys.cpp',
     'fs_utils.cpp',
     'gl_renderer.cpp',
+    'vk_renderer.cpp',
     'glad.c',
 )
+
+# Add Metal renderer on macOS
+if host_machine.system() == 'darwin'
+    elma_sources += files('metal_renderer.mm')
+endif
 
 inc = include_directories('include')
 
@@ -107,7 +113,29 @@ sdl2_dep = dependency('sdl2',
 
 gl_dep = dependency('gl', required: true)
 
+# Try to find Vulkan, but make it optional
+vulkan_dep = dependency('vulkan', required: false)
+if vulkan_dep.found()
+    add_project_arguments('-DHAVE_VULKAN', language: 'cpp')
+endif
+
 nlohmann_json_dep = dependency('nlohmann_json')
+
+# Add Metal framework on macOS
+if host_machine.system() == 'darwin'
+    metal_dep = dependency('appleframeworks', modules: ['Metal', 'QuartzCore', 'Cocoa'])
+else
+    metal_dep = disabler()
+endif
+
+# Build dependency list
+deps = [nlohmann_json_dep, gl_dep, sdl2_dep]
+if vulkan_dep.found()
+    deps += vulkan_dep
+endif
+if host_machine.system() == 'darwin'
+    deps += metal_dep
+endif
 
 elma = executable(
     'elma',
@@ -115,6 +143,6 @@ elma = executable(
     include_directories: inc,
     cpp_args: cpp_args,
     link_args: link_args,
-    dependencies: [nlohmann_json_dep, gl_dep, sdl2_dep],
+    dependencies: deps,
     win_subsystem: win_subsystem,
 )

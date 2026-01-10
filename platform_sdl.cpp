@@ -6,15 +6,27 @@
 #include "HANGHIGH.H"
 #include "keys.h"
 #include "gl_renderer.h"
+#include "vk_renderer.h"
+#ifdef __APPLE__
+#include "metal_renderer.h"
+#endif
 #include "main.h"
 #include <SDL.h>
+#include <SDL_syswm.h>
 #include "scancodes_windows.h"
 
 SDL_Window* SDLWindow;
 SDL_Surface* SDLSurfaceMain;
 SDL_Surface* SDLSurfacePaletted;
 
-static bool use_gl = true;
+enum RendererType {
+    RENDERER_SOFTWARE,
+    RENDERER_OPENGL,
+    RENDERER_VULKAN,
+    RENDERER_METAL
+};
+
+static RendererType renderer_type = RENDERER_METAL;
 
 static Uint32 fps_frame_count = 0;
 static Uint32 fps_last_time = 0;
@@ -37,13 +49,16 @@ void platform_init() {
         return;
     }
 
-    if (use_gl) {
+    int window_flags = 0;
+    
+    if (renderer_type == RENDERER_OPENGL) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        window_flags = SDL_WINDOW_OPENGL;
+    } else if (renderer_type == RENDERER_VULKAN) {
+        window_flags = SDL_WINDOW_VULKAN;
     }
-
-    int window_flags = use_gl ? SDL_WINDOW_OPENGL : 0;
 
     SDLWindow = SDL_CreateWindow("Elasto Mania", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                  SCREEN_WIDTH, SCREEN_HEIGHT, window_flags);
@@ -55,7 +70,7 @@ void platform_init() {
     SDL_EventState(SDL_DROPFILE, SDL_DISABLE);
     SDL_EventState(SDL_DROPTEXT, SDL_DISABLE);
 
-    if (use_gl) {
+    if (renderer_type == RENDERER_OPENGL) {
         if (gl_init(SDLWindow, SCREEN_WIDTH, SCREEN_HEIGHT) != 0) {
             internal_error("Failed to initialize OpenGL renderer");
             return;
@@ -68,6 +83,45 @@ void platform_init() {
             return;
         }
         SDLSurfaceMain = nullptr; // Not used in GL mode
+    } else if (renderer_type == RENDERER_VULKAN) {
+        if (vk_init(SDLWindow, SCREEN_WIDTH, SCREEN_HEIGHT) != 0) {
+            internal_error("Failed to initialize Vulkan renderer");
+            return;
+        }
+
+        SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SCREEN_WIDTH, SCREEN_HEIGHT, 0,
+                                                            SDL_PIXELFORMAT_INDEX8);
+        if (!SDLSurfacePaletted) {
+            internal_error(SDL_GetError());
+            return;
+        }
+        SDLSurfaceMain = nullptr; // Not used in Vulkan mode
+    } else if (renderer_type == RENDERER_METAL) {
+#ifdef __APPLE__
+        SDL_SysWMinfo wmInfo;
+        SDL_VERSION(&wmInfo.version);
+        if (!SDL_GetWindowWMInfo(SDLWindow, &wmInfo)) {
+            internal_error("Failed to get window info");
+            return;
+        }
+        
+        void* nsWindow = (void*)wmInfo.info.cocoa.window;
+        if (metal_init(nsWindow, SCREEN_WIDTH, SCREEN_HEIGHT) != 0) {
+            internal_error("Failed to initialize Metal renderer");
+            return;
+        }
+
+        SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SCREEN_WIDTH, SCREEN_HEIGHT, 0,
+                                                            SDL_PIXELFORMAT_INDEX8);
+        if (!SDLSurfacePaletted) {
+            internal_error(SDL_GetError());
+            return;
+        }
+        SDLSurfaceMain = nullptr; // Not used in Metal mode
+#else
+        internal_error("Metal renderer is only available on macOS");
+        return;
+#endif
     } else {
         SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
         if (!SDLSurfaceMain) {
@@ -118,10 +172,18 @@ void unlock_backbuffer() {
     }
     SurfaceLocked = false;
 
-    if (use_gl) {
+    if (renderer_type == RENDERER_OPENGL) {
         gl_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
         gl_present();
         SDL_GL_SwapWindow(SDLWindow);
+    } else if (renderer_type == RENDERER_VULKAN) {
+        vk_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
+        vk_present();
+    } else if (renderer_type == RENDERER_METAL) {
+#ifdef __APPLE__
+        metal_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
+        metal_present();
+#endif
     } else {
         SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
         SDL_UpdateWindowSurface(SDLWindow);
@@ -172,7 +234,7 @@ palette::palette(unsigned char* palette_data) {
 palette::~palette() { delete[] (SDL_Color*)data; }
 
 void palette::set() {
-    if (use_gl) {
+    if (renderer_type == RENDERER_OPENGL) {
         Uint32 CurrentPalette[256];
         // Update OpenGL GPU palette texture
         for (int i = 0; i < 256; i++) {
@@ -180,6 +242,24 @@ void palette::set() {
                                 ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
         }
         gl_update_palette(CurrentPalette);
+    } else if (renderer_type == RENDERER_VULKAN) {
+        Uint32 CurrentPalette[256];
+        // Update Vulkan GPU palette texture
+        for (int i = 0; i < 256; i++) {
+            CurrentPalette[i] = ((SDL_Color*)data)[i].a << 24 | ((SDL_Color*)data)[i].r << 16 |
+                                ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
+        }
+        vk_update_palette(CurrentPalette);
+    } else if (renderer_type == RENDERER_METAL) {
+#ifdef __APPLE__
+        Uint32 CurrentPalette[256];
+        // Update Metal GPU palette texture
+        for (int i = 0; i < 256; i++) {
+            CurrentPalette[i] = ((SDL_Color*)data)[i].a << 24 | ((SDL_Color*)data)[i].r << 16 |
+                                ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
+        }
+        metal_update_palette(CurrentPalette);
+#endif
     } else {
         SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);
     }
