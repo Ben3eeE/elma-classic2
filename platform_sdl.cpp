@@ -10,6 +10,9 @@
 #ifdef __APPLE__
 #include "metal_renderer.h"
 #endif
+#ifdef _WIN32
+#include "dx_renderer.h"
+#endif
 #include "main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
@@ -23,10 +26,17 @@ enum RendererType {
     RENDERER_SOFTWARE,
     RENDERER_OPENGL,
     RENDERER_VULKAN,
-    RENDERER_METAL
+    RENDERER_METAL,
+    RENDERER_DIRECTX
 };
 
+#ifdef _WIN32
+static RendererType renderer_type = RENDERER_DIRECTX;
+#elif __APPLE__
 static RendererType renderer_type = RENDERER_METAL;
+#else
+static RendererType renderer_type = RENDERER_OPENGL;
+#endif
 
 static Uint32 fps_frame_count = 0;
 static Uint32 fps_last_time = 0;
@@ -122,6 +132,32 @@ void platform_init() {
         internal_error("Metal renderer is only available on macOS");
         return;
 #endif
+    } else if (renderer_type == RENDERER_DIRECTX) {
+#ifdef _WIN32
+        SDL_SysWMinfo wmInfo;
+        SDL_VERSION(&wmInfo.version);
+        if (!SDL_GetWindowWMInfo(SDLWindow, &wmInfo)) {
+            internal_error("Failed to get window info");
+            return;
+        }
+        
+        HWND hwnd = wmInfo.info.win.window;
+        if (dx_init(hwnd, SCREEN_WIDTH, SCREEN_HEIGHT) != 0) {
+            internal_error("Failed to initialize DirectX renderer");
+            return;
+        }
+
+        SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SCREEN_WIDTH, SCREEN_HEIGHT, 0,
+                                                            SDL_PIXELFORMAT_INDEX8);
+        if (!SDLSurfacePaletted) {
+            internal_error(SDL_GetError());
+            return;
+        }
+        SDLSurfaceMain = nullptr; // Not used in DirectX mode
+#else
+        internal_error("DirectX renderer is only available on Windows");
+        return;
+#endif
     } else {
         SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
         if (!SDLSurfaceMain) {
@@ -183,6 +219,11 @@ void unlock_backbuffer() {
 #ifdef __APPLE__
         metal_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
         metal_present();
+#endif
+    } else if (renderer_type == RENDERER_DIRECTX) {
+#ifdef _WIN32
+        dx_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
+        dx_present();
 #endif
     } else {
         SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
@@ -259,6 +300,16 @@ void palette::set() {
                                 ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
         }
         metal_update_palette(CurrentPalette);
+#endif
+    } else if (renderer_type == RENDERER_DIRECTX) {
+#ifdef _WIN32
+        Uint32 CurrentPalette[256];
+        // Update DirectX GPU palette texture
+        for (int i = 0; i < 256; i++) {
+            CurrentPalette[i] = ((SDL_Color*)data)[i].a << 24 | ((SDL_Color*)data)[i].r << 16 |
+                                ((SDL_Color*)data)[i].g << 8 | ((SDL_Color*)data)[i].b;
+        }
+        dx_update_palette(CurrentPalette);
 #endif
     } else {
         SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);

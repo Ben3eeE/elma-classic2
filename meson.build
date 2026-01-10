@@ -67,14 +67,17 @@ elma_sources = files(
     'hhigh.cpp',
     'keys.cpp',
     'fs_utils.cpp',
-    'gl_renderer.cpp',
-    'vk_renderer.cpp',
     'glad.c',
 )
 
 # Add Metal renderer on macOS
 if host_machine.system() == 'darwin'
     elma_sources += files('metal_renderer.mm')
+endif
+
+# Add DirectX renderer on Windows
+if host_machine.system() == 'windows'
+    elma_sources += files('dx_renderer.cpp')
 endif
 
 inc = include_directories('include')
@@ -128,6 +131,17 @@ else
     metal_dep = disabler()
 endif
 
+# Add DirectX 12 on Windows
+if host_machine.system() == 'windows'
+    d3d12_dep = cpp.find_library('d3d12', required: true)
+    dxgi_dep = cpp.find_library('dxgi', required: true)
+    d3dcompiler_dep = cpp.find_library('d3dcompiler', required: true)
+else
+    d3d12_dep = disabler()
+    dxgi_dep = disabler()
+    d3dcompiler_dep = disabler()
+endif
+
 # Build dependency list
 deps = [nlohmann_json_dep, gl_dep, sdl2_dep]
 if vulkan_dep.found()
@@ -135,6 +149,9 @@ if vulkan_dep.found()
 endif
 if host_machine.system() == 'darwin'
     deps += metal_dep
+endif
+if host_machine.system() == 'windows'
+    deps += [d3d12_dep, dxgi_dep, d3dcompiler_dep]
 endif
 
 elma = executable(
