@@ -6,7 +6,7 @@
 #define MAXBUFFER (20000u)
 static int max_run_length = 255;
 
-// Visszaadja hany db pixel kell szinu, max sor vegeig:
+// Returns how many pixels are not the specified color, up to max row end:
 static int count_needed_color_pixels(pic8* ppic, int x, int y, unsigned char color) {
     int count = 0;
     while (x < ppic->get_width() && ppic->gpixel(x, y) != color && count < max_run_length) {
@@ -16,7 +16,7 @@ static int count_needed_color_pixels(pic8* ppic, int x, int y, unsigned char col
     return count;
 }
 
-// Visszaadja hany db pixel nem kell szinu, max sor vegeig:
+// Returns how many pixels are the specified color, up to max row end:
 static int count_skipped_color_pixels(pic8* ppic, int x, int y, unsigned char color) {
     int count = 0;
     while (x < ppic->get_width() && ppic->gpixel(x, y) == color && count < max_run_length) {
@@ -38,17 +38,17 @@ unsigned char* sprite_data_8(pic8* ppic, unsigned char color, unsigned short* sp
     int ysize = ppic->get_height();
     unsigned buf_index = 0;
     for (int y = 0; y < ysize; y++) {
-        // Egy sor feldolgozasa:
+        // Process one row:
         int x = 0;
         while (x < xsize) {
             int needed_length = count_needed_color_pixels(ppic, x, y, color);
             if (needed_length) {
-                // kellek jonnek:
+                // Needed pixels:
                 x += needed_length;
                 buffer[buf_index++] = 'K';
                 buffer[buf_index++] = needed_length;
             } else {
-                // nemkellek jonnek:
+                // Skipped pixels:
                 int skipped_length = count_skipped_color_pixels(ppic, x, y, color);
                 x += skipped_length;
                 buffer[buf_index++] = 'N';
@@ -62,7 +62,7 @@ unsigned char* sprite_data_8(pic8* ppic, unsigned char color, unsigned short* sp
         }
     }
 
-    // Most letrehozunk egy szegmenst, ami csak olyan hosszu, amilyen kell:
+    // Now create a buffer that is only as long as needed:
 
     unsigned char* final_buffer = NULL;
     final_buffer = new unsigned char[buf_index];
