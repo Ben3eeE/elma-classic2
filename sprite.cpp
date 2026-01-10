@@ -1,4 +1,4 @@
-#include "SPRITE.H"
+#include "sprite.h"
 #include "main.h"
 #include "pic8.h"
 #include <cstring>
