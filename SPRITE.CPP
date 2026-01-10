@@ -3,8 +3,8 @@
 #include "pic8.h"
 #include <cstring>
 
-#define MAXBUFFER (20000u)
-static int max_run_length = 255;
+constexpr unsigned MAXBUFFER = 20000u;
+constexpr int max_run_length = 255;
 
 // Returns how many pixels are not the specified color, up to max row end:
 static int count_needed_color_pixels(pic8* ppic, int x, int y, unsigned char color) {
@@ -28,11 +28,11 @@ static int count_skipped_color_pixels(pic8* ppic, int x, int y, unsigned char co
 
 unsigned char* sprite_data_8(pic8* ppic, unsigned char color, unsigned short* sprite_length) {
     *sprite_length = 0;
-    unsigned char* buffer = NULL;
+    unsigned char* buffer = nullptr;
     buffer = new unsigned char[MAXBUFFER];
     if (!buffer) {
         external_error("sprite_data_8 out of memory!");
-        return NULL;
+        return nullptr;
     }
     int xsize = ppic->get_width();
     int ysize = ppic->get_height();
@@ -57,19 +57,19 @@ unsigned char* sprite_data_8(pic8* ppic, unsigned char color, unsigned short* sp
             if (buf_index >= MAXBUFFER) {
                 internal_error("sprite_data_8 buffer overflow!");
                 delete buffer;
-                return NULL;
+                return nullptr;
             }
         }
     }
 
     // Now create a buffer that is only as long as needed:
 
-    unsigned char* final_buffer = NULL;
+    unsigned char* final_buffer = nullptr;
     final_buffer = new unsigned char[buf_index];
     if (!final_buffer) {
         external_error("sprite_data_8 out of memory!");
         delete buffer;
-        return NULL;
+        return nullptr;
     }
     memcpy(final_buffer, buffer, buf_index);
 
