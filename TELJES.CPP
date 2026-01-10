@@ -102,7 +102,7 @@ void teljes(void) {
         y += tile->get_height();
     }
     pic8* pintro = new pic8( "intro.pcx" );
-    spriteosit( pintro );
+    make_sprite( pintro );
     blit8( tmpintro, pintro );
     delete pintro; pintro = NULL;
     delete tile; tile = NULL;*/
@@ -114,7 +114,7 @@ void teljes(void) {
     blit8(Intro, Intro, 321, 420, 297, 420, 315, 441);
     blit8(Intro, Intro, 321 + 15, 420, 297, 420, 315, 441);
     blit8(Intro, Intro, 321 + 15 + 16, 432, 88, 458, 98, 468);
-    spriteosit(Intro);
+    make_sprite(Intro);
     pic8* tmpintro = new pic8(SCREEN_WIDTH, SCREEN_HEIGHT); // ezt majd kesobb szabaditjuk fel
     tmpintro->fill_box(BLACK_PALETTE_ID);
     blit8(tmpintro, Intro, SCREEN_WIDTH / 2 - Intro->get_width() / 2,

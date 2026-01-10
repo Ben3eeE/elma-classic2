@@ -30,7 +30,7 @@ anim::anim(pic8* source_sheet, const char* error_filename) {
         frames[i] = new pic8(ANIM_WIDTH, ANIM_WIDTH);
         blit8(frames[i], source_sheet, -ANIM_WIDTH * i, 0);
         forditkepet(frames[i]);
-        spriteosit(frames[i], source_sheet->gpixel(0, 0));
+        make_sprite(frames[i], source_sheet->gpixel(0, 0));
     }
 }
 
@@ -93,7 +93,7 @@ void anim::make_helmet_top() {
         }
 
         // Regenerate transparency data
-        spriteosit(new_frame, new_frame->gpixel(0, 0));
+        make_sprite(new_frame, new_frame->gpixel(0, 0));
 
         delete frames[i];
         frames[i] = new_frame;

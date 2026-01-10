@@ -1715,11 +1715,11 @@ static void egetkeszit( pic8* peg, int xhely, int xkezd, int xmodulus ) {
 
         Felho = new pic8( "felho.pcx" );
         forditkepet( Felho );
-        spriteosit( Felho );
+        make_sprite( Felho );
 
         Felho2 = new pic8( "felho2.pcx" );
         forditkepet( Felho2 );
-        spriteosit( Felho2 );
+        make_sprite( Felho2 );
     }
 
     // Resetaljuk eget:

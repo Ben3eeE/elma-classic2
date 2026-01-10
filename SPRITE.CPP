@@ -79,8 +79,8 @@ unsigned char* spriteadat8(pic8* ppic, unsigned char szin, unsigned short* pspri
     return jobuffer;
 }
 
-void spriteosit(pic8* ppic, int index) {
+void make_sprite(pic8* ppic, int index) {
     ppic->transparency_data = spriteadat8(ppic, index, &ppic->transparency_data_length);
 }
 
-void spriteosit(pic8* ppic) { spriteosit(ppic, ppic->gpixel(0, 0)); }
+void make_sprite(pic8* ppic) { make_sprite(ppic, ppic->gpixel(0, 0)); }
