@@ -93,12 +93,8 @@ else
     cpp_args += ['-Wno-deprecated-declarations']
 endif
 
-sdl2_dep = dependency('sdl2',
-    static: build_machine.system() == 'windows',
-    default_options: {
-        'test': false,
-        'with_main': false,
-    }
+sdl3_dep = dependency('sdl3',
+    static: build_machine.system() == 'windows'
 )
 
 nlohmann_json_dep = dependency('nlohmann_json')
@@ -108,6 +104,6 @@ elma = executable(
     elma_sources,
     cpp_args: cpp_args,
     link_args: link_args,
-    dependencies: [nlohmann_json_dep, sdl2_dep],
+    dependencies: [nlohmann_json_dep, sdl3_dep],
     win_subsystem: win_subsystem,
 )

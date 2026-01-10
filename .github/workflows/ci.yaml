@@ -22,7 +22,7 @@ jobs:
       - name: Install clang-format 19
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format-19
+          sudo apt-get install -y clang-format-19 libudev-dev libdbus-1-dev libpipewire-0.3-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -68,6 +68,10 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install meson==1.10.0 ninja
+      
+      - name: Install dependencies on Ubuntu
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libudev-dev libdbus-1-dev libpipewire-0.3-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev
 
       - name: Visual Studio 17
         if: runner.os == 'windows'

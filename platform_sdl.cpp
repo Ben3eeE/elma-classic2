@@ -6,7 +6,8 @@
 #include "HANGHIGH.H"
 #include "keys.h"
 #include "main.h"
-#include <SDL.h>
+#include <cmath>
+#include <SDL3/SDL.h>
 #include "scancodes_windows.h"
 
 SDL_Window* SDLWindow;
@@ -25,29 +26,30 @@ void message_box(const char* text) {
 }
 
 void platform_init() {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         internal_error(SDL_GetError());
         return;
     }
 
-    SDLWindow = SDL_CreateWindow("Elasto Mania", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                 SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+    SDLWindow = SDL_CreateWindow("Elasto Mania", SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     if (!SDLWindow) {
         internal_error(SDL_GetError());
         return;
     }
 
-    SDL_EventState(SDL_DROPFILE, SDL_DISABLE);
-    SDL_EventState(SDL_DROPTEXT, SDL_DISABLE);
+    SDL_SetEventEnabled(SDL_EVENT_DROP_FILE, false);
+    SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, false);
 
     SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
     if (!SDLSurfaceMain) {
         internal_error(SDL_GetError());
         return;
     }
-    SDLSurfacePaletted = SDL_CreateRGBSurfaceWithFormat(0, SDLSurfaceMain->w, SDLSurfaceMain->h, 0,
-                                                        SDL_PIXELFORMAT_INDEX8);
-    if (!SDLSurfacePaletted) {
+    SDLSurfacePaletted =
+        SDL_CreateSurface(SDLSurfaceMain->w, SDLSurfaceMain->h, SDL_PIXELFORMAT_INDEX8);
+
+    SDL_Palette* palette = SDL_CreateSurfacePalette(SDLSurfacePaletted);
+    if (!SDLSurfacePaletted || !palette) {
         internal_error(SDL_GetError());
         return;
     }
@@ -120,14 +122,14 @@ palette::palette(unsigned char* palette_data) {
 palette::~palette() { delete[] (SDL_Color*)data; }
 
 void palette::set() {
-    SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)data, 0, 256);
+    SDL_SetPaletteColors(SDL_GetSurfacePalette(SDLSurfacePaletted), (const SDL_Color*)data, 0, 256);
 }
 
 void handle_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-        case SDL_QUIT:
+        case SDL_EVENT_QUIT:
             // Exit request probably sent by user to terminate program
             if (InEditor && Valtozott) {
                 // Disallow exiting if unsaved changes in editor
@@ -135,17 +137,14 @@ void handle_events() {
             }
             quit();
             break;
-        case SDL_WINDOWEVENT:
-            // Force editor redraw if focus gained/lost to fix editor sometimes blanking
-            switch (event.window.event) {
-            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                invalidateegesz();
-                break;
-            case SDL_WINDOWEVENT_FOCUS_LOST:
-                invalidateegesz();
-                break;
-            }
-        case SDL_MOUSEBUTTONDOWN:
+        // Force editor redraw if focus gained/lost to fix editor sometimes blanking
+        case SDL_EVENT_WINDOW_FOCUS_GAINED:
+            invalidateegesz();
+            break;
+        case SDL_EVENT_WINDOW_FOCUS_LOST:
+            invalidateegesz();
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 LeftMouseDown = true;
             }
@@ -153,7 +152,7 @@ void handle_events() {
                 RightMouseDown = true;
             }
             break;
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 LeftMouseDown = false;
             }
@@ -169,16 +168,21 @@ void handle_events() {
 }
 
 void fill_key_state(char* buffer) {
-    const unsigned char* state = SDL_GetKeyboardState(NULL);
+    const bool* state = SDL_GetKeyboardState(NULL);
     for (int i = 0; i < MaxKeycode; i++) {
-        buffer[i] = state[windows_scancode_table[i]];
+        buffer[i] = state[windows_scancode_table[i]] ? 1 : 0;
     }
 }
 
-void hide_cursor() { SDL_ShowCursor(SDL_DISABLE); }
-void show_cursor() { SDL_ShowCursor(SDL_ENABLE); }
+void hide_cursor() { SDL_HideCursor(); }
+void show_cursor() { SDL_ShowCursor(); }
 
-void get_mouse_position(int* x, int* y) { SDL_GetMouseState(x, y); }
+void get_mouse_position(int* x, int* y) {
+    float fx, fy;
+    SDL_GetMouseState(&fx, &fy);
+    *x = std::round(fx);
+    *y = std::round(fy);
+}
 void set_mouse_position(int x, int y) { SDL_WarpMouseInWindow(NULL, x, y); }
 
 bool left_mouse_clicked() {
@@ -196,15 +200,24 @@ bool right_mouse_clicked() {
 }
 
 bool is_fullscreen() {
-    Uint32 flags = SDL_GetWindowFlags(SDLWindow);
+    SDL_WindowFlags flags = SDL_GetWindowFlags(SDLWindow);
     return flags & SDL_WINDOW_FULLSCREEN;
 }
 
 static SDL_AudioDeviceID SDLAudioDevice;
+static SDL_AudioStream* SDLAudioStreamHandle;
 static bool SoundInitialized = false;
 
-static void audio_callback(void* udata, Uint8* stream, int len) {
-    callbackhang((short*)stream, len / 2);
+static void audio_callback(void* udata, SDL_AudioStream* stream, int additional_amount,
+                           int total_amount) {
+    if (additional_amount > 0) {
+        Uint8* data = (Uint8*)SDL_stack_alloc(Uint8, additional_amount);
+        if (data) {
+            callbackhang((short*)data, additional_amount / 2);
+            SDL_PutAudioStreamData(stream, data, additional_amount);
+            SDL_stack_free(data);
+        }
+    }
 }
 
 void init_sound() {
@@ -213,25 +226,24 @@ void init_sound() {
     }
     SoundInitialized = true;
 
-    SDL_AudioSpec desired_spec;
-    memset(&desired_spec, 0, sizeof(desired_spec));
-    desired_spec.callback = audio_callback;
-    desired_spec.freq = 11025;
-    desired_spec.channels = 1;
-    desired_spec.samples = 512;
-    desired_spec.format = AUDIO_S16LSB;
-
-    if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
         internal_error("Failed to initialize audio subsystem", SDL_GetError());
     }
-    SDL_AudioSpec obtained_spec;
-    SDLAudioDevice = SDL_OpenAudioDevice(NULL, 0, &desired_spec, &obtained_spec, 0);
+
+    const SDL_AudioSpec spec = {SDL_AUDIO_S16, 1, 11025};
+
+    SDLAudioStreamHandle =
+        SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, audio_callback, NULL);
+    if (!SDLAudioStreamHandle) {
+        internal_error("Failed to open audio device stream", SDL_GetError());
+    }
+
+    SDLAudioDevice = SDL_GetAudioStreamDevice(SDLAudioStreamHandle);
     if (SDLAudioDevice == 0) {
-        internal_error("Failed to open audio device", SDL_GetError());
+        internal_error("Failed to get audio device from stream");
     }
-    if (obtained_spec.format != desired_spec.format) {
-        internal_error("Failed to get correct audio format");
-    }
+
     Hangenabled = 1;
-    SDL_PauseAudioDevice(SDLAudioDevice, 0);
+
+    SDL_ResumeAudioDevice(SDLAudioDevice);
 }

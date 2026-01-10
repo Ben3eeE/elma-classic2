@@ -1,13 +1,3 @@
-// Based on https://github.com/libsdl-org/SDL/blob/release-3.2.x/src/events/scancodes_windows.h
-// Use the SDL3.2 version as the SDL2 version of this array is missing half of the codepoints.
-// Some enums were renamed in SDL3, so provide some compatability defines.
-#define SDL_SCANCODE_MEDIA_PREVIOUS_TRACK SDL_SCANCODE_AUDIOPREV
-#define SDL_SCANCODE_MEDIA_NEXT_TRACK SDL_SCANCODE_AUDIONEXT
-#define SDL_SCANCODE_MEDIA_PLAY_PAUSE SDL_SCANCODE_AUDIOPLAY
-#define SDL_SCANCODE_MEDIA_STOP SDL_SCANCODE_AUDIOSTOP
-#define SDL_SCANCODE_MEDIA_EJECT SDL_SCANCODE_EJECT
-#define SDL_SCANCODE_MEDIA_SELECT SDL_SCANCODE_MEDIASELECT
-
 /*
   Simple DirectMedia Layer
   Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
@@ -28,7 +18,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include <SDL_scancode.h>
+#include <SDL3/SDL_scancode.h>
 
 /*
  * Windows scancode to SDL scancode mapping table
