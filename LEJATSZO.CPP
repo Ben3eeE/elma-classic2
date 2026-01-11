@@ -10,8 +10,6 @@
 #include "object.h"
 #include "physics_init.h"
 #include "platform_impl.h"
-#include "platform_utils.h"
-#include "timer.h"
 #include "TOPOL.H"
 #include <cmath>
 #include <cstring>
@@ -390,7 +388,6 @@ long lejatszo(const char* filenev) {
     flagtag_reset();
 
     Motor1->apple_count = Motor2->apple_count = 0;
-    long l = 0;
     int mindjar = 1;
     while (1) {
         // Kiszamolja mennyit kell leptetni:
@@ -553,33 +550,18 @@ long lejatszo(const char* filenev) {
         // Vizsgalat kilepesre:
         if (is_key_down(DIK_ESCAPE)) {
             MeghalteloszorAB = 0;
-            double eltelido = stopwatch();
             // Motor hangjat kikapcsolja:
             stop_motor_sound(true);
             stop_motor_sound(false);
 
             Mute = true;
 
-            // Kiirja framerate-et:
-            double tpl = double(l) / eltelido;
-            tpl *= STOPWATCH_MULTIPLIER * 1000.0;
-            int framerate = (int)(tpl);
-            if (access("f_rate.inf", 0) == 0) {
-                // igyhagyni fopen-t!:
-                FILE* h = fopen("f_rate.inf", "w");
-                if (!h) {
-                    internal_error("framerate nem nyilik!");
-                }
-                fprintf(h, "%d", framerate);
-                fclose(h);
-            }
             Ptop->unflip_objects();
             Prec1->encode_frame_count();
             Prec2->encode_frame_count();
             Masodikmenet = 1;
             return -1;
         }
-        l++;
         /*vect2 tomba[100], tombb[100];
         double dtomb[100];
         for( int i = 0; i < 100; i++ ) {
@@ -762,7 +744,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     flagtag_reset();
 
     // Motor1->apple_count = Motor2->apple_count = 0;
-    long l = 0;
     int jar1 = 1, jar2 = 1;
     while (1) {
         handle_events(); // Billentyut itt olvassuk be
@@ -851,20 +832,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         // Vizsgalat kilepesre:
         if (is_key_down(DIK_ESCAPE)) {
-            double eltelido = stopwatch();
-            // Kiirja framerate-et:
-            double tpl = double(l) / eltelido;
-            tpl *= STOPWATCH_MULTIPLIER * 1000.0;
-            int framerate = (int)(tpl);
-            if (access("f_rate.inf", 0) == 0) {
-                // igyhagyni fopen-t!:
-                FILE* h = fopen("f_rate.inf", "w");
-                if (!h) {
-                    internal_error("framerate nem nyilik!");
-                }
-                fprintf(h, "%d", framerate);
-                fclose(h);
-            }
             // Hang kikapcsolas:
             set_motor_frequency(true, 1.0, 0);
             set_motor_frequency(false, 1.0, 0);
@@ -881,6 +848,5 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             Elozoshowkep2 = valt2.showkep;
             return -1;
         }
-        l++;
     }
 }
