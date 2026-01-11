@@ -73,6 +73,11 @@ cpp = meson.get_compiler('cpp')
 link_args = []
 cpp_args = []
 
+# Required for nlohmann_json on Apple clang < 12
+if cpp.get_id() == 'clang' and cpp.version().version_compare('<12.0')
+    add_project_arguments('-DJSON_HAS_CPP_17', language: 'cpp')
+endif
+
 win_subsystem = 'windows'
 if cpp.get_id() == 'msvc'
     if get_option('buildtype') == 'debug'
