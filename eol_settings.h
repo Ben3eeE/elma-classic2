@@ -65,6 +65,9 @@ struct eol_settings {
     bool zoom_textures() const { return zoom_textures_; }
     void set_zoom_textures(bool zoom_textures);
 
+    double turn_time() const { return turn_time_; }
+    void set_turn_time(double t);
+
   private:
     Clamp<int> screen_width_{640, 640, 10000};
     Clamp<int> screen_height_{480, 480, 10000};
@@ -75,6 +78,7 @@ struct eol_settings {
     Default<RendererType> renderer_{RendererType::Software};
     Clamp<double> zoom_{0.25, 1.0, 3.0};
     Default<bool> zoom_textures_{false};
+    Clamp<double> turn_time_{0.0, 0.35, 0.35};
 };
 
 extern eol_settings* EolSettings;

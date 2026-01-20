@@ -1,5 +1,6 @@
 #include "LEJATSZO.H"
 #include "EDITUJ.H"
+#include "eol_settings.h"
 #include "flagtag.h"
 #include "sound_engine.h"
 #include "KIRAJZOL.H"
@@ -87,27 +88,25 @@ static int spritefeldolgoz(int sorszam, int* pkajaszam, motorst* pmot) {
     return 2;
 }
 
-static double Fordido = 0.5;
 static double baljobbszamol(double eltelt, int hatra) {
 #ifdef DEBUG
     if (eltelt < 0) {
         internal_error("baljobbszamol-ban eltelt < 0!");
     }
 #endif
+    double camera_flip_time = EolSettings->turn_time() + 0.15;
     if (hatra) {
-        if (eltelt > Fordido) {
+        if (eltelt > camera_flip_time) {
             return 0.0;
         }
-        return 1.0 - eltelt / Fordido;
+        return 1.0 - eltelt / camera_flip_time;
     } else {
-        if (eltelt > Fordido) {
+        if (eltelt > camera_flip_time) {
             return 1.0;
         }
-        return eltelt / Fordido;
+        return eltelt / camera_flip_time;
     }
 }
-
-static double Forgasido = 0.35;
 
 // static int Marvoltgaz = 0;
 
@@ -240,8 +239,9 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
     if (pvalt->eddighatra != hatra) {
         pvalt->ucsoforgas = eddig;
         double eltelt = eddig - pvalt->ucsoford;
-        if (eltelt < Fordido) {
-            pvalt->ucsoford = eddig + eltelt - Fordido;
+        double camera_flip_time = EolSettings->turn_time() + 0.15;
+        if (camera_flip_time > 0.0 && eltelt < camera_flip_time) {
+            pvalt->ucsoford = eddig + eltelt - camera_flip_time;
         } else {
             pvalt->ucsoford = eddig;
         }
@@ -255,14 +255,20 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
     }
 
     // Kirajzolashoz kellenek:
-    pvalt->forgas = (eddig - pvalt->ucsoforgas) / Forgasido;
-#ifdef DEBUG
-    if (pvalt->forgas < 0.0) {
-        internal_error("lejatszo-ban forgas < 0.0!");
-    }
-#endif
-    if (pvalt->forgas > 1.0) {
+    double turn_time = EolSettings->turn_time();
+    if (turn_time == 0.0) {
+        // Instant turn
         pvalt->forgas = 1.0;
+    } else {
+        pvalt->forgas = (eddig - pvalt->ucsoforgas) / turn_time;
+#ifdef DEBUG
+        if (pvalt->forgas < 0.0) {
+            internal_error("lejatszo-ban forgas < 0.0!");
+        }
+#endif
+        if (pvalt->forgas > 1.0) {
+            pvalt->forgas = 1.0;
+        }
     }
 
     pvalt->baljobb = baljobbszamol(eddig - pvalt->ucsoford, hatra);

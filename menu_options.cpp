@@ -7,6 +7,7 @@
 #include "menu_pic.h"
 #include "state.h"
 #include <cstring>
+#include <cmath>
 
 void menu_help() {
     menu_pic menu;
@@ -152,7 +153,14 @@ void menu_options() {
             break;
         }
 
-        nav.setup(17 + flag_tag_opt, true);
+        strcpy(NavEntriesLeft[17 + flag_tag_opt], "Turn Time:");
+        if (EolSettings->turn_time() == 0.0) {
+            strcpy(NavEntriesRight[17 + flag_tag_opt], "Instant");
+        } else {
+            sprintf(NavEntriesRight[17 + flag_tag_opt], "%.2fs", EolSettings->turn_time());
+        }
+
+        nav.setup(18 + flag_tag_opt, true);
 
         choice = nav.navigate();
 
@@ -273,6 +281,15 @@ void menu_options() {
                 EolSettings->set_renderer(RendererType::Software);
                 break;
             }
+            }
+        }
+
+        if (choice == 17) {
+            double old_turn_time = EolSettings->turn_time();
+            double new_turn_time = std::round((old_turn_time - 0.10) * 100.0) / 100.0;
+            EolSettings->set_turn_time(new_turn_time);
+            if (old_turn_time == EolSettings->turn_time()) {
+                EolSettings->set_turn_time(0.35);
             }
         }
 

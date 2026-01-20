@@ -14,6 +14,7 @@
 * Maximum number of displayed levels/recs in menu increased from 29 to up to 200 for high resolutions
 * Dialog pop-ups are centered on the screen
 * message.inf is no longer required to view error messages, and error messages are now all in English
+* turntime can now be configured
 
 ## Minor Bug Fixes
 * Foreground grass was accidentally inefficiently calculated, causing increased load time
