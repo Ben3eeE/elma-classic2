@@ -276,43 +276,28 @@ void t_move_mmove(int mx, int my) {
         internal_error("t_move_mmove-ban:", "(Pgy && Pker) || (Pgy && Psp) || (Pker && Psp)!");
     }
 
-    push();
-
-    lockfrontbuffer_pic();
     if (Pgy) {
-        // Letoroljuk oket:
-        Pgy->render_one_line(K, Fel, false);
-        Pgy->render_one_line(K, !Fel, false);
-        // Uj koord:
         double dx = pixel_to_meter_x(mx);
         double dy = pixel_to_meter_y(my);
         Pgy->set_vertex(K, dx, dy);
-        // Visszarajzoljuk oket:
-        Pgy->render_one_line(K, Fel, false);
-        Pgy->render_one_line(K, !Fel, false);
     } else {
         if (Pker) {
-            Pker->render();
             double dx = pixel_to_meter_x(mx);
             double dy = pixel_to_meter_y(my);
             Pker->r.x = dx;
             Pker->r.y = dy;
-            Pker->render();
         } else {
-            Psp->render();
             double dx = pixel_to_meter_x(mx);
             double dy = pixel_to_meter_y(my);
             Psp->r.x = dx;
             Psp->r.y = dy;
-            Psp->render();
         }
     }
-    unlockfrontbuffer_pic();
 
     Moux = mx;
     Mouy = my;
 
-    pop();
+    invalidate();
 }
 
 // CREATE_VERTEX CREATE_VERTEX CREATE_VERTEX CREATE_VERTEX
@@ -321,8 +306,8 @@ void t_move_mmove(int mx, int my) {
 // CREATE_VERTEX CREATE_VERTEX CREATE_VERTEX CREATE_VERTEX
 
 int Egypont = 0;
-static int Epontx = 0, Eponty = 0;
-static int Kpontx = 0, Kponty = 0;
+int Epontx = 0, Eponty = 0;
+int Kpontx = 0, Kponty = 0;
 
 // Bal gomb nyomva:
 void t_create_vert_nyomva(int mx, int my) {
@@ -502,32 +487,22 @@ void t_create_vert_mmove(int mx, int my) {
         // Teljesen normalis kurzor mozgatas:
         internal_error("Ezt most edituj.cpp-nek kellene csinalnia!");
     }
-    push();
-    lockfrontbuffer_pic();
+
     if (Pgy) {
-        // Letoroljuk oket:
-        Pgy->render_one_line(K, Fel, true); // szaggatott
-        Pgy->render_one_line(K, !Fel, false);
-        // Uj koord:
         double dx = pixel_to_meter_x(mx);
         double dy = pixel_to_meter_y(my);
         Pgy->set_vertex(K, dx, dy);
-        // Visszarajzoljuk oket:
-        Pgy->render_one_line(K, Fel, true); // szaggatott
-        Pgy->render_one_line(K, !Fel, false);
         Moux = mx;
         Mouy = my;
     } else {
         if (!Egypont) {
             internal_error("!Egypont (yifeye)");
         }
-        render_line(pixel_to_meter(Epontx, Eponty), pixel_to_meter(Kpontx, Kponty), false);
         Moux = Kpontx = mx;
         Mouy = Kponty = my;
-        render_line(pixel_to_meter(Epontx, Eponty), pixel_to_meter(Kpontx, Kponty), false);
     }
-    unlockfrontbuffer_pic();
-    pop();
+
+    invalidate();
 }
 
 // DELETE DELETE DELETE DELETE DELETE DELETE DELETE DELETE

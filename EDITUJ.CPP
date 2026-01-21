@@ -504,6 +504,10 @@ static void ujrarajzol(int egesz) {
         Pgy->render_one_line(K, Fel, false);
         Pgy->render_one_line(K, Fel, true);
     }
+    if (Egypont) {
+        // Draw preview line when creating first line of new polygon
+        render_line(pixel_to_meter(Epontx, Eponty), pixel_to_meter(Kpontx, Kponty), false);
+    }
 
     RedrawingEditor = 0;
 

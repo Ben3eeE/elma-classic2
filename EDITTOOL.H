@@ -14,6 +14,7 @@ void t_move_mmove(int x, int y);
 // extern int Kurzornegyzet;
 
 extern int Egypont;
+extern int Epontx, Eponty, Kpontx, Kponty;
 void t_create_vert_nyomva(int x, int y);
 void t_create_vert_esc(void);
 void t_create_vert_space(void);

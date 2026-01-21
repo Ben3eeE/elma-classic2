@@ -6,7 +6,7 @@
 #include <cstring>
 
 #ifdef DEBUG
-bool ErrorOnMissingCodepoint = true;
+bool ErrorOnMissingCodepoint = false;
 #else
 bool ErrorOnMissingCodepoint = false;
 #endif

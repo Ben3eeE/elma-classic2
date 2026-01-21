@@ -227,7 +227,9 @@ void render_line(vect2 v1, vect2 v2, bool dotted) {
             if (x >= EDITOR_MENU_X && y >= EDITOR_MENU_Y && x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
                 // Invert the palette ID
                 unsigned char pal_index = BufferMain->gpixel(x, y);
-                pal_index += 128;
+                if (pal_index < 128) {
+                    pal_index += 128;
+                }
                 BufferMain->ppixel(x, y, pal_index);
                 if (!RedrawingEditor) {
                     ppixelfront(x, y, pal_index);
@@ -276,7 +278,9 @@ void render_line(vect2 v1, vect2 v2, bool dotted) {
             if (x >= EDITOR_MENU_X && y >= EDITOR_MENU_Y && x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
                 // Invert the palette ID
                 unsigned char pal_index = BufferMain->gpixel(x, y);
-                pal_index += 128;
+                if (pal_index < 128) {
+                    pal_index += 128;
+                }
                 BufferMain->ppixel(x, y, pal_index);
                 if (!RedrawingEditor) {
                     ppixelfront(x, y, pal_index);
