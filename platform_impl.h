@@ -57,5 +57,8 @@ long long get_milliseconds();
 
 void platform_recreate_window();
 bool has_window();
+void fps_counter_init();
+void fps_counter_frame();
+double get_current_fps();
 
 #endif
