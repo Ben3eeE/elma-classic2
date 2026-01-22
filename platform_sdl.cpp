@@ -159,7 +159,7 @@ void unlock_backbuffer() {
     SurfaceLocked = false;
 
     if (EolSettings->renderer() == RendererType::OpenGL) {
-        gl_upload_frame((unsigned char*)SDLSurfacePaletted->pixels);
+        gl_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
         gl_present();
         SDL_GL_SwapWindow(SDLWindow);
     } else {
