@@ -2,6 +2,7 @@
 #include "abc8.h"
 #include "best_times.h"
 #include "EDITUJ.H"
+#include "eol_settings.h"
 #include "flagtag.h"
 #include "LEJATSZO.H"
 #include "level.h"
@@ -853,6 +854,17 @@ void play(void) {
             kirpalyszam = INTERNAL_LEVEL_COUNT;
         }
 
+        int total_time = State->calculate_player_total_time(State->player1, State->single);
+        char total_time_text[60];
+        char time_formatted[40];
+        centiseconds_to_string(total_time, time_formatted, true);
+        sprintf(total_time_text, "TT: %s", time_formatted);
+
+        text_line extra_lines[1];
+        strcpy(extra_lines[0].text, total_time_text);
+        extra_lines[0].x = -150;
+        extra_lines[0].y = 10;
+
         // Valasztas:
         menu_nav val;
         val.selected_index = int(pjatekos->selected_level) + 1;
@@ -876,7 +888,7 @@ void play(void) {
         }
 
         val.setup(kirpalyszam + 1);
-        int eredmeny = val.navigate();
+        int eredmeny = val.navigate(extra_lines, 1);
 
         if (eredmeny < 0) {
             return;
