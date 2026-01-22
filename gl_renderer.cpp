@@ -188,23 +188,26 @@ int gl_init(SDL_Window* sdl_window, int width, int height) {
     return 0;
 }
 
-void gl_upload_frame(const unsigned char* indices) {
+void gl_upload_frame(const unsigned char* indices, int pitch) {
+    unsigned long buffer_size = pitch * FrameHeight;
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, FrameWidth * FrameHeight, nullptr, GL_STREAM_DRAW);
-    void* ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, FrameWidth * FrameHeight,
-                                 GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW);
+    void* ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, buffer_size,
+                                 GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_WRITE_BIT);
     if (!ptr) {
         internal_error("Could not map PBO!");
     }
 
-    memcpy(ptr, indices, FrameWidth * FrameHeight);
+    memcpy(ptr, indices, buffer_size);
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
     glActiveTexture(GL_TEXTURE0);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FrameWidth, FrameHeight, GL_RED, GL_UNSIGNED_BYTE,
                     nullptr);
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
 void gl_update_palette(const void* palette) {
