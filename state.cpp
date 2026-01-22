@@ -241,8 +241,8 @@ void state::write_stats_anonymous_total_time(FILE* h, bool single, const char* t
     fprintf(h, "\n\n");
 }
 
-// Print total time of one player
-void state::write_stats_player_total_time(FILE* h, const char* player_name, bool single) {
+// Calculate total time for one player (returns centiseconds)
+int state::calculate_player_total_time(const char* player_name, bool single) {
     int total_time = 0;
     for (int i = 0; i < INTERNAL_LEVEL_COUNT - 1; i++) {
         int best_time = 100000000;
@@ -276,6 +276,12 @@ void state::write_stats_player_total_time(FILE* h, const char* player_name, bool
             total_time += best_time;
         }
     }
+    return total_time;
+}
+
+// Print total time of one player
+void state::write_stats_player_total_time(FILE* h, const char* player_name, bool single) {
+    int total_time = calculate_player_total_time(player_name, single);
     char time_text[40];
     centiseconds_to_string(total_time, time_text, true);
     fprintf(h, "%s", time_text);
