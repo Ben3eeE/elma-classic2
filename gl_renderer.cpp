@@ -121,12 +121,7 @@ static void setup_render_state() {
     glBindTexture(GL_TEXTURE_1D, PaletteTexture);
 }
 
-static void setup_PBO(int width, int height) {
-    glGenBuffers(1, &PBO);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height, nullptr, GL_STREAM_DRAW);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-}
+static void setup_PBO(int width, int height) { glGenBuffers(1, &PBO); }
 
 static void setup_vertex_data() {
     glGenVertexArrays(1, &VAO);
@@ -195,6 +190,7 @@ int gl_init(SDL_Window* sdl_window, int width, int height) {
 
 void gl_upload_frame(const unsigned char* indices) {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, FrameWidth * FrameHeight, nullptr, GL_STREAM_DRAW);
     void* ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, FrameWidth * FrameHeight,
                                  GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
     if (!ptr) {
