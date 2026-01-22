@@ -1,4 +1,5 @@
 #include "KIRAJZOL.H"
+#include "abc8.h"
 #include "anim.h"
 #include "affine_pic_render.h"
 #include "ECSET.H"
@@ -13,6 +14,7 @@
 #include "object.h"
 #include "pic8.h"
 #include "platform_utils.h"
+#include "platform_impl.h"
 #include "physics_init.h"
 #include "timer.h"
 #include <algorithm>
@@ -749,6 +751,18 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
             draw_timers(BestTime, -1.0, t, ppic, Cxsize, Cysize);
         }
     }
+
+    static abc8* Pmenuabc = nullptr;
+    if (!Pmenuabc) {
+        Pmenuabc = new abc8("small.abc");
+        Pmenuabc->set_spacing(1);
+    }
+
+    char tmp[50];
+    int fps = (int)get_current_fps();
+    sprintf(tmp, "Renderer FPS: %d", fps);
+    int text_width = 120;
+    Pmenuabc->write(ppic, Cxsize - text_width - 10, 22, tmp);
 }
 
 static pic8* Bpic = NULL;
