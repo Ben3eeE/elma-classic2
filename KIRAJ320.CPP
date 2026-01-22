@@ -16,6 +16,7 @@
 #include "object.h"
 #include "pic8.h"
 #include "platform_utils.h"
+#include "platform_impl.h"
 #include "physics_init.h"
 #include "timer.h"
 #include <algorithm>
@@ -793,6 +794,12 @@ static void kirakegyjatekost(bool ajatekos, pic8* ppic, double t, motorst* pmot,
         int y = BOTTOM_MARGIN;
         SmallFont->write_right_align(ppic, x, y, tmp);
     }
+
+    char tmp[50];
+    int fps = (int)get_current_fps();
+    sprintf(tmp, "Renderer FPS: %d", fps);
+    int text_width = 120;
+    SmallFont->write(ppic, Cxsize - text_width - 10, 22, tmp);
 }
 
 static pic8 Bpic = pic8();
