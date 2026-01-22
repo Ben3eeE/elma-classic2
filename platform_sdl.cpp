@@ -139,13 +139,13 @@ unsigned char** lock_backbuffer(bool flipped) {
         // Set the row buffer bottom-down
         for (int y = 0; y < SCREEN_HEIGHT; y++) {
             SurfaceBuffer[SCREEN_HEIGHT - 1 - y] = row;
-            row += SDLSurfacePaletted->w;
+            row += SDLSurfacePaletted->pitch;
         }
     } else {
         // Set the row buffer top-down
         for (int y = 0; y < SCREEN_HEIGHT; y++) {
             SurfaceBuffer[y] = row;
-            row += SDLSurfacePaletted->w;
+            row += SDLSurfacePaletted->pitch;
         }
     }
 
