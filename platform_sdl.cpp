@@ -77,9 +77,35 @@ void platform_init() {
         internal_error(SDL_GetError());
         return;
     }
+
+    fps_counter_init();
 }
 
 long long get_milliseconds() { return SDL_GetTicks64(); }
+
+static Uint32 fps_frame_count = 0;
+static Uint64 fps_last_time = 0;
+static double fps_current = 0.0;
+
+void fps_counter_init() {
+    fps_frame_count = 0;
+    fps_last_time = get_milliseconds();
+    fps_current = 0.0;
+}
+
+void fps_counter_frame() {
+    fps_frame_count++;
+    Uint64 current_time = get_milliseconds();
+    Uint64 elapsed = current_time - fps_last_time;
+
+    if (elapsed >= 500) {
+        fps_current = (fps_frame_count * 1000.0) / elapsed;
+        fps_frame_count = 0;
+        fps_last_time = current_time;
+    }
+}
+
+double get_current_fps() { return fps_current; }
 
 static bool SurfaceLocked = false;
 
@@ -121,6 +147,8 @@ void unlock_backbuffer() {
         SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
         SDL_UpdateWindowSurface(SDLWindow);
     }
+
+    fps_counter_frame();
 }
 
 unsigned char** lock_frontbuffer(bool flipped) {
