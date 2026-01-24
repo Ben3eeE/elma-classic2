@@ -29,15 +29,7 @@ void message_box(const char* text) {
 
 static unsigned char** SurfaceBuffer;
 
-void platform_init() {
-    CurrentRenderer = EolSettings->renderer();
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-        internal_error(SDL_GetError());
-        return;
-    }
-
-    SurfaceBuffer = new unsigned char*[SCREEN_HEIGHT];
+static void create_window(int window_pos_x, int window_pos_y, int width, int height) {
     if (CurrentRenderer == RendererType::OpenGL) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -46,16 +38,15 @@ void platform_init() {
 
     int window_flags = CurrentRenderer == RendererType::OpenGL ? SDL_WINDOW_OPENGL : 0;
 
-    SDLWindow = SDL_CreateWindow("Elasto Mania", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                 SCREEN_WIDTH, SCREEN_HEIGHT, window_flags);
+    SDLWindow =
+        SDL_CreateWindow("Elasto Mania", window_pos_x, window_pos_y, width, height, window_flags);
     if (!SDLWindow) {
         internal_error(SDL_GetError());
         return;
     }
+}
 
-    SDL_EventState(SDL_DROPFILE, SDL_DISABLE);
-    SDL_EventState(SDL_DROPTEXT, SDL_DISABLE);
-
+static void initialize_renderer() {
     if (CurrentRenderer == RendererType::OpenGL) {
         if (gl_init(SDLWindow, SCREEN_WIDTH, SCREEN_HEIGHT) != 0) {
             internal_error("Failed to initialize OpenGL renderer");
@@ -70,13 +61,33 @@ void platform_init() {
             return;
         }
     }
+}
 
+static void create_palette_surface() {
     SDLSurfacePaletted =
         SDL_CreateRGBSurfaceWithFormat(0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, SDL_PIXELFORMAT_INDEX8);
     if (!SDLSurfacePaletted) {
         internal_error(SDL_GetError());
         return;
     }
+}
+
+void platform_init() {
+    CurrentRenderer = EolSettings->renderer();
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
+        internal_error(SDL_GetError());
+        return;
+    }
+
+    SDL_EventState(SDL_DROPFILE, SDL_DISABLE);
+    SDL_EventState(SDL_DROPTEXT, SDL_DISABLE);
+
+    SurfaceBuffer = new unsigned char*[SCREEN_HEIGHT];
+
+    create_window(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT);
+    initialize_renderer();
+    create_palette_surface();
 }
 
 long long get_milliseconds() { return SDL_GetTicks64(); }
