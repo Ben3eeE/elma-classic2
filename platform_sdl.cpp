@@ -10,9 +10,9 @@
 #include <SDL.h>
 #include <sdl/scancodes_windows.h>
 
-SDL_Window* SDLWindow;
-SDL_Surface* SDLSurfaceMain;
-SDL_Surface* SDLSurfacePaletted;
+static SDL_Window* SDLWindow = nullptr;
+static SDL_Surface* SDLSurfaceMain = nullptr;
+static SDL_Surface* SDLSurfacePaletted = nullptr;
 
 static RendererType CurrentRenderer;
 
