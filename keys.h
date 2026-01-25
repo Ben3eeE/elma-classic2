@@ -1,6 +1,8 @@
 #ifndef KEYS_H
 #define KEYS_H
 
+#include "platform_impl.h"
+
 // ASCII char or one of the special keycodes defined below.
 typedef int Keycode;
 constexpr Keycode KEY_ESC = 1;
@@ -21,5 +23,7 @@ void add_key_to_buffer(Keycode keycode);
 Keycode get_keypress();
 void empty_keypress_buffer();
 bool has_keypress();
+
+DikScancode get_key_alias(DikScancode key);
 
 #endif

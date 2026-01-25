@@ -35,3 +35,5 @@ bool has_keypress() {
     handle_events();
     return KeyBufferCount > 0;
 }
+
+DikScancode get_key_alias(DikScancode key) { return 0; }

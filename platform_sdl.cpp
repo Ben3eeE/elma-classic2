@@ -383,7 +383,16 @@ bool is_key_down(DikScancode code) {
 
     SDL_Scancode sdl_code = windows_scancode_table[code];
 
-    return SDLKeyState[sdl_code] != 0;
+    if (SDLKeyState[sdl_code] != 0) {
+        return true;
+    }
+
+    DikScancode alias = get_key_alias(code);
+    if (alias > 0) {
+        return is_key_down(alias);
+    }
+
+    return false;
 }
 
 bool is_ctrl_alt_down() {
