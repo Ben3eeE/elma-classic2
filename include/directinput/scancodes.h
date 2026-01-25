@@ -3,6 +3,7 @@
  *      DirectInput keyboard scan codes
  *
  ****************************************************************************/
+#define DIK_UNKNOWN 0x00
 #define DIK_ESCAPE 0x01
 #define DIK_1 0x02
 #define DIK_2 0x03
