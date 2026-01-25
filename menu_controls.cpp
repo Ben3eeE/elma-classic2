@@ -8,6 +8,8 @@
 
 const char* dik_to_string(DikScancode keycode) {
     switch (keycode) {
+    case DIK_UNKNOWN:
+        return "NONE";
     case DIK_1:
         return "1";
     case DIK_2:
