@@ -92,6 +92,8 @@ void eol_settings::set_brake_alias_key_player_a(int key) { brake_alias_key_playe
 
 void eol_settings::set_brake_alias_key_player_b(int key) { brake_alias_key_player_b_ = key; }
 
+void eol_settings::set_escape_alias_key(int key) { escape_alias_key_ = key; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -172,7 +174,8 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(alovolt_key_player_a)                                                               \
     JSON_FIELD(alovolt_key_player_b)                                                               \
     JSON_FIELD(brake_alias_key_player_a)                                                           \
-    JSON_FIELD(brake_alias_key_player_b)
+    JSON_FIELD(brake_alias_key_player_b)                                                           \
+    JSON_FIELD(escape_alias_key)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }
@@ -221,6 +224,7 @@ void eol_settings::sync_controls_to_state(state* s) {
     s->keys2.alovolt = EolSettings->alovolt_key_player_b();
     s->keys1.brake_alias = EolSettings->brake_alias_key_player_a();
     s->keys2.brake_alias = EolSettings->brake_alias_key_player_b();
+    s->key_escape_alias = EolSettings->escape_alias_key();
 }
 
 void eol_settings::sync_controls_from_state(state* s) {
@@ -232,4 +236,5 @@ void eol_settings::sync_controls_from_state(state* s) {
     EolSettings->set_alovolt_key_player_b(s->keys2.alovolt);
     EolSettings->set_brake_alias_key_player_a(s->keys1.brake_alias);
     EolSettings->set_brake_alias_key_player_b(s->keys2.brake_alias);
+    EolSettings->set_escape_alias_key(s->key_escape_alias);
 }

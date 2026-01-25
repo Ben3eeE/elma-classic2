@@ -380,6 +380,7 @@ void state::reset_keys() {
     key_increase_screen_size = DIK_EQUALS;
     key_decrease_screen_size = DIK_MINUS;
     key_screenshot = DIK_I;
+    key_escape_alias = DIK_UNKNOWN;
 }
 
 player* state::get_player(const char* player_name) {

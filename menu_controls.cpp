@@ -261,7 +261,7 @@ static key_pointers Player1Keys;
 static key_pointers Player2Keys;
 
 constexpr int UNIVERSAL_KEYS_START = 3;
-constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 3;
+constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 4;
 constexpr int PLAYER_KEYS_START = 0;
 constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 10;
 
@@ -341,6 +341,7 @@ static void load_universal_controls() {
     load_control(UniversalKeys, i++, "Inc. Screen Size", &State->key_increase_screen_size);
     load_control(UniversalKeys, i++, "Dec. Screen Size", &State->key_decrease_screen_size);
     load_control(UniversalKeys, i++, "Make a Screenshot", &State->key_screenshot);
+    load_control(UniversalKeys, i++, "Escape Alias", &State->key_escape_alias);
 }
 
 // Setup the menu to display one player's controls

@@ -71,6 +71,7 @@ class state {
     DikScancode key_increase_screen_size;
     DikScancode key_decrease_screen_size;
     DikScancode key_screenshot;
+    DikScancode key_escape_alias;
 
     char editor_filename[20];
     char external_filename[20];

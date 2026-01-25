@@ -557,7 +557,7 @@ long lejatszo(const char* filenev) {
         snapnyomva = is_key_down(State->key_screenshot);
 
         // Vizsgalat kilepesre:
-        if (is_key_down(DIK_ESCAPE)) {
+        if (is_key_down(DIK_ESCAPE) || is_key_down(State->key_escape_alias)) {
             MeghalteloszorAB = 0;
             double eltelido = stopwatch();
             // Motor hangjat kikapcsolja:
