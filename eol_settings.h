@@ -87,6 +87,10 @@ struct eol_settings {
     void set_brake_alias_key_player_b(int key);
     int* brake_alias_key_player_b_ptr() { return &brake_alias_key_player_b_.value; }
 
+    int escape_alias_key() const { return escape_alias_key_; }
+    void set_escape_alias_key(int key);
+    int* escape_alias_key_ptr() { return &escape_alias_key_.value; }
+
   private:
     Clamp<int> screen_width_{640, 640, 10000};
     Clamp<int> screen_height_{480, 480, 10000};
@@ -103,6 +107,7 @@ struct eol_settings {
     Default<int> alovolt_key_player_b_{0};
     Default<int> brake_alias_key_player_a_{0};
     Default<int> brake_alias_key_player_b_{0};
+    Default<int> escape_alias_key_{0};
 };
 
 extern eol_settings* EolSettings;

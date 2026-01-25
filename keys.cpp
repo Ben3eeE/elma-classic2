@@ -1,6 +1,7 @@
 #include "eol_settings.h"
 #include "keys.h"
 #include "state.h"
+#include <directinput/scancodes.h>
 
 constexpr int KeyBufferSize = 30;
 static Keycode KeyBuffer[KeyBufferSize];
@@ -50,6 +51,10 @@ DikScancode get_key_alias(DikScancode key) {
     }
     if (key == State->keys2.brake) {
         return EolSettings->brake_alias_key_player_b();
+    }
+
+    if (key == DIK_ESCAPE) {
+        return EolSettings->escape_alias_key();
     }
 
     return 0;
