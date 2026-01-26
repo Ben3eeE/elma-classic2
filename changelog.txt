@@ -3,6 +3,7 @@
 ## Major Features
 * Polygons no longer have a per-polygon max vertex count. There is now only a maximum total vertex count for the entire level.
 * Steam elma.res is supported
+* Replays: maximum duration increased from 1 hour to about 828 days.
 
 ## Major Bug Fixes
 * It is possible to properly collect more than 200 apples in a single frame

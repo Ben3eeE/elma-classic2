@@ -4,6 +4,7 @@
 #include "sound_engine.h"
 #include "vect2.h"
 #include <cstdio>
+#include <vector>
 
 struct motorst;
 
@@ -45,10 +46,10 @@ class recorder {
 
     int frame_count;
 
-    frame_data* frames;
+    std::vector<frame_data> frames;
 
     int event_count;
-    event* events;
+    std::vector<event> events;
 
     // store/recall vars
     bool finished;
