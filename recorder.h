@@ -21,26 +21,31 @@ struct event {
 };
 static_assert(sizeof(event) == 0x10);
 
+struct frame_data {
+    float bike_x;
+    float bike_y;
+    short left_wheel_x;
+    short left_wheel_y;
+    short right_wheel_x;
+    short right_wheel_y;
+    short body_x;
+    short body_y;
+    short bike_rotation; // (0-9999)
+    // (0-249, glitched 0-255 when brake-stretching)
+    unsigned char left_wheel_rotation;
+    unsigned char right_wheel_rotation;
+    unsigned char flags;
+    unsigned char motor_frequency;
+    unsigned char friction_volume;
+};
+static_assert(sizeof(frame_data) == 28);
+
 class recorder {
     friend void replay();
 
     int frame_count;
 
-    float* bike_x;
-    float* bike_y;
-    short* left_wheel_x;
-    short* left_wheel_y;
-    short* right_wheel_x;
-    short* right_wheel_y;
-    short* body_x;
-    short* body_y;
-    short* bike_rotation; // (0-9999)
-    // (0-249, glitched 0-255 when brake-stretching)
-    unsigned char* left_wheel_rotation;
-    unsigned char* right_wheel_rotation;
-    unsigned char* flags;
-    unsigned char* motor_frequency;
-    unsigned char* friction_volume;
+    frame_data* frames;
 
     int event_count;
     event* events;
