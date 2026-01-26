@@ -35,6 +35,7 @@ template <typename T> Clamp<T>& Clamp<T>::operator=(T v) {
 
 template <typename T> void Clamp<T>::reset() { value = def; }
 
+template struct Default<int>;
 template struct Default<bool>;
 template struct Default<MapAlignment>;
 template struct Default<RendererType>;
@@ -82,6 +83,10 @@ void eol_settings::set_zoom_textures(bool zoom_textures) {
 void eol_settings::set_turn_time(double t) { turn_time_ = t; }
 
 void eol_settings::set_lctrl_search(bool lctrl_search) { lctrl_search_ = lctrl_search; }
+
+void eol_settings::set_alovolt_key_player_a(int key) { alovolt_key_player_a_ = key; }
+
+void eol_settings::set_alovolt_key_player_b(int key) { alovolt_key_player_b_ = key; }
 
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
@@ -159,7 +164,9 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(zoom_textures)                                                                      \
     JSON_FIELD(renderer)                                                                           \
     JSON_FIELD(turn_time)                                                                          \
-    JSON_FIELD(lctrl_search)
+    JSON_FIELD(lctrl_search)                                                                       \
+    JSON_FIELD(alovolt_key_player_a)                                                               \
+    JSON_FIELD(alovolt_key_player_b)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }

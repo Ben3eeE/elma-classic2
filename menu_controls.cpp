@@ -1,5 +1,6 @@
 #include "menu_controls.h"
 #include <directinput/scancodes.h>
+#include "eol_settings.h"
 #include "keys.h"
 #include "menu_nav.h"
 #include "platform_impl.h"
@@ -262,7 +263,7 @@ static key_pointers Player2Keys;
 constexpr int UNIVERSAL_KEYS_START = 3;
 constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 3;
 constexpr int PLAYER_KEYS_START = 0;
-constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 8;
+constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 9;
 
 // Setup the menu to display one control key
 static void load_control(key_pointers keys, int offset, const char* label, int* key) {
@@ -343,13 +344,17 @@ static void load_universal_controls() {
 }
 
 // Setup the menu to display one player's controls
-static void load_player_controls(key_pointers keys, player_keys* player_controls) {
+static void load_player_controls(key_pointers keys, player_keys* player_controls,
+                                 bool is_player_a) {
     int i = PLAYER_KEYS_START;
     load_control(keys, i++, "Throttle", &player_controls->gas);
     load_control(keys, i++, "Brake", &player_controls->brake);
     load_control(keys, i++, "Rotate left", &player_controls->left_volt);
     load_control(keys, i++, "Rotate right", &player_controls->right_volt);
     load_control(keys, i++, "Change direction", &player_controls->turn);
+    load_control(keys, i++, "Alovolt",
+                 is_player_a ? EolSettings->alovolt_key_player_a_ptr()
+                             : EolSettings->alovolt_key_player_b_ptr());
     load_control(keys, i++, "Toggle Navigator", &player_controls->toggle_minimap);
     load_control(keys, i++, "Toggle Time", &player_controls->toggle_timer);
     load_control(keys, i++, "Toggle Show/Hide", &player_controls->toggle_visibility);
@@ -357,7 +362,7 @@ static void load_player_controls(key_pointers keys, player_keys* player_controls
 
 // Menu to change controls for one player
 static void menu_customize_player(key_pointers keys, player_keys* player_controls,
-                                  const char* player_letter) {
+                                  const char* player_letter, bool is_player_a) {
     int choice = 0;
     while (true) {
         menu_nav nav;
@@ -369,7 +374,7 @@ static void menu_customize_player(key_pointers keys, player_keys* player_control
         strcpy(nav.title, "Customize Player ");
         strcat(nav.title, player_letter);
 
-        load_player_controls(keys, player_controls);
+        load_player_controls(keys, player_controls, is_player_a);
 
         nav.setup(PLAYER_KEYS_END, true);
 
@@ -386,8 +391,8 @@ static void menu_customize_player(key_pointers keys, player_keys* player_control
 // Menu to customize universal controls or select a player
 void menu_customize_controls() {
     // Initialize these pointers so we can check/modify the values in prompt_control
-    load_player_controls(Player1Keys, &State->keys1);
-    load_player_controls(Player2Keys, &State->keys2);
+    load_player_controls(Player1Keys, &State->keys1, true);
+    load_player_controls(Player2Keys, &State->keys2, false);
 
     int choice = 0;
     while (true) {
@@ -405,22 +410,23 @@ void menu_customize_controls() {
 
         choice = nav.navigate();
         if (choice < 0) {
+            eol_settings::write_settings();
             return;
         }
         if (choice == 0) {
             // Reset all controls to default
             State->reset_keys();
-            load_player_controls(Player1Keys, &State->keys1);
-            load_player_controls(Player2Keys, &State->keys2);
+            load_player_controls(Player1Keys, &State->keys1, true);
+            load_player_controls(Player2Keys, &State->keys2, false);
             load_universal_controls();
         }
         if (choice == 1) {
             // Customize Player A
-            menu_customize_player(Player1Keys, &State->keys1, "A");
+            menu_customize_player(Player1Keys, &State->keys1, "A", true);
         }
         if (choice == 2) {
             // Customize Player B
-            menu_customize_player(Player2Keys, &State->keys2, "B");
+            menu_customize_player(Player2Keys, &State->keys2, "B", false);
         }
         if (choice >= UNIVERSAL_KEYS_START && choice < UNIVERSAL_KEYS_END) {
             // Modify universal control

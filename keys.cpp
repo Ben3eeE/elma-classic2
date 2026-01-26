@@ -1,5 +1,6 @@
+#include "eol_settings.h"
 #include "keys.h"
-#include "platform_impl.h"
+#include "state.h"
 
 constexpr int KeyBufferSize = 30;
 static Keycode KeyBuffer[KeyBufferSize];
@@ -36,4 +37,13 @@ bool has_keypress() {
     return KeyBufferCount > 0;
 }
 
-DikScancode get_key_alias(DikScancode key) { return 0; }
+DikScancode get_key_alias(DikScancode key) {
+    if (key == State->keys1.left_volt || key == State->keys1.right_volt) {
+        return EolSettings->alovolt_key_player_a();
+    }
+    if (key == State->keys2.left_volt || key == State->keys2.right_volt) {
+        return EolSettings->alovolt_key_player_b();
+    }
+
+    return 0;
+}

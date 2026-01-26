@@ -71,6 +71,14 @@ struct eol_settings {
     bool lctrl_search() const { return lctrl_search_; }
     void set_lctrl_search(bool lctrl_search);
 
+    int alovolt_key_player_a() const { return alovolt_key_player_a_; }
+    void set_alovolt_key_player_a(int key);
+    int* alovolt_key_player_a_ptr() { return &alovolt_key_player_a_.value; }
+
+    int alovolt_key_player_b() const { return alovolt_key_player_b_; }
+    void set_alovolt_key_player_b(int key);
+    int* alovolt_key_player_b_ptr() { return &alovolt_key_player_b_.value; }
+
   private:
     Clamp<int> screen_width_{640, 640, 10000};
     Clamp<int> screen_height_{480, 480, 10000};
@@ -83,6 +91,8 @@ struct eol_settings {
     Default<bool> zoom_textures_{false};
     Clamp<double> turn_time_{0.0, 0.35, 0.35};
     Default<bool> lctrl_search_{false};
+    Default<int> alovolt_key_player_a_{0};
+    Default<int> alovolt_key_player_b_{0};
 };
 
 extern eol_settings* EolSettings;
