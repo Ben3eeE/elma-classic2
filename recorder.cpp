@@ -19,8 +19,11 @@ constexpr int FRAME_RATE = 30;
 constexpr double TIME_TO_FRAME_INDEX = FRAME_RATE / (STOPWATCH_MULTIPLIER * 1000.0 * 0.0024);
 constexpr double FRAME_INDEX_TO_TIME = 1.0 / TIME_TO_FRAME_INDEX;
 
-constexpr int MAX_FRAMES = FRAME_RATE * 60 * 5 - 19;
-constexpr int MAX_EVENTS = 3900;
+constexpr int INITIAL_FRAMES = FRAME_RATE * 60 * 60; // 30 fps * 60 sec * 60 min
+constexpr int INITIAL_EVENTS = 46895;                // Magic constant from eol
+
+constexpr int FRAME_CHUNK_SIZE = INITIAL_FRAMES;
+constexpr int EVENT_CHUNK_SIZE = INITIAL_EVENTS;
 
 constexpr int FLAG_GAS = 0;
 constexpr int FLAG_FLIPPED = 1;
@@ -29,22 +32,12 @@ constexpr int FLAG_FLAGTAG_IMMUNITY = 3;
 
 recorder::recorder() {
     frame_count = 0;
-
-    frames = nullptr;
-
     event_count = 0;
-    events = nullptr;
-
     flagtag_ = 0;
-
     level_filename[0] = 0;
 
-    frames = new frame_data[MAX_FRAMES];
-    events = new event[MAX_EVENTS];
-
-    if (!frames || !events) {
-        external_error("recorder::recorder out of memory!");
-    }
+    frames.reserve(INITIAL_FRAMES);
+    events.reserve(INITIAL_EVENTS);
 }
 
 recorder::~recorder() { internal_error("recorder::~recorder not implemented!"); }
@@ -59,6 +52,16 @@ void recorder::erase(char* lev_filename) {
     finished = false;
     current_event_index = 0;
     next_frame_index = 0;
+
+    if (frames.size() > 2 * INITIAL_FRAMES) {
+        frames.resize(INITIAL_FRAMES);
+        frames.shrink_to_fit();
+    }
+
+    if (events.size() > 2 * INITIAL_EVENTS) {
+        events.resize(INITIAL_EVENTS);
+        events.shrink_to_fit();
+    }
 }
 
 void recorder::rewind() {
@@ -242,8 +245,8 @@ void recorder::store_frames(motorst* mot, double time, bike_sound* sound) {
                 ((next_frame_time - previous_frame_time) / (time - previous_frame_time)) +
             previous_bike_r;
 
-        if (next_frame_index >= MAX_FRAMES) {
-            return;
+        if (next_frame_index >= frames.size()) {
+            frames.resize(next_frame_index + FRAME_CHUNK_SIZE);
         }
 
         int i = next_frame_index;
@@ -320,9 +323,6 @@ void recorder::store_frames(motorst* mot, double time, bike_sound* sound) {
 }
 
 void recorder::store_event(double time, WavEvent event_id, double volume, int object_id) {
-    if (event_count >= MAX_EVENTS) {
-        return;
-    }
     if (event_count > 0) {
         if (events[event_count - 1].time > time + 0.00001) {
             char tmp[50];
@@ -331,6 +331,11 @@ void recorder::store_event(double time, WavEvent event_id, double volume, int ob
             internal_error(tmp);
         }
     }
+
+    if (event_count >= events.size()) {
+        events.resize(event_count + EVENT_CHUNK_SIZE);
+    }
+
     events[event_count].time = time;
     events[event_count].event_id = event_id;
     events[event_count].volume = volume;
@@ -363,9 +368,8 @@ int recorder::load(const char* filename, FILE* h, int demo, bool is_first_replay
     if (frame_count <= 0) {
         internal_error("recorder frame_count <= 0: ", filename);
     }
-    if (frame_count > MAX_FRAMES) {
-        internal_error("recorder frame_count > MAX_FRAMES!");
-    }
+
+    frames.resize(frame_count);
 
     int version = 0;
     if (fread(&version, 1, sizeof(version), h) != 4) {
@@ -428,12 +432,11 @@ int recorder::load(const char* filename, FILE* h, int demo, bool is_first_replay
     if (event_count < 0) {
         internal_error("recorder event_count < 0!");
     }
-    if (event_count > MAX_EVENTS) {
-        internal_error("recorder event_count > MAX_EVENTS!");
-    }
+
+    events.resize(event_count);
 
     int event_length = event_count * sizeof(event);
-    if (fread(events, 1, event_length, h) != event_length) {
+    if (fread(events.data(), 1, event_length, h) != event_length) {
         read_error(filename);
     }
 
@@ -522,7 +525,7 @@ void recorder::save(const char* filename, FILE* h, int level_id, int flagtag) {
         save_error(filename);
     }
     int event_length = event_count * sizeof(event);
-    if (fwrite(events, 1, event_length, h) != event_length) {
+    if (fwrite(events.data(), 1, event_length, h) != event_length) {
         save_error(filename);
     }
 
