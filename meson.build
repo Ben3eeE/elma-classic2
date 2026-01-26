@@ -119,3 +119,24 @@ executable(
     dependencies: [nlohmann_json_dep, gl_dep, sdl2_dep],
     win_subsystem: win_subsystem,
 )
+
+# clang-tidy target
+clang_tidy = find_program('clang-tidy', required: false)
+if clang_tidy.found()
+    # Filter out third-party/generated files
+    clang_tidy_sources = []
+    foreach src : elma_sources
+        if not src.full_path().contains('glad.c')
+            clang_tidy_sources += src
+        endif
+    endforeach
+    
+    run_target('clang-tidy',
+        command: [
+            clang_tidy,
+            '-p', meson.project_build_root(),
+            '--extra-arg=-std=c++20',
+            clang_tidy_sources
+        ]
+    )
+endif
