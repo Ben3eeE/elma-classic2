@@ -263,7 +263,7 @@ static key_pointers Player2Keys;
 constexpr int UNIVERSAL_KEYS_START = 3;
 constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 3;
 constexpr int PLAYER_KEYS_START = 0;
-constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 9;
+constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 10;
 
 // Setup the menu to display one control key
 static void load_control(key_pointers keys, int offset, const char* label, int* key) {
@@ -349,6 +349,9 @@ static void load_player_controls(key_pointers keys, player_keys* player_controls
     int i = PLAYER_KEYS_START;
     load_control(keys, i++, "Throttle", &player_controls->gas);
     load_control(keys, i++, "Brake", &player_controls->brake);
+    load_control(keys, i++, "Brake Alias",
+                 is_player_a ? EolSettings->brake_alias_key_player_a_ptr()
+                             : EolSettings->brake_alias_key_player_b_ptr());
     load_control(keys, i++, "Rotate left", &player_controls->left_volt);
     load_control(keys, i++, "Rotate right", &player_controls->right_volt);
     load_control(keys, i++, "Change direction", &player_controls->turn);

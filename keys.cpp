@@ -45,5 +45,12 @@ DikScancode get_key_alias(DikScancode key) {
         return EolSettings->alovolt_key_player_b();
     }
 
+    if (key == State->keys1.brake) {
+        return EolSettings->brake_alias_key_player_a();
+    }
+    if (key == State->keys2.brake) {
+        return EolSettings->brake_alias_key_player_b();
+    }
+
     return 0;
 }
