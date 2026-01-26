@@ -94,6 +94,14 @@ void eol_settings::set_brake_alias_key_player_b(int key) { brake_alias_key_playe
 
 void eol_settings::set_escape_alias_key(int key) { escape_alias_key_ = key; }
 
+void eol_settings::reset_controls() {
+    alovolt_key_player_a_.reset();
+    alovolt_key_player_b_.reset();
+    brake_alias_key_player_a_.reset();
+    brake_alias_key_player_b_.reset();
+    escape_alias_key_.reset();
+}
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *

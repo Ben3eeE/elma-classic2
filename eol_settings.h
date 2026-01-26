@@ -91,6 +91,8 @@ struct eol_settings {
     void set_escape_alias_key(int key);
     int* escape_alias_key_ptr() { return &escape_alias_key_.value; }
 
+    void reset_controls();
+
   private:
     Clamp<int> screen_width_{640, 640, 10000};
     Clamp<int> screen_height_{480, 480, 10000};

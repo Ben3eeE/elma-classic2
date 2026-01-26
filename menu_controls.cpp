@@ -420,6 +420,7 @@ void menu_customize_controls() {
         if (choice == 0) {
             // Reset all controls to default
             State->reset_keys();
+            EolSettings->reset_controls();
             load_player_controls(Player1Keys, &State->keys1, true);
             load_player_controls(Player2Keys, &State->keys2, false);
             load_universal_controls();
