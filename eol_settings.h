@@ -84,6 +84,12 @@ struct eol_settings {
     int alovolt_key_player_b() const { return alovolt_key_player_b_; }
     void set_alovolt_key_player_b(int key);
 
+    int brake_alias_key_player_a() const { return brake_alias_key_player_a_; }
+    void set_brake_alias_key_player_a(int key);
+
+    int brake_alias_key_player_b() const { return brake_alias_key_player_b_; }
+    void set_brake_alias_key_player_b(int key);
+
   private:
     Clamp<int> screen_width_{640, 640, 10000};
     Clamp<int> screen_height_{480, 480, 10000};
@@ -98,6 +104,8 @@ struct eol_settings {
     Default<bool> lctrl_search_{false};
     Default<DikScancode> alovolt_key_player_a_{DIK_UNKNOWN};
     Default<DikScancode> alovolt_key_player_b_{DIK_UNKNOWN};
+    Default<DikScancode> brake_alias_key_player_a_{DIK_UNKNOWN};
+    Default<DikScancode> brake_alias_key_player_b_{DIK_UNKNOWN};
 };
 
 extern eol_settings* EolSettings;

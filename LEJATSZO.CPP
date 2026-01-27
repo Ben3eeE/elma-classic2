@@ -132,7 +132,8 @@ static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
 
     // LEPTET!!!!!!!:
     // 0-meghalt, 1-megnyerte, 2-semmi kulonos
-    leptet(pmot, eddig, dt, is_key_down(popciok->gas), is_key_down(popciok->brake), ugrik1, ugrik2);
+    leptet(pmot, eddig, dt, is_key_down(popciok->gas),
+           is_key_down(popciok->brake) || is_key_down(popciok->brake_alias), ugrik1, ugrik2);
 
     int eredmeny = vizsgalat(pmot);
     if (eredmeny == 0) {

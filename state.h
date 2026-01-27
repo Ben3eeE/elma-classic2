@@ -46,6 +46,7 @@ static_assert(sizeof(player_state_keys) == 32);
 
 struct player_keys : public player_state_keys {
     DikScancode alovolt;
+    DikScancode brake_alias;
 };
 
 class state {
