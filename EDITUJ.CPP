@@ -628,18 +628,6 @@ void editor(void) {
 
     Valtozott = 0;
 
-    // Most megnezzuk, hogy megvannak-e palyai fazonnak:
-    if (hanypalyavanmeg() < 5) {
-        char tmp[50];
-        if (hanypalyavanmeg() > 1) {
-            sprintf(tmp, "You have completed %d levels so far.", hanypalyavanmeg());
-        } else {
-            sprintf(tmp, "You have completed %d level so far.", hanypalyavanmeg());
-        }
-        dialog("You must complete at least 5 levels before you can use the editor!", tmp);
-        return;
-    }
-
     // Beolvassuk file-t:
     kivalasztkezdetit();
 
