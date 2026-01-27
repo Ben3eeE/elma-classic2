@@ -5,6 +5,7 @@
 #include "MAINMENU.H"
 #include "menu_nav.h"
 #include "menu_pic.h"
+#include "platform_utils.h"
 #include "state.h"
 #include "TELJES.H"
 #include <cstring>
@@ -34,7 +35,7 @@ static int bevesznevet(char* nev, int visszater) {
                     return 1;
                 }
             }
-            if (MenuFont->has_char(c)) {
+            if (MenuFont->has_char(c) && is_char_allowed_for_filename_input(c)) {
                 if (i >= Maxnevhossz) {
                     continue;
                 }

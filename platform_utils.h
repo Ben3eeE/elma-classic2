@@ -21,6 +21,7 @@ constexpr double TWO_PI = PI * 2.0;
 #endif
 
 bool is_ascii_character(unsigned char c);
+bool is_char_allowed_for_filename_input(unsigned char c);
 
 #ifndef _WIN32
 

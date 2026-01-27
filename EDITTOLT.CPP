@@ -590,7 +590,7 @@ int tolt_save_as() {
                 Valtozott = 0;
                 return 1;
             }
-            if (Pabc2->has_char(c)) {
+            if (Pabc2->has_char(c) && is_char_allowed_for_filename_input(c)) {
                 if (strlen(nev) >= 8) {
                     continue;
                 }
@@ -1889,7 +1889,7 @@ static void change_level_name(char* nev) {
             pop();
             return;
         }
-        if (Pabc2->has_char(c)) {
+        if (Pabc2->has_char(c) && is_char_allowed_for_filename_input(c)) {
             char tmpfejlec[LEVEL_NAME_LENGTH + 10];
             sprintf(tmpfejlec, "Ext: %s", nev);
 
