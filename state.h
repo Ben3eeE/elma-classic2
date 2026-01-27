@@ -31,7 +31,7 @@ struct topten_set {
     topten multi;
 };
 
-struct player_keys {
+struct player_state_keys {
     DikScancode gas;
     DikScancode brake;
     DikScancode right_volt;
@@ -41,6 +41,10 @@ struct player_keys {
     DikScancode toggle_timer;
     DikScancode toggle_visibility; // Toggle Player
 };
+
+static_assert(sizeof(player_state_keys) == 32);
+
+struct player_keys : public player_state_keys {};
 
 class state {
   public:

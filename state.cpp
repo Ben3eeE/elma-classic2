@@ -109,8 +109,8 @@ state::state(const char* filename) {
     read_encrypted(&high_quality, sizeof(high_quality), h, filename);
     read_encrypted(&animated_objects, sizeof(animated_objects), h, filename);
     read_encrypted(&animated_menus, sizeof(animated_menus), h, filename);
-    read_encrypted(&keys1, sizeof(keys1), h, filename);
-    read_encrypted(&keys2, sizeof(keys2), h, filename);
+    read_encrypted(&keys1, sizeof(player_state_keys), h, filename);
+    read_encrypted(&keys2, sizeof(player_state_keys), h, filename);
     read_encrypted(&key_increase_screen_size, sizeof(key_increase_screen_size), h, filename);
     read_encrypted(&key_decrease_screen_size, sizeof(key_decrease_screen_size), h, filename);
     read_encrypted(&key_screenshot, sizeof(key_decrease_screen_size), h, filename);
@@ -170,8 +170,8 @@ void state::save() {
     write_encrypted(&high_quality, sizeof(high_quality), h);
     write_encrypted(&animated_objects, sizeof(animated_objects), h);
     write_encrypted(&animated_menus, sizeof(animated_menus), h);
-    write_encrypted(&keys1, sizeof(keys1), h);
-    write_encrypted(&keys2, sizeof(keys2), h);
+    write_encrypted(&keys1, sizeof(player_state_keys), h);
+    write_encrypted(&keys2, sizeof(player_state_keys), h);
     write_encrypted(&key_increase_screen_size, sizeof(key_increase_screen_size), h);
     write_encrypted(&key_decrease_screen_size, sizeof(key_decrease_screen_size), h);
     write_encrypted(&key_screenshot, sizeof(key_decrease_screen_size), h);

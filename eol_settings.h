@@ -1,6 +1,8 @@
 #ifndef EOL_SETTINGS
 #define EOL_SETTINGS
 
+class state;
+
 enum class MapAlignment { None, Left, Middle, Right };
 enum class RendererType { Software, OpenGL };
 
@@ -37,6 +39,8 @@ template <typename T> struct Clamp {
 struct eol_settings {
     static void read_settings();
     static void write_settings();
+    static void sync_controls_to_state(state* s);
+    static void sync_controls_from_state(state* s);
 
     int screen_width() const { return screen_width_; }
     void set_screen_width(int w);

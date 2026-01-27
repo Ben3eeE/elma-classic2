@@ -2,6 +2,7 @@
 #include "abc8.h"
 #include "ball_collision.h"
 #include "EDITUJ.H"
+#include "eol_settings.h"
 #include "JATEKOS.H"
 #include "keys.h"
 #include "M_PIC.H"
@@ -73,6 +74,7 @@ void teljes(void) {
     }
 
     mergestatedat();
+    eol_settings::sync_controls_to_state(State);
 
     init_physics_data();
 

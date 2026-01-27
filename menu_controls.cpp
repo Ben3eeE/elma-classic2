@@ -1,5 +1,6 @@
 #include "menu_controls.h"
 #include <directinput/scancodes.h>
+#include "eol_settings.h"
 #include "keys.h"
 #include "menu_nav.h"
 #include "platform_impl.h"
@@ -405,6 +406,7 @@ void menu_customize_controls() {
 
         choice = nav.navigate();
         if (choice < 0) {
+            eol_settings::sync_controls_from_state(State);
             return;
         }
         if (choice == 0) {

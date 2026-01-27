@@ -198,3 +198,15 @@ void eol_settings::write_settings() {
     json j = *EolSettings;
     o << std::setw(4) << j << std::endl;
 }
+
+void eol_settings::sync_controls_to_state(state* s) {
+    if (!s) {
+        return;
+    }
+}
+
+void eol_settings::sync_controls_from_state(state* s) {
+    if (!s) {
+        return;
+    }
+}
