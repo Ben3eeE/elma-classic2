@@ -3,6 +3,7 @@
 ## Major Features
 * Polygons no longer have a per-polygon max vertex count. There is now only a maximum total vertex count for the entire level.
 * Steam elma.res is supported
+* Elma now honors the local keyboard layout for text input instead of being forced to US qwerty layout
 
 ## Major Bug Fixes
 * It is possible to properly collect more than 200 apples in a single frame
@@ -19,6 +20,7 @@
 * Dialog pop-ups are centered on the screen
 * message.inf is no longer required to view error messages, and error messages are now all in English
 * turntime can now be configured
+* You can now type more non-letter symbols in game menus, like saving a replay or level named `!cov!`
 
 ## Minor Bug Fixes
 * Foreground grass was accidentally inefficiently calculated, causing increased load time

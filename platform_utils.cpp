@@ -45,4 +45,7 @@ void strlwr(char* str) {
         str++;
     }
 }
+
 #endif
+
+bool is_ascii_character(unsigned char c) { return (c >= 32 && c < 127); }
