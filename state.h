@@ -44,7 +44,9 @@ struct player_state_keys {
 
 static_assert(sizeof(player_state_keys) == 32);
 
-struct player_keys : public player_state_keys {};
+struct player_keys : public player_state_keys {
+    DikScancode alovolt;
+};
 
 class state {
   public:

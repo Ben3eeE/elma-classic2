@@ -2,6 +2,7 @@
 #include "lgr.h"
 #include "main.h"
 #include "menu_pic.h"
+#include "state.h"
 #include "physics_init.h"
 #include "platform_impl.h"
 #include <fstream>
@@ -83,6 +84,10 @@ void eol_settings::set_turn_time(double t) { turn_time_ = t; }
 
 void eol_settings::set_lctrl_search(bool lctrl_search) { lctrl_search_ = lctrl_search; }
 
+void eol_settings::set_alovolt_key_player_a(int key) { alovolt_key_player_a_ = key; }
+
+void eol_settings::set_alovolt_key_player_b(int key) { alovolt_key_player_b_ = key; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -159,7 +164,9 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(zoom_textures)                                                                      \
     JSON_FIELD(renderer)                                                                           \
     JSON_FIELD(turn_time)                                                                          \
-    JSON_FIELD(lctrl_search)
+    JSON_FIELD(lctrl_search)                                                                       \
+    JSON_FIELD(alovolt_key_player_a)                                                               \
+    JSON_FIELD(alovolt_key_player_b)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }
@@ -203,10 +210,16 @@ void eol_settings::sync_controls_to_state(state* s) {
     if (!s) {
         return;
     }
+
+    s->keys1.alovolt = EolSettings->alovolt_key_player_a();
+    s->keys2.alovolt = EolSettings->alovolt_key_player_b();
 }
 
 void eol_settings::sync_controls_from_state(state* s) {
     if (!s) {
         return;
     }
+
+    EolSettings->set_alovolt_key_player_a(s->keys1.alovolt);
+    EolSettings->set_alovolt_key_player_b(s->keys2.alovolt);
 }

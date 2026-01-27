@@ -363,6 +363,7 @@ void state::reset_keys() {
     keys1.toggle_minimap = DIK_V;
     keys1.toggle_timer = DIK_T;
     keys1.toggle_visibility = DIK_1;
+    keys1.alovolt = DIK_UNKNOWN;
 
     keys2.gas = DIK_NUMPAD5;
     keys2.brake = DIK_NUMPAD2;
@@ -372,6 +373,7 @@ void state::reset_keys() {
     keys2.toggle_minimap = DIK_B;
     keys2.toggle_timer = DIK_Y;
     keys2.toggle_visibility = DIK_2;
+    keys2.alovolt = DIK_UNKNOWN;
 
     key_increase_screen_size = DIK_EQUALS;
     key_decrease_screen_size = DIK_MINUS;
