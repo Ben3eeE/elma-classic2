@@ -1,5 +1,6 @@
 #include "abc8.h"
 #include "best_times.h"
+#include "eol_settings.h"
 #include "keys.h"
 #include "level.h"
 #include "main.h"
@@ -147,18 +148,24 @@ void menu_external_topten(level* top, bool single) {
 // Main Menu Best Times
 // Show a list of unlocked internals so that can you view the best times
 void menu_best_times_choose_level(bool single) {
-    // Find the last level anyone has unlocked
-    int visible_levels = 0;
-    for (int i = 0; i < State->player_count; i++) {
-        if (State->players[i].levels_completed > visible_levels) {
-            visible_levels = int(State->players[i].levels_completed);
+    int visible_levels;
+    if (EolSettings->unlock_all_levels()) {
+        // When unlock_all_levels is enabled, show all levels
+        visible_levels = INTERNAL_LEVEL_COUNT;
+    } else {
+        // Find the last level anyone has unlocked
+        visible_levels = 0;
+        for (int i = 0; i < State->player_count; i++) {
+            if (State->players[i].levels_completed > visible_levels) {
+                visible_levels = int(State->players[i].levels_completed);
+            }
         }
-    }
-    // Also show the last uncompleted level
-    visible_levels++;
-    // Disallow "More Levels"
-    if (visible_levels >= INTERNAL_LEVEL_COUNT) {
-        visible_levels = INTERNAL_LEVEL_COUNT - 1;
+        // Also show the last uncompleted level
+        visible_levels++;
+        // Disallow "More Levels"
+        if (visible_levels >= INTERNAL_LEVEL_COUNT) {
+            visible_levels = INTERNAL_LEVEL_COUNT - 1;
+        }
     }
 
     menu_nav nav;

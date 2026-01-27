@@ -71,6 +71,9 @@ struct eol_settings {
     bool lctrl_search() const { return lctrl_search_; }
     void set_lctrl_search(bool lctrl_search);
 
+    bool unlock_all_levels() const { return unlock_all_levels_; }
+    void set_unlock_all_levels(bool unlock_all_levels);
+
   private:
     Clamp<int> screen_width_{640, 640, 10000};
     Clamp<int> screen_height_{480, 480, 10000};
@@ -83,6 +86,7 @@ struct eol_settings {
     Default<bool> zoom_textures_{false};
     Clamp<double> turn_time_{0.0, 0.35, 0.35};
     Default<bool> lctrl_search_{false};
+    Default<bool> unlock_all_levels_{false};
 };
 
 extern eol_settings* EolSettings;

@@ -2,6 +2,7 @@
 #include "abc8.h"
 #include "best_times.h"
 #include "EDITUJ.H"
+#include "eol_settings.h"
 #include "flagtag.h"
 #include "keys.h"
 #include "LEJATSZO.H"
@@ -841,17 +842,24 @@ static void playlevel(int level) {
 void play(void) {
     while (1) {
         player* pjatekos = State->get_player(State->player1);
-        int kirpalyszam = pjatekos->levels_completed + 1;
-        if (!State->single) {
-            // Ha ketten jatszanak, akkor a nagyobb sikeru szamit:
-            player* pjatekos2 = State->get_player(State->player2);
-            if (kirpalyszam < pjatekos2->levels_completed + 1) {
-                kirpalyszam = pjatekos2->levels_completed + 1;
-            }
-        }
-
-        if (kirpalyszam > INTERNAL_LEVEL_COUNT) {
+        int kirpalyszam;
+        if (EolSettings->unlock_all_levels()) {
+            // When unlock_all_levels is enabled, show all levels
             kirpalyszam = INTERNAL_LEVEL_COUNT;
+        } else {
+            // Otherwise, use the normal progression from state.dat
+            kirpalyszam = pjatekos->levels_completed + 1;
+            if (!State->single) {
+                // Ha ketten jatszanak, akkor a nagyobb sikeru szamit:
+                player* pjatekos2 = State->get_player(State->player2);
+                if (kirpalyszam < pjatekos2->levels_completed + 1) {
+                    kirpalyszam = pjatekos2->levels_completed + 1;
+                }
+            }
+
+            if (kirpalyszam > INTERNAL_LEVEL_COUNT) {
+                kirpalyszam = INTERNAL_LEVEL_COUNT;
+            }
         }
 
         // Valasztas:
