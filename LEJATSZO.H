@@ -8,7 +8,8 @@ extern int Single;
 extern int Tag; // Van-e fogocska
 // extern int Coop;
 
-extern int Legkozment; // kiraj320 ebbol tudja, hogy snapshot-ot keszitsen
+extern int Legkozment;      // kiraj320 ebbol tudja, hogy snapshot-ot keszitsen
+extern int RenderingReplay; // if 1, save every frame for video
 
 enum class CameraMode { Normal, MapViewer };
 

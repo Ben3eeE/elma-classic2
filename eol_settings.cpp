@@ -111,6 +111,8 @@ void eol_settings::set_replay_slow_4x_key(DikScancode key) { replay_slow_4x_key_
 
 void eol_settings::set_replay_pause_key(DikScancode key) { replay_pause_key_ = key; }
 
+void eol_settings::set_recording_fps(int fps) { recording_fps_ = fps; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -198,7 +200,8 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(replay_fast_8x_key)                                                                 \
     JSON_FIELD(replay_slow_2x_key)                                                                 \
     JSON_FIELD(replay_slow_4x_key)                                                                 \
-    JSON_FIELD(replay_pause_key)
+    JSON_FIELD(replay_pause_key)                                                                   \
+    JSON_FIELD(recording_fps)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }

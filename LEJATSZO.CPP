@@ -26,6 +26,7 @@ int Tag = 0;
 // int Multi = 0;
 
 int Legkozment = 0;
+int RenderingReplay = 0;
 
 static int Kajakell;
 
@@ -815,7 +816,8 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
     flagtag_reset();
 
-    // Motor1->apple_count = Motor2->apple_count = 0;
+    long pcxindex = -1;
+
     long l = 0;
     int jar1 = 1, jar2 = 1;
 
@@ -860,11 +862,24 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         }
 
         // Kiszamolja mennyit kell leptetni:
-        double eddig = current_replay_time;
-        // recall koordokat es Hatra-t is beallitja:
+        double eddig = stopwatch() * 0.0024;
+
+        if (RenderingReplay) {
+            double fps = double(EolSettings->recording_fps());
+            double frame_interval_ms = 1000.0 / fps;
+            double frame_interval_eddig = frame_interval_ms * (STOPWATCH_MULTIPLIER * 0.0024);
+            int current_index = int(floor(eddig / frame_interval_eddig + 1e-9));
+
+            if (current_index >= pcxindex) {
+                pcxindex = current_index + 1;
+                // request a save on this upcoming draw
+                Legkozment = 1;
+            }
+        }
+
+        // recall koordokat es Hatra-t is beallitja for normal playback (using eddig computed above)
         int befejezte1 =
             !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
-
         int befejezte2 = 0;
         if (!Single) {
             befejezte2 =
@@ -878,6 +893,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             stop_motor_sound(true);
             stop_motor_sound(false);
             set_friction_volume(0);
+
             delay((int)(LevelEndDelay * 400.0));
 
             Mute = true;
@@ -885,6 +901,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
             Elozoshowkep1 = valt1.showkep;
             Elozoshowkep2 = valt2.showkep;
+
             return 0;
         }
 
@@ -972,6 +989,11 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
             Elozoshowkep1 = valt1.showkep;
             Elozoshowkep2 = valt2.showkep;
+
+            if (RenderingReplay) {
+                RenderingReplay = 0;
+            }
+
             return -1;
         }
         l++;

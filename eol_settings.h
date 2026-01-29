@@ -74,6 +74,7 @@ class eol_settings {
     Default<DikScancode> replay_slow_2x_key_{DIK_DOWN};
     Default<DikScancode> replay_slow_4x_key_{DIK_NEXT};
     Default<DikScancode> replay_pause_key_{DIK_SPACE};
+    Clamp<int> recording_fps_{10, 30, 120};
 
   public:
     static void read_settings();
@@ -103,6 +104,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(replay_slow_2x_key);
     DECLARE_FIELD_FUNCS(replay_slow_4x_key);
     DECLARE_FIELD_FUNCS(replay_pause_key);
+    DECLARE_FIELD_FUNCS(recording_fps);
 };
 
 #undef DECLARE_FIELD_FUNCS

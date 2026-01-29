@@ -520,7 +520,10 @@ void replayjelenlegi(const char* filenev) {
     while (1) {
         Rec1->rewind();
         Rec2->rewind();
-        if (lejatszo_r(filenev, !elso)) {
+        // Save RenderingReplay state before calling lejatszo_r since it resets it
+        int was_rendering = RenderingReplay;
+        int result = lejatszo_r(filenev, !elso);
+        if (result) {
             if (Ptop->objects_flipped) {
                 internal_error("replayjelenlegi-ben Ptop->kerekekfejjellefel!");
             }
@@ -528,6 +531,10 @@ void replayjelenlegi(const char* filenev) {
         }
         if (Ptop->objects_flipped) {
             internal_error("replayjelenlegi-ben Ptop->kerekekfejjellefel!");
+        }
+        // In recording mode, don't loop the replay
+        if (was_rendering) {
+            return;
         }
         elso = 0;
     }

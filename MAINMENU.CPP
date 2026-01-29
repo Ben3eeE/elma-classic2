@@ -2,6 +2,7 @@
 #include "best_times.h"
 #include "editor_dialog.h"
 #include "EDITUJ.H"
+#include "eol_settings.h"
 #include "fs_utils.h"
 #include "keys.h"
 #include "LEJATSZO.H"
@@ -18,6 +19,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+
+extern bool F1Pressed;
 #include <ctime>
 
 /*void showinstruct( void ) {
@@ -241,6 +244,37 @@ void replay(void) {
             strcat(tmp, ".REC");
             kiirloading();
             int belyeg = recorder::load_rec_file(tmp, 0);
+            if (F1Pressed) {
+                // F1+Enter pressed - render replay to frames
+                printf("DEBUG: F1Pressed detected in MAINMENU.CPP\n");
+                F1Pressed = false;
+                char msg[128];
+                snprintf(msg, sizeof(msg), "Recording at %d FPS to screenshots/",
+                         EolSettings->recording_fps());
+                int c = menu_dialog("Render replay to video frames?", msg,
+                                    "Press Enter to continue, ESC to cancel");
+                if (c == KEY_ENTER) {
+                    if (access_level_file(Rec1->level_filename) != 0) {
+                        menu_dialog("Cannot find the lev file that corresponds",
+                                    "to the record file!", tmp, Rec1->level_filename);
+                    } else {
+                        floadlevel_p(Rec1->level_filename);
+                        if (Ptop->level_id != belyeg) {
+                            menu_dialog("The level file has changed since the",
+                                        "saving of the record file!", tmp, Rec1->level_filename);
+                        } else {
+                            RenderingReplay = 1;
+                            replayjelenlegi(Rec1->level_filename);
+                            RenderingReplay = 0;
+                            MenuPalette->set();
+                            menu_dialog("Recording complete!", "Frames saved to screenshots/",
+                                        "Use ffmpeg to create video");
+                        }
+                    }
+                }
+                MenuPalette->set();
+                continue;
+            }
             if (CtrlAltPressed) {
                 // loadrecek beallitotta Multirec-et.
                 int ido = Rec1->frame_count;
