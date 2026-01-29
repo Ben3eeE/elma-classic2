@@ -7,6 +7,7 @@
 #include "gl_renderer.h"
 #include "main.h"
 #include "M_PIC.H"
+#include "fs_utils.h"
 #include <SDL.h>
 #include <sdl/scancodes_windows.h>
 
@@ -379,4 +380,37 @@ void init_sound() {
         internal_error("Failed to get correct audio format");
     }
     SDL_PauseAudioDevice(SDLAudioDevice, 0);
+}
+
+bool platform_save_screenshot(palette* pal) {
+    if (!SDLSurfacePaletted || !pal) {
+        return false;
+    }
+
+    // Find highest existing frame number by scanning directory
+    int max_frame = -1;
+    char filename[64];
+    bool done = find_first("screenshots/*.bmp", filename);
+    while (!done) {
+        // find_next returns just the filename like "frm001.bmp"
+        int frame_num = 0;
+        if (sscanf(filename, "frm%d.bmp", &frame_num) == 1) {
+            if (frame_num > max_frame) {
+                max_frame = frame_num;
+            }
+        }
+        done = find_next(filename);
+    }
+    find_close();
+
+    // Use next number after the highest found
+    int next_frame = max_frame + 1;
+    snprintf(filename, sizeof(filename), "screenshots/frm%05d.bmp", next_frame);
+
+    // Set the palette on the surface before saving (important for GL renderer)
+    SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)pal->get_data(), 0,
+                         256);
+
+    int result = SDL_SaveBMP(SDLSurfacePaletted, filename);
+    return result == 0;
 }

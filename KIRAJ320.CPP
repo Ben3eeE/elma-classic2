@@ -13,6 +13,7 @@
 #include "main.h"
 #include "object.h"
 #include "pic8.h"
+#include "platform_impl.h"
 #include "platform_utils.h"
 #include "physics_init.h"
 #include "timer.h"
@@ -335,25 +336,10 @@ static void kiview(int ajatekos, pic8* ppic, double baljobb, vect2 motorkozep, m
 }
 
 // Mentes lemezre:
-static void menteshakell(pic8* ppic) {
+static void menteshakell() {
     if (Legkozment) {
         Legkozment = 0;
-        int i = 0;
-        while (1) {
-            char filenev[20];
-            if (i < 10) {
-                sprintf(filenev, "snap0%d.pcx", i);
-            } else {
-                sprintf(filenev, "snap%d.pcx", i);
-            }
-            if (access(filenev, 0) != 0) {
-                forditkepet(ppic);
-                ppic->save(filenev, Lgr->palette_data);
-                forditkepet(ppic);
-                break;
-            }
-            i++;
-        }
+        platform_save_screenshot(Lgr->pal);
     }
 }
 
@@ -845,7 +831,7 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
     }
 
     // Mentes lemezre:
-    menteshakell(npic);
+    menteshakell();
 
     // for( int i = 0; i < Ucsosurlodas; i++ )
     //	npic->ppixel( i, 100, 0 );

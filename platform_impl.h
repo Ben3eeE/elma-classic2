@@ -11,6 +11,7 @@ class palette {
     palette(unsigned char* palette_data);
     ~palette();
     void set();
+    void* get_data() const { return data; }
 };
 
 void message_box(const char* text);
@@ -39,5 +40,7 @@ long long get_milliseconds();
 
 void platform_recreate_window();
 bool has_window();
+
+bool platform_save_screenshot(palette* pal);
 
 #endif
