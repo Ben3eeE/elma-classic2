@@ -10,6 +10,8 @@
 #include "fs_utils.h"
 #include <SDL.h>
 #include <sdl/scancodes_windows.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
 
 static SDL_Window* SDLWindow = nullptr;
 static SDL_Surface* SDLSurfaceMain = nullptr;
@@ -387,14 +389,14 @@ bool platform_save_screenshot(palette* pal) {
         return false;
     }
 
-    // Find highest existing frame number by scanning directory
+    // Find highest existing PNG frame number by scanning directory
     int max_frame = -1;
     char filename[64];
-    bool done = find_first("screenshots/*.bmp", filename);
+    bool done = find_first("screenshots/*.png", filename);
     while (!done) {
-        // find_next returns just the filename like "frm001.bmp"
+        // find_next returns just the filename like "frm001.png"
         int frame_num = 0;
-        if (sscanf(filename, "frm%d.bmp", &frame_num) == 1) {
+        if (sscanf(filename, "frm%d.png", &frame_num) == 1) {
             if (frame_num > max_frame) {
                 max_frame = frame_num;
             }
@@ -403,14 +405,40 @@ bool platform_save_screenshot(palette* pal) {
     }
     find_close();
 
-    // Use next number after the highest found
     int next_frame = max_frame + 1;
-    snprintf(filename, sizeof(filename), "screenshots/frm%05d.bmp", next_frame);
+    char png_filename[64];
+    snprintf(png_filename, sizeof(png_filename), "screenshots/frm%05d.png", next_frame);
 
-    // Set the palette on the surface before saving (important for GL renderer)
+    // Ensure palette is set on surface (keeps GL path consistent)
     SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)pal->get_data(), 0,
                          256);
 
-    int result = SDL_SaveBMP(SDLSurfacePaletted, filename);
-    return result == 0;
+    int w = SDLSurfacePaletted->w;
+    int h = SDLSurfacePaletted->h;
+    int pitch = SDLSurfacePaletted->pitch;
+    unsigned char* pixels = (unsigned char*)SDLSurfacePaletted->pixels;
+    SDL_Color* palc = (SDL_Color*)pal->get_data();
+
+    // Convert indexed surface to RGB buffer
+    size_t bufsize = (size_t)w * (size_t)h * 3;
+    unsigned char* buf = (unsigned char*)malloc(bufsize);
+    if (!buf) {
+        return false;
+    }
+
+    for (int y = 0; y < h; y++) {
+        unsigned char* row = pixels + y * pitch;
+        for (int x = 0; x < w; x++) {
+            unsigned char idx = row[x];
+            size_t i = ((size_t)y * (size_t)w + (size_t)x) * 3;
+            buf[i + 0] = palc[idx].r;
+            buf[i + 1] = palc[idx].g;
+            buf[i + 2] = palc[idx].b;
+        }
+    }
+
+    // Write PNG using stb_image_write (no external deps)
+    int ok = stbi_write_png(png_filename, w, h, 3, buf, w * 3);
+    free(buf);
+    return ok != 0;
 }

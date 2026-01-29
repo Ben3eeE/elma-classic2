@@ -872,7 +872,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
             if (current_index >= pcxindex) {
                 pcxindex = current_index + 1;
-                // request a save on this upcoming draw
+                // request a save on the upcoming draw
                 Legkozment = 1;
             }
         }
