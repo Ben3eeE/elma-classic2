@@ -330,6 +330,16 @@ bool right_mouse_clicked() {
     return click;
 }
 
+bool is_left_mouse_down() {
+    handle_events();
+    return LeftMouseDown;
+}
+
+bool is_right_mouse_down() {
+    handle_events();
+    return RightMouseDown;
+}
+
 bool is_key_down(DikScancode code) {
     if (code < 0 || code >= MaxKeycode) {
         internal_error("code out of range in is_key_down()!");

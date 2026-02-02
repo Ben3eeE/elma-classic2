@@ -29,6 +29,8 @@ void get_mouse_position(int* x, int* y);
 void set_mouse_position(int x, int y);
 bool left_mouse_clicked();
 bool right_mouse_clicked();
+bool is_left_mouse_down();
+bool is_right_mouse_down();
 void show_cursor();
 void hide_cursor();
 
