@@ -11,7 +11,7 @@ extern int Tag; // Van-e fogocska
 extern int Legkozment; // kiraj320 ebbol tudja, hogy snapshot-ot keszitsen
 
 // Free camera mode
-enum class CameraMode { None, MapViewer };
+enum class CameraMode { None, MapViewer, Detached };
 extern CameraMode CamMode;
 extern double CameraX;
 extern double CameraY;

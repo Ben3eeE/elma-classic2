@@ -13,6 +13,7 @@
 #include "platform_impl.h"
 #include "segments.h"
 #include "timer.h"
+#include "keys.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -467,6 +468,28 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
         */
 
         handle_events(); // Billentyut itt olvassuk be
+
+        static bool freecam_toggle_pressed = false;
+        if (is_key_down(State->key_disconnect_camera)) {
+            if (!freecam_toggle_pressed) {
+                if (CamMode != CameraMode::MapViewer) {
+                    if (CamMode == CameraMode::Detached) {
+                        CamMode = CameraMode::None;
+                    } else {
+                        CamMode = CameraMode::Detached; // Runtime freecam (rendering bike)
+                        CameraX = Motor1->bike.r.x;
+                        CameraY = Motor1->bike.r.y;
+                    }
+                }
+                freecam_toggle_pressed = true;
+            }
+        } else {
+            freecam_toggle_pressed = false;
+        }
+
+        player_keys dummy_keys;
+        memset(&dummy_keys, 0, sizeof(dummy_keys));
+
         while (eddig <= cel - 0.000001) {
             // char tmp[10];
             // sprintf( tmp, "Gaz kodja: %d", (int)State->keys1.gas );
@@ -483,15 +506,25 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
                 dt = cel - eddig;
             }
 
-            if (CamMode == CameraMode::None && !meghalt1) {
-                belsoresz(Motor1, &State->keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
+            if (!meghalt1) {
+                if (CamMode == CameraMode::Detached) {
+                    belsoresz(Motor1, &dummy_keys, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
+                } else if (CamMode == CameraMode::None) {
+                    belsoresz(Motor1, &State->keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig,
+                              dt);
+                }
             }
 
-            if (CamMode == CameraMode::None && !Single && !meghalt2) {
-                belsoresz(Motor2, &State->keys2, &valt2, Rec2, &megvanido2, &meghalt2, eddig, dt);
+            if (!Single && !meghalt2) {
+                if (CamMode == CameraMode::Detached) {
+                    belsoresz(Motor2, &dummy_keys, &valt2, Rec2, &megvanido2, &meghalt2, eddig, dt);
+                } else if (CamMode == CameraMode::None) {
+                    belsoresz(Motor2, &State->keys2, &valt2, Rec2, &megvanido2, &meghalt2, eddig,
+                              dt);
+                }
             }
 
-            if (CamMode == CameraMode::MapViewer) {
+            if (CamMode != CameraMode::None) {
                 update_freecam(dt);
             }
 
@@ -572,7 +605,7 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
         }
 
         if (Single) {
-            if (CamMode == CameraMode::MapViewer) {
+            if (CamMode != CameraMode::None) {
                 set_friction_volume(0);
                 set_motor_frequency(true, 1.0, 0);
             } else {
@@ -580,7 +613,7 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
                 set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
             }
         } else {
-            if (CamMode == CameraMode::MapViewer) {
+            if (CamMode != CameraMode::None) {
                 set_friction_volume(0);
                 set_motor_frequency(true, 1.0, 0);
                 set_motor_frequency(false, 1.0, 0);
@@ -852,6 +885,22 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         double dt = (now - last_stopwatch) * 0.0024;
         last_stopwatch = now;
 
+        static bool freecam_toggle_pressed = false;
+        if (is_key_down(State->key_disconnect_camera)) {
+            if (!freecam_toggle_pressed) {
+                if (CamMode == CameraMode::Detached) {
+                    CamMode = CameraMode::None;
+                } else {
+                    CamMode = CameraMode::Detached;
+                    CameraX = Motor1->bike.r.x;
+                    CameraY = Motor1->bike.r.y;
+                }
+                freecam_toggle_pressed = true;
+            }
+        } else {
+            freecam_toggle_pressed = false;
+        }
+
         double speed = 1.0;
 
         if (is_key_down(State->key_replay_fast_2x)) {
@@ -879,6 +928,10 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         if (!paused) {
             current_replay_time += dt * speed;
+        }
+
+        if (CamMode != CameraMode::None) {
+            update_freecam(dt);
         }
 
         // Kiszamolja mennyit kell leptetni:

@@ -633,7 +633,7 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
 
     // Kiszamoljuk kepernyo bal also sarkat:
     vect2 motorkozep = pmot->bike.r;
-    if (CamMode == CameraMode::MapViewer) {
+    if (CamMode != CameraMode::None) {
         motorkozep = vect2(CameraX, CameraY);
     }
 
@@ -714,7 +714,7 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
         pmkepek2 = &Lgr->bike1;
     }
 
-    if (CamMode == CameraMode::None) {
+    if (CamMode != CameraMode::MapViewer) {
         if (!Single) {
             // Hatso motoros kirajzolasa:
             vect2 kozep(sarok.x + (SCREEN_WIDTH / 2.0) * PixelsToMeters,
