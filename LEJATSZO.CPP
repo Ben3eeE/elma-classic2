@@ -13,6 +13,7 @@
 #include "platform_impl.h"
 #include "timer.h"
 #include "keys.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <directinput/scancodes.h>
