@@ -164,7 +164,10 @@ void menu_options() {
         strcpy(NavEntriesLeft[18 + flag_tag_opt], "LCtrl search:");
         strcpy(NavEntriesRight[18 + flag_tag_opt], EolSettings->lctrl_search() ? "Yes" : "No");
 
-        nav.setup(19 + flag_tag_opt, true);
+        strcpy(NavEntriesLeft[19 + flag_tag_opt], "Mouse Drag:");
+        strcpy(NavEntriesRight[19 + flag_tag_opt], EolSettings->mouse_drag_camera() ? "Yes" : "No");
+
+        nav.setup(20 + flag_tag_opt, true);
 
         choice = nav.navigate();
 
@@ -299,6 +302,10 @@ void menu_options() {
 
         if (choice == 18) {
             EolSettings->set_lctrl_search(!EolSettings->lctrl_search());
+        }
+
+        if (choice == 19) {
+            EolSettings->set_mouse_drag_camera(!EolSettings->mouse_drag_camera());
         }
 
         if (flag_tag_opt) {
