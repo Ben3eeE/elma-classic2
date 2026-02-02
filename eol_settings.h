@@ -63,6 +63,7 @@ class eol_settings {
     Default<bool> zoom_textures_{false};
     Clamp<double> turn_time_{0.0, 0.35, 0.35};
     Default<bool> lctrl_search_{false};
+    Default<bool> mouse_drag_camera_{false};
     Default<DikScancode> alovolt_key_player_a_{DIK_UNKNOWN};
     Default<DikScancode> alovolt_key_player_b_{DIK_UNKNOWN};
     Default<DikScancode> brake_alias_key_player_a_{DIK_UNKNOWN};
@@ -105,6 +106,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(replay_slow_4x_key);
     DECLARE_FIELD_FUNCS(replay_pause_key);
     DECLARE_FIELD_FUNCS(disconnect_camera_key);
+    DECLARE_FIELD_FUNCS(mouse_drag_camera);
 };
 
 #undef DECLARE_FIELD_FUNCS
