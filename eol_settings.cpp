@@ -111,6 +111,8 @@ void eol_settings::set_replay_slow_4x_key(DikScancode key) { replay_slow_4x_key_
 
 void eol_settings::set_replay_pause_key(DikScancode key) { replay_pause_key_ = key; }
 
+void eol_settings::set_disconnect_camera_key(DikScancode key) { disconnect_camera_key_ = key; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -198,7 +200,8 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(replay_fast_8x_key)                                                                 \
     JSON_FIELD(replay_slow_2x_key)                                                                 \
     JSON_FIELD(replay_slow_4x_key)                                                                 \
-    JSON_FIELD(replay_pause_key)
+    JSON_FIELD(replay_pause_key)                                                                   \
+    JSON_FIELD(disconnect_camera_key)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }
@@ -254,6 +257,7 @@ void eol_settings::sync_controls_to_state(state* s) {
     s->key_replay_slow_2x = EolSettings->replay_slow_2x_key();
     s->key_replay_slow_4x = EolSettings->replay_slow_4x_key();
     s->key_replay_pause = EolSettings->replay_pause_key();
+    s->key_disconnect_camera = EolSettings->disconnect_camera_key();
 }
 
 void eol_settings::sync_controls_from_state(state* s) {
@@ -272,4 +276,5 @@ void eol_settings::sync_controls_from_state(state* s) {
     EolSettings->set_replay_slow_2x_key(s->key_replay_slow_2x);
     EolSettings->set_replay_slow_4x_key(s->key_replay_slow_4x);
     EolSettings->set_replay_pause_key(s->key_replay_pause);
+    EolSettings->set_disconnect_camera_key(s->key_disconnect_camera);
 }
