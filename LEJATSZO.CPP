@@ -12,6 +12,7 @@
 #include "physics_init.h"
 #include "platform_impl.h"
 #include "timer.h"
+#include "keys.h"
 #include <cmath>
 #include <cstring>
 #include <directinput/scancodes.h>
@@ -28,6 +29,8 @@ int Legkozment = 0;
 CameraMode CamMode = CameraMode::None;
 double CameraX = 0.0;
 double CameraY = 0.0;
+double CameraOffsetX = 0.0;
+double CameraOffsetY = 0.0;
 
 static int Kajakell;
 
@@ -65,6 +68,21 @@ static void update_freecam(double dt, motorst* pmot) {
     }
     if (is_key_down(DIK_RIGHT)) {
         CameraX += move;
+    }
+
+    clamp_freecam_to_level(pmot);
+}
+
+static void update_camera_by_mouse(int mdx, int mdy, motorst* pmot) {
+    double mx = mdx * PixelsToMeters;
+    double my = mdy * PixelsToMeters;
+
+    if (CamMode != CameraMode::None) {
+        CameraX -= mx;
+        CameraY += my;
+    } else {
+        CameraOffsetX += mx;
+        CameraOffsetY -= my;
     }
 
     clamp_freecam_to_level(pmot);
@@ -431,6 +449,8 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
     CamMode = cameramode;
     CameraX = Motor1->bike.r.x;
     CameraY = Motor1->bike.r.y;
+    CameraOffsetX = 0.0;
+    CameraOffsetY = 0.0;
 
     initsoundlejatszoban();
     Mute = false;
@@ -522,6 +542,15 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
             if (CamMode != CameraMode::None) {
                 update_freecam(dt, Motor1);
+            }
+
+            if (EolSettings->mouse_drag_camera()) {
+                int mdx, mdy;
+                get_mouse_motion(&mdx, &mdy);
+
+                if (is_left_mouse_down() && (mdx != 0 || mdy != 0)) {
+                    update_camera_by_mouse(mdx, mdy, Motor1);
+                }
             }
 
             if (!(meghalt1 && meghalt2)) {
@@ -854,6 +883,8 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     CamMode = CameraMode::None;
     CameraX = Motor1->bike.r.x;
     CameraY = Motor1->bike.r.y;
+    CameraOffsetX = 0.0;
+    CameraOffsetY = 0.0;
 
     initsoundlejatszoban();
     Mute = false;
@@ -928,6 +959,15 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         if (CamMode != CameraMode::None) {
             update_freecam(dt, Motor1);
+        }
+
+        if (EolSettings->mouse_drag_camera()) {
+            int mdx, mdy;
+            get_mouse_motion(&mdx, &mdy);
+
+            if (is_left_mouse_down() && (mdx != 0 || mdy != 0)) {
+                update_camera_by_mouse(mdx, mdy, Motor1);
+            }
         }
 
         // Kiszamolja mennyit kell leptetni:

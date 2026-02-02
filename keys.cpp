@@ -34,6 +34,13 @@ void update_mouse_motion(int dx, int dy) {
     MouseDY += dy;
 }
 
+void get_mouse_motion(int* dx, int* dy) {
+    *dx = MouseDX;
+    *dy = MouseDY;
+    MouseDX = 0;
+    MouseDY = 0;
+}
+
 Keycode get_keypress() {
     while (true) {
         handle_events();
