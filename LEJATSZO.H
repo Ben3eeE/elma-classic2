@@ -15,6 +15,8 @@ enum class CameraMode { None, MapViewer, Detached };
 extern CameraMode CamMode;
 extern double CameraX;
 extern double CameraY;
+extern double CameraOffsetX;
+extern double CameraOffsetY;
 
 // Azt a nevet kerik, amit topol::topol kap:
 // BestTime beallitasahoz kell nekik:

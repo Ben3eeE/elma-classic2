@@ -639,6 +639,12 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
 
     double offset_x = Mo_bal + pvalt->baljobbv_h.baljobb * Mo_dx;
     double offset_y = Mo_y;
+
+    if (CamMode == CameraMode::None) {
+        offset_x += CameraOffsetX;
+        offset_y += CameraOffsetY;
+    }
+
     vect2 sarok(motorkozep.x - offset_x, motorkozep.y - offset_y);
 
     // ppic->fill_box( 100 );
