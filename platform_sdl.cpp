@@ -283,6 +283,9 @@ void handle_events() {
         case SDL_TEXTINPUT:
             add_text_to_buffer(event.text.text);
             break;
+        case SDL_MOUSEMOTION:
+            update_mouse_motion(event.motion.xrel, event.motion.yrel);
+            break;
         case SDL_MOUSEWHEEL:
             if (event.wheel.y > 0) {
                 add_key_to_buffer(KEY_UP);

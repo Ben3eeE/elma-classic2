@@ -19,6 +19,8 @@ constexpr int MaxKeycode = 256;
 void add_key_to_buffer(Keycode keycode);
 void add_text_to_buffer(const char* text);
 
+void update_mouse_motion(int dx, int dy);
+
 Keycode get_keypress();
 void empty_keypress_buffer();
 bool has_keypress();
