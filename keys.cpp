@@ -5,6 +5,8 @@
 constexpr int KEY_BUFFER_SIZE = 64;
 static Keycode KeyBuffer[KEY_BUFFER_SIZE];
 static int KeyBufferCount = 0;
+static int MouseDX = 0;
+static int MouseDY = 0;
 
 void add_key_to_buffer(Keycode keycode) {
     if (KeyBufferCount >= KEY_BUFFER_SIZE) {
@@ -25,6 +27,11 @@ void add_text_to_buffer(const char* text) {
         KeyBuffer[KeyBufferCount++] = c;
         text++;
     }
+}
+
+void update_mouse_motion(int dx, int dy) {
+    MouseDX += dx;
+    MouseDY += dy;
 }
 
 Keycode get_keypress() {
