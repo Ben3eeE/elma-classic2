@@ -78,6 +78,12 @@ class segments {
     void iterate_all_segments();
     // Get the next line segment in the level
     segment* next_segment();
+
+    // Get collision grid boundaries (non-bike-crash area)
+    vect2 get_collision_grid_origin() const { return collision_grid_origin; }
+    int get_collision_grid_width() const { return collision_grid_width; }
+    int get_collision_grid_height() const { return collision_grid_height; }
+    double get_collision_grid_cell_size() const { return collision_grid_cell_size; }
 };
 
 extern segments* Segments;

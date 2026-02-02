@@ -633,8 +633,13 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
 
     // Kiszamoljuk kepernyo bal also sarkat:
     vect2 motorkozep = pmot->bike.r;
+    if (CamMode == CameraMode::MapViewer) {
+        motorkozep = vect2(CameraX, CameraY);
+    }
 
-    vect2 sarok(motorkozep.x - (Mo_bal + pvalt->baljobbv_h.baljobb * Mo_dx), motorkozep.y - Mo_y);
+    double offset_x = Mo_bal + pvalt->baljobbv_h.baljobb * Mo_dx;
+    double offset_y = Mo_y;
+    vect2 sarok(motorkozep.x - offset_x, motorkozep.y - offset_y);
 
     // ppic->fill_box( 100 );
     Pecsetalso->kitesz(ajatekos, ppic, sarok, 0, 0, Cxsize - 1, Cysize - 1);
@@ -709,18 +714,20 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
         pmkepek2 = &Lgr->bike1;
     }
 
-    if (!Single) {
-        // Hatso motoros kirajzolasa:
-        vect2 kozep(sarok.x + (SCREEN_WIDTH / 2.0) * PixelsToMeters,
-                    sarok.y + (SCREEN_HEIGHT / 2.0) * PixelsToMeters);
-        double tav = (pmot2->bike.r - kozep).length();
-        if (tav < (std::max(SCREEN_WIDTH, SCREEN_HEIGHT) * 27.0 / 32.0) * PixelsToMeters) {
-            kibike(!ajatekos, ppic, t, sarok, pmot2, pvalt2, pmkepek2, nullptr);
+    if (CamMode == CameraMode::None) {
+        if (!Single) {
+            // Hatso motoros kirajzolasa:
+            vect2 kozep(sarok.x + (SCREEN_WIDTH / 2.0) * PixelsToMeters,
+                        sarok.y + (SCREEN_HEIGHT / 2.0) * PixelsToMeters);
+            double tav = (pmot2->bike.r - kozep).length();
+            if (tav < (std::max(SCREEN_WIDTH, SCREEN_HEIGHT) * 27.0 / 32.0) * PixelsToMeters) {
+                kibike(!ajatekos, ppic, t, sarok, pmot2, pvalt2, pmkepek2, nullptr);
+            }
         }
-    }
 
-    // Motoros kirajzolasa:
-    kibike(ajatekos, ppic, t, sarok, pmot, pvalt, pmkepek1, shirt);
+        // Motoros kirajzolasa:
+        kibike(ajatekos, ppic, t, sarok, pmot, pvalt, pmkepek1, shirt);
+    }
 
     if (!EolSettings->pictures_in_background()) {
         // Felso ecset kitevese:

@@ -11,7 +11,9 @@
 #include "object.h"
 #include "physics_init.h"
 #include "platform_impl.h"
+#include "segments.h"
 #include "timer.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <directinput/scancodes.h>
@@ -25,7 +27,51 @@ int Tag = 0;
 
 int Legkozment = 0;
 
+CameraMode CamMode = CameraMode::None;
+double CameraX = 0.0;
+double CameraY = 0.0;
+
 static int Kajakell;
+
+static void clamp_freecam_to_level() {
+    // Use collision grid boundaries (non-bike-crash area)
+    vect2 origin = Segments->get_collision_grid_origin();
+    double minx = origin.x;
+    double miny = origin.y;
+    double maxx =
+        minx + Segments->get_collision_grid_width() * Segments->get_collision_grid_cell_size();
+    double maxy =
+        miny + Segments->get_collision_grid_height() * Segments->get_collision_grid_cell_size();
+
+    // Y-axis is inverted for camera: negate max becomes min, negate min becomes max
+    double cam_min_y = -maxy;
+    double cam_max_y = -miny;
+
+    CameraX = std::clamp(CameraX, minx, maxx);
+    CameraY = std::clamp(CameraY, cam_min_y, cam_max_y);
+}
+
+static void update_freecam(double dt) {
+    double speed = 40.0;
+    if (is_key_down(DIK_LSHIFT) || is_key_down(DIK_RSHIFT)) {
+        speed *= 3.0;
+    }
+    double move = speed * dt;
+    if (is_key_down(DIK_UP)) {
+        CameraY += move;
+    }
+    if (is_key_down(DIK_DOWN)) {
+        CameraY -= move;
+    }
+    if (is_key_down(DIK_LEFT)) {
+        CameraX -= move;
+    }
+    if (is_key_down(DIK_RIGHT)) {
+        CameraX += move;
+    }
+
+    clamp_freecam_to_level();
+}
 
 struct viewtimest {
     int viewkinplay, viewkinreplay;
@@ -320,7 +366,7 @@ int Aerintetteviragot = 0;
 int Masodikmenet = 0;
 
 // Idot adja vissza szazadmasodpercben:
-long lejatszo(const char* filenev) {
+long lejatszo(const char* filenev, CameraMode cameramode) {
     // internal_error( "Ezegyhosszusor,szetkellvagnibiztosanhibaEzegy hosszu sor, szet kell vagni
     // biztosan!",
     //	"Ez egy masik hosszu sor, szet kell vagni biztosan!" );
@@ -385,6 +431,10 @@ long lejatszo(const char* filenev) {
     resetleptet(Motor1);
     resetleptet(Motor2);
 
+    CamMode = cameramode;
+    CameraX = Motor1->bike.r.x;
+    CameraY = Motor1->bike.r.y;
+
     initsoundlejatszoban();
     Mute = false;
     if (Single) {
@@ -433,12 +483,16 @@ long lejatszo(const char* filenev) {
                 dt = cel - eddig;
             }
 
-            if (!meghalt1) {
+            if (CamMode == CameraMode::None && !meghalt1) {
                 belsoresz(Motor1, &State->keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
             }
 
-            if (!Single && !meghalt2) {
+            if (CamMode == CameraMode::None && !Single && !meghalt2) {
                 belsoresz(Motor2, &State->keys2, &valt2, Rec2, &megvanido2, &meghalt2, eddig, dt);
+            }
+
+            if (CamMode == CameraMode::MapViewer) {
+                update_freecam(dt);
             }
 
             if (!(meghalt1 && meghalt2)) {
@@ -464,8 +518,9 @@ long lejatszo(const char* filenev) {
                 }
             }
 
-            if ((Single && (megvanido1 || meghalt1)) ||
-                (!Single && (megvanido1 || megvanido2 || (meghalt1 && meghalt2)))) {
+            if (CamMode == CameraMode::None &&
+                ((Single && (megvanido1 || meghalt1)) ||
+                 (!Single && (megvanido1 || megvanido2 || (meghalt1 && meghalt2))))) {
                 // Vege jateknak:
                 long megvanido = megvanido1;
                 if (megvanido2) {
@@ -517,12 +572,23 @@ long lejatszo(const char* filenev) {
         }
 
         if (Single) {
-            set_friction_volume(valt1.inf.friction_volume);
-            set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
+            if (CamMode == CameraMode::MapViewer) {
+                set_friction_volume(0);
+                set_motor_frequency(true, 1.0, 0);
+            } else {
+                set_friction_volume(valt1.inf.friction_volume);
+                set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
+            }
         } else {
-            set_friction_volume(valt1.inf.friction_volume + valt2.inf.friction_volume);
-            set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
-            set_motor_frequency(false, valt2.inf.motor_frequency, valt2.inf.gas);
+            if (CamMode == CameraMode::MapViewer) {
+                set_friction_volume(0);
+                set_motor_frequency(true, 1.0, 0);
+                set_motor_frequency(false, 1.0, 0);
+            } else {
+                set_friction_volume(valt1.inf.friction_volume + valt2.inf.friction_volume);
+                set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
+                set_motor_frequency(false, valt2.inf.motor_frequency, valt2.inf.gas);
+            }
         }
 
         kulsoresz(Motor1, &State->keys1, &valt1, Rec1, &Viewtime1, eddig, &valt2.showkep, meghalt1);
@@ -755,6 +821,10 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
     resetleptet(Motor1);
     resetleptet(Motor2);
+
+    CamMode = CameraMode::None;
+    CameraX = Motor1->bike.r.x;
+    CameraY = Motor1->bike.r.y;
 
     initsoundlejatszoban();
     Mute = false;
