@@ -373,6 +373,99 @@ static void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
 #endif
 }
 
+// Update camera controls (keyboard + mouse)
+static void update_camera_controls(double dt) {
+    update_freecam(dt);
+
+    if (EolSettings->mouse_drag_camera()) {
+        int mdx, mdy;
+        get_mouse_motion(&mdx, &mdy);
+        if (is_left_mouse_down() && (mdx != 0 || mdy != 0)) {
+            update_camera_by_mouse(mdx, mdy);
+        }
+    }
+}
+
+// Single physics step for normal gameplay (with player input)
+// Returns 0 to continue, or time/error code if level completed or died
+static long physics_step(double* peddig, double dt, valtozok* pvalt1, valtozok* pvalt2,
+                         int* pmeghalt1, int* pmeghalt2, long* pmegvanido1, long* pmegvanido2,
+                         int* pmindjar) {
+    if (!*pmeghalt1) {
+        belsoresz(Motor1, &State->keys1, pvalt1, Rec1, pmegvanido1, pmeghalt1, *peddig, dt);
+    }
+
+    if (!Single && !*pmeghalt2) {
+        belsoresz(Motor2, &State->keys2, pvalt2, Rec2, pmegvanido2, pmeghalt2, *peddig, dt);
+    }
+
+    if (EolSettings->mouse_drag_camera()) {
+        int mdx, mdy;
+        get_mouse_motion(&mdx, &mdy);
+        if (is_left_mouse_down() && (mdx != 0 || mdy != 0)) {
+            update_camera_by_mouse(mdx, mdy);
+        }
+    }
+
+    if (!(*pmeghalt1 && *pmeghalt2)) {
+        if (*pmeghalt1) {
+            MeghalteloszorAB = 1;
+        }
+        if (*pmeghalt2) {
+            MeghalteloszorAB = 2;
+        }
+    }
+
+    if (!Single && *pmindjar) {
+        if (*pmeghalt1 || *pmeghalt2) {
+            if (*pmeghalt1) {
+                stop_motor_sound(true);
+            } else {
+                stop_motor_sound(false);
+            }
+            *pmindjar = 0;
+        }
+    }
+
+    // Check for level completion or death
+    if ((Single && (*pmegvanido1 || *pmeghalt1)) ||
+        (!Single && (*pmegvanido1 || *pmegvanido2 || (*pmeghalt1 && *pmeghalt2)))) {
+        long megvanido = *pmegvanido1;
+        if (*pmegvanido2) {
+            megvanido = *pmegvanido2;
+        }
+
+        if (!(*pmeghalt1 && *pmeghalt2) || Single) {
+            MeghalteloszorAB = 0;
+        }
+        if (*pmegvanido1) {
+            Aerintetteviragot = 1;
+        } else {
+            Aerintetteviragot = 0;
+        }
+
+        set_motor_frequency(true, 1.0, 0);
+        set_motor_frequency(false, 1.0, 0);
+        if (megvanido) {
+            start_wav(WavEvent::Win, 0.999);
+        } else {
+            start_wav(WavEvent::Dead, 0.999);
+        }
+        delay((int)(LevelEndDelay * 1000.0));
+
+        stop_motor_sound(true);
+        stop_motor_sound(false);
+
+        Mute = true;
+        Ptop->unflip_objects();
+        Rec1->encode_frame_count();
+        Rec2->encode_frame_count();
+        return megvanido ? megvanido : -1;
+    }
+
+    return 0; // Continue playing
+}
+
 // lejatszo ezt beallitja: 0 -> nem kell kiirni, 1 -> A eloszor, 2 -> B
 // csak akkor A vagy B eloszor, ha mindketten meghaltak, tehat
 // afterplay menu-nek ezt mar feldolgozta elore:
@@ -506,130 +599,62 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
             freecam_toggle_pressed = false;
         }
 
-        player_keys dummy_keys;
-        memset(&dummy_keys, 0, sizeof(dummy_keys));
-
-        while (eddig <= cel - 0.000001) {
-            // char tmp[10];
-            // sprintf( tmp, "Gaz kodja: %d", (int)State->keys1.gas );
-            // external_error( tmp );
-            // double dt = 0.003; // Ez it 1.2-es verzionak megfelelo
-            // double dt = 0.006; // Ez itt uj lepeskoz (jol mukodik regen)
-
-            // Ez ELASTO MANIA 1.0 lepeskoze:
-            // double dt = 0.0055; // Ez leeseskor sem rezonal
-
-            double dt = 0.0055; // 0.0065
-
-            if (eddig + dt > cel) {
-                dt = cel - eddig;
+        // Run physics and/or camera based on mode:
+        // - None: normal physics only (camera follows bike)
+        // - MapViewer: camera controls only (no physics)
+        // - Detached: both normal physics AND camera controls
+        long result = 0;
+        if (CamMode == CameraMode::MapViewer) {
+            // Map viewer: only camera controls, no physics
+            while (eddig <= cel - 0.000001) {
+                double dt = 0.0055;
+                if (eddig + dt > cel) {
+                    dt = cel - eddig;
+                }
+                update_camera_controls(dt);
+                eddig += dt;
             }
-
-            if (!meghalt1) {
-                if (CamMode == CameraMode::Detached) {
-                    belsoresz(Motor1, &dummy_keys, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
-                } else if (CamMode == CameraMode::None) {
-                    belsoresz(Motor1, &State->keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig,
-                              dt);
+        } else if (CamMode == CameraMode::Detached) {
+            // Detached: camera controls + physics
+            while (eddig <= cel - 0.000001) {
+                double dt = 0.0055;
+                if (eddig + dt > cel) {
+                    dt = cel - eddig;
                 }
+                update_camera_controls(dt);
+                result = physics_step(&eddig, dt, &valt1, &valt2, &meghalt1, &meghalt2,
+                                      &megvanido1, &megvanido2, &mindjar);
+                if (result != 0) {
+                    return result;
+                }
+                eddig += dt;
             }
-
-            if (!Single && !meghalt2) {
-                if (CamMode == CameraMode::Detached) {
-                    belsoresz(Motor2, &dummy_keys, &valt2, Rec2, &megvanido2, &meghalt2, eddig, dt);
-                } else if (CamMode == CameraMode::None) {
-                    belsoresz(Motor2, &State->keys2, &valt2, Rec2, &megvanido2, &meghalt2, eddig,
-                              dt);
-                }
+            // Fogocska elintezes:
+            if (!Single && Tag) {
+                flagtag(eddig);
             }
-
-            if (CamMode != CameraMode::None) {
-                update_freecam(dt);
+        } else {
+            // Normal mode: physics only
+            while (eddig <= cel - 0.000001) {
+                double dt = 0.0055;
+                if (eddig + dt > cel) {
+                    dt = cel - eddig;
+                }
+                result = physics_step(&eddig, dt, &valt1, &valt2, &meghalt1, &meghalt2,
+                                      &megvanido1, &megvanido2, &mindjar);
+                if (result != 0) {
+                    return result;
+                }
+                eddig += dt;
             }
-
-            if (EolSettings->mouse_drag_camera()) {
-                int mdx, mdy;
-                get_mouse_motion(&mdx, &mdy);
-
-                if (is_left_mouse_down() && (mdx != 0 || mdy != 0)) {
-                    update_camera_by_mouse(mdx, mdy);
-                }
+            // Fogocska elintezes:
+            if (!Single && Tag) {
+                flagtag(eddig);
             }
-
-            if (!(meghalt1 && meghalt2)) {
-                // Ha meg nem halt meg mindketto:
-                if (meghalt1) {
-                    MeghalteloszorAB = 1;
-                }
-                if (meghalt2) {
-                    MeghalteloszorAB = 2;
-                }
-            }
-
-            if (!Single && mindjar) {
-                if (meghalt1 || meghalt2) {
-                    // Ha meg mindket motor jar,
-                    // de mar egyik meghalt:
-                    if (meghalt1) {
-                        stop_motor_sound(true);
-                    } else {
-                        stop_motor_sound(false);
-                    }
-                    mindjar = 0;
-                }
-            }
-
-            if (CamMode == CameraMode::None &&
-                ((Single && (megvanido1 || meghalt1)) ||
-                 (!Single && (megvanido1 || megvanido2 || (meghalt1 && meghalt2))))) {
-                // Vege jateknak:
-                long megvanido = megvanido1;
-                if (megvanido2) {
-                    megvanido = megvanido2;
-                }
-
-                if (!(meghalt1 && meghalt2) || Single) {
-                    // Ha nem halt meg mindketto, akkor ne irjon semmit:
-                    MeghalteloszorAB = 0;
-                }
-                if (megvanido1) {
-                    Aerintetteviragot = 1;
-                } else {
-                    Aerintetteviragot = 0;
-                }
-
-                set_motor_frequency(true, 1.0, 0);
-                set_motor_frequency(false, 1.0, 0);
-                if (megvanido) {
-                    start_wav(WavEvent::Win, 0.999);
-                } else {
-                    start_wav(WavEvent::Dead, 0.999);
-                }
-                delay((int)(LevelEndDelay * 1000.0));
-
-                stop_motor_sound(true);
-                stop_motor_sound(false);
-
-                Mute = true;
-                if (megvanido) {
-                    Ptop->unflip_objects();
-                    Rec1->encode_frame_count();
-                    Rec2->encode_frame_count();
-                    return megvanido;
-                } else {
-                    Ptop->unflip_objects();
-                    Rec1->encode_frame_count();
-                    Rec2->encode_frame_count();
-                    return -1;
-                }
-            }
-
-            eddig += dt;
         }
 
-        // Fogocska elintezes:
-        if (!Single && Tag) {
-            flagtag(eddig);
+        if (result != 0) {
+            return result;
         }
 
         if (Single) {
