@@ -389,25 +389,30 @@ bool platform_save_screenshot(palette* pal) {
         return false;
     }
 
-    // Find highest existing PNG frame number by scanning directory
-    int max_frame = -1;
-    char filename[64];
-    bool done = find_first("screenshots/*.png", filename);
-    while (!done) {
-        // find_next returns just the filename like "frm001.png"
-        int frame_num = 0;
-        if (sscanf(filename, "frm%d.png", &frame_num) == 1) {
-            if (frame_num > max_frame) {
-                max_frame = frame_num;
+    // Optimization: Cache frame number to avoid scanning directory every frame
+    static int next_frame = -1;
+    if (next_frame == -1) {
+        // Find highest existing TGA frame number by scanning directory
+        int max_frame = -1;
+        char filename[64];
+        bool done = find_first("screenshots/*.tga", filename);
+        while (!done) {
+            // find_next returns just the filename like "frm001.tga"
+            int frame_num = 0;
+            if (sscanf(filename, "frm%d.tga", &frame_num) == 1) {
+                if (frame_num > max_frame) {
+                    max_frame = frame_num;
+                }
             }
+            done = find_next(filename);
         }
-        done = find_next(filename);
+        find_close();
+        next_frame = max_frame + 1;
     }
-    find_close();
 
-    int next_frame = max_frame + 1;
-    char png_filename[64];
-    snprintf(png_filename, sizeof(png_filename), "screenshots/frm%05d.png", next_frame);
+    char tga_filename[64];
+    snprintf(tga_filename, sizeof(tga_filename), "screenshots/frm%05d.tga", next_frame);
+    next_frame++;
 
     // Ensure palette is set on surface (keeps GL path consistent)
     SDL_SetPaletteColors(SDLSurfacePaletted->format->palette, (const SDL_Color*)pal->get_data(), 0,
@@ -419,11 +424,18 @@ bool platform_save_screenshot(palette* pal) {
     unsigned char* pixels = (unsigned char*)SDLSurfacePaletted->pixels;
     SDL_Color* palc = (SDL_Color*)pal->get_data();
 
-    // Convert indexed surface to RGB buffer
-    size_t bufsize = (size_t)w * (size_t)h * 3;
-    unsigned char* buf = (unsigned char*)malloc(bufsize);
-    if (!buf) {
-        return false;
+    // Optimization: Reuse buffer to avoid malloc/free
+    static unsigned char* buf = nullptr;
+    static size_t buf_capacity = 0;
+    size_t buf_needed = (size_t)w * (size_t)h * 3;
+
+    if (buf_needed > buf_capacity) {
+        if (buf) free(buf);
+        buf = (unsigned char*)malloc(buf_needed);
+        if (!buf) {
+            return false;
+        }
+        buf_capacity = buf_needed;
     }
 
     for (int y = 0; y < h; y++) {
@@ -437,8 +449,15 @@ bool platform_save_screenshot(palette* pal) {
         }
     }
 
-    // Write PNG using stb_image_write (no external deps)
-    int ok = stbi_write_png(png_filename, w, h, 3, buf, w * 3);
-    free(buf);
+    // Write TGA using stb_image_write (no external deps)
+    // stbi_write_tga_with_rle = 1;
+    // int ok = stbi_write_tga(tga_filename, w, h, 3, buf);
+
+        // Write PNG using stb_image_write (no external deps)
+    // stbi_write_png_compression_level defaults to 8 which is slow
+    // 0 = no compression (fastest)
+    stbi_write_png_compression_level = 0;
+    stbi_write_force_png_filter = 0; // Disable filtering for speed
+    int ok = stbi_write_png(tga_filename, w, h, 3, buf, w * 3);
     return ok != 0;
 }

@@ -816,7 +816,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
     flagtag_reset();
 
-    long pcxindex = -1;
+    long pcxindex = 1;
 
     long l = 0;
     int jar1 = 1, jar2 = 1;
@@ -860,21 +860,15 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         if (!paused) {
             current_replay_time += dt * speed;
         }
-
+        
         // Kiszamolja mennyit kell leptetni:
         double eddig = stopwatch() * 0.0024;
 
         if (RenderingReplay) {
-            double fps = double(EolSettings->recording_fps());
-            double frame_interval_ms = 1000.0 / fps;
-            double frame_interval_eddig = frame_interval_ms * (STOPWATCH_MULTIPLIER * 0.0024);
-            int current_index = int(floor(eddig / frame_interval_eddig + 1e-9));
-
-            if (current_index >= pcxindex) {
-                pcxindex = current_index + 1;
-                // request a save on the upcoming draw
-                Legkozment = 1;
-            }
+            eddig = (double)pcxindex * (STOPWATCH_MULTIPLIER * 1000.0 * 0.0024) / EolSettings->recording_fps();
+            // request a save on the upcoming draw
+            Legkozment = 1;
+            pcxindex++;
         }
 
         // recall koordokat es Hatra-t is beallitja for normal playback (using eddig computed above)
