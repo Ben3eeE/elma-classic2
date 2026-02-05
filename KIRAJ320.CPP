@@ -1,7 +1,9 @@
 #include "KIRAJZOL.H"
+#include "abc8.h"
 #include "affine_pic.h"
 #include "anim.h"
 #include "affine_pic_render.h"
+#include "best_times.h"
 #include "ECSET.H"
 #include "EDITUJ.H"
 #include "eol_settings.h"
@@ -774,6 +776,18 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
         } else {
             draw_timers(BestTime, -1.0, t, ppic, Cxsize, Cysize);
         }
+    }
+
+    if (pmot->apple_count) {
+        char tmp[100];
+        sprintf(tmp, "last apple (%d)        ", pmot->apple_count);
+        centiseconds_to_string(pmot->last_apple_time, tmp + strlen(tmp), true, true);
+
+        constexpr int RIGHT_MARGIN = 5;
+        constexpr int BOTTOM_MARGIN = 5;
+        int x = Cxsize - RIGHT_MARGIN;
+        int y = BOTTOM_MARGIN;
+        SmallFont->write_right_align(ppic, x, y, tmp);
     }
 }
 
