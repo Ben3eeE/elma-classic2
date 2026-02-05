@@ -57,6 +57,8 @@ void menu_intro() {
     Pabc1->set_spacing(1);
     Pabc2 = new abc8("kisbetu2.abc"); // "small letter 2"
     Pabc2->set_spacing(1);
+    SmallFont = new abc8("small.abc");
+    SmallFont->set_spacing(1);
 
     Rec1 = new recorder;
     Rec2 = new recorder;

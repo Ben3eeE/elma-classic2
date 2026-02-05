@@ -1,6 +1,7 @@
 #ifndef KIRAJZOL_H
 #define KIRAJZOL_H
 
+class abc8;
 class pic8;
 struct valtozok;
 struct camera;
@@ -16,6 +17,8 @@ extern int Cxsize, Cysize; // Belso kep meretei
 extern int Kitoltestmegrak;
 // Es ennyire toltjuk:
 extern int Kitoltestmegrakkezd;
+
+extern abc8* SmallFont;
 
 void init_shirt();
 

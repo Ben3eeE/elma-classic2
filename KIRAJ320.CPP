@@ -25,6 +25,8 @@
 int Kitoltestmegrak = 0;
 int Kitoltestmegrakkezd = 10;
 
+abc8* SmallFont = nullptr;
+
 static double Kepmeret = 1.0;
 
 static double Szorzo = 1.1;
