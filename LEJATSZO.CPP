@@ -394,6 +394,7 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
     int plussznyomva = 0;
     int minusznyomva = 0;
     int snapnyomva = 0;
+    bool show_last_apple_time_pressed = false;
     stopwatch_reset();
 
     // Valtozok inicializalasa:
@@ -444,6 +445,12 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
     long l = 0;
     int mindjar = 1;
     while (1) {
+        bool show_last_apple_time_keys = is_key_down(EolSettings->function_key_9()) && is_key_down(EolSettings->modifier_key_1());
+        if (!show_last_apple_time_pressed && show_last_apple_time_keys) {
+            EolSettings->set_show_last_apple_time(!EolSettings->show_last_apple_time());
+        }
+        show_last_apple_time_pressed = show_last_apple_time_keys;
+
         // Kiszamolja mennyit kell leptetni:
         double cel = stopwatch() * 0.0024;
         if (cel < 0.000001) {
@@ -795,6 +802,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     int plussznyomva = 0;
     int minusznyomva = 0;
     int snapnyomva = 0;
+    bool show_last_apple_time_pressed = false;
 
     // Valtozok inicializalasa:
     valtozok valt1; // Inicializalni kell !!!!!!!!!!!!
@@ -877,6 +885,13 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         // Kiszamolja mennyit kell leptetni:
         double eddig = current_replay_time;
+
+        bool show_last_apple_time_keys = is_key_down(EolSettings->function_key_9()) && is_key_down(EolSettings->modifier_key_1());
+        if (!show_last_apple_time_pressed && show_last_apple_time_keys) {
+            EolSettings->set_show_last_apple_time(!EolSettings->show_last_apple_time());
+        }
+        show_last_apple_time_pressed = show_last_apple_time_keys;
+
         // recall koordokat es Hatra-t is beallitja:
         int befejezte1 =
             !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
