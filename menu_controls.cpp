@@ -145,6 +145,16 @@ const char* dik_to_string(DikScancode keycode) {
         return "F9";
     case DIK_F10:
         return "F10";
+    case DIK_F11:
+        return "F11";
+    case DIK_F12:
+        return "F12";
+    case DIK_F13:
+        return "F13";
+    case DIK_F14:
+        return "F14";
+    case DIK_F15:
+        return "F15";
     case DIK_NUMLOCK:
         return "NUM LOCK";
     case DIK_SCROLL:
@@ -175,16 +185,6 @@ const char* dik_to_string(DikScancode keycode) {
         return "PAD_INS";
     case DIK_DECIMAL:
         return "PAD_DEL";
-    case DIK_F11:
-        return "F11";
-    case DIK_F12:
-        return "F12";
-    case DIK_F13:
-        return "F13";
-    case DIK_F14:
-        return "F14";
-    case DIK_F15:
-        return "F15";
     case DIK_KANA:
         return "KANA";
     case DIK_CONVERT:
@@ -250,7 +250,7 @@ const char* dik_to_string(DikScancode keycode) {
     case DIK_APPS:
         return "APPLICATION";
     }
-    return NULL;
+    return nullptr;
 }
 
 // A list of pointers to where the keys are stored (somewhere in a state class object)
@@ -260,13 +260,19 @@ static key_pointers UniversalKeys; // +/- and Screenshot
 static key_pointers Player1Keys;
 static key_pointers Player2Keys;
 static key_pointers ReplayKeys;
+static key_pointers FunctionKeys;
+static key_pointers ModifierKeys;
 
-constexpr int UNIVERSAL_KEYS_START = 4;
+constexpr int UNIVERSAL_KEYS_START = 6;
 constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 4;
 constexpr int PLAYER_KEYS_START = 0;
 constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 10;
 constexpr int REPLAY_KEYS_START = 0;
 constexpr int REPLAY_KEYS_END = REPLAY_KEYS_START + 6;
+constexpr int FUNCTION_KEYS_START = 0;
+constexpr int FUNCTION_KEYS_END = FUNCTION_KEYS_START + 12;
+constexpr int MODIFIER_KEYS_START = 0;
+constexpr int MODIFIER_KEYS_END = MODIFIER_KEYS_START + 2;
 
 // Setup the menu to display one control key
 static void load_control(key_pointers keys, int offset, const char* label, int* key) {
@@ -282,7 +288,8 @@ static void load_control(key_pointers keys, int offset, const char* label, int* 
 }
 
 // Await keypress to choose a new key for one control
-static void prompt_control(int length, key_pointers keys, int index) {
+static void prompt_control(int length, key_pointers keys, int index,
+                           bool modifier_keys_only = false) {
     menu_nav nav;
     nav.selected_index = index;
     nav.x_left = 60;
@@ -307,18 +314,25 @@ static void prompt_control(int length, key_pointers keys, int index) {
             if (!is_key_down(keycode)) {
                 continue;
             }
+            // Only allow modifier keys (Shift, Ctrl, Alt, Win/Command) for modifier key bindings
+            if (modifier_keys_only) {
+                bool is_valid_modifier =
+                    (keycode == DIK_LSHIFT || keycode == DIK_RSHIFT || keycode == DIK_LCONTROL ||
+                     keycode == DIK_RCONTROL || keycode == DIK_LMENU || keycode == DIK_RMENU ||
+                     keycode == DIK_LWIN || keycode == DIK_RWIN);
+                if (!is_valid_modifier) {
+                    continue;
+                }
+            }
             // Disallow multiple controls being mapped to the same key
             for (int i = UNIVERSAL_KEYS_START; i < UNIVERSAL_KEYS_END; i++) {
                 if (*UniversalKeys[i] == keycode) {
                     *UniversalKeys[i] = 0;
                 }
             }
-            for (int i = PLAYER_KEYS_START; i < PLAYER_KEYS_END; i++) {
-                if (*Player1Keys[i] == keycode) {
-                    *Player1Keys[i] = 0;
-                }
-                if (*Player2Keys[i] == keycode) {
-                    *Player2Keys[i] = 0;
+            for (int i = FUNCTION_KEYS_START; i < FUNCTION_KEYS_END; i++) {
+                if (*FunctionKeys[i] == keycode) {
+                    *FunctionKeys[i] = 0;
                 }
             }
             *keys[index] = keycode;
@@ -338,6 +352,10 @@ static void load_universal_controls() {
     NavEntriesRight[2][0] = 0;
     strcpy(NavEntriesLeft[3], "Customize Replay VCR");
     NavEntriesRight[3][0] = 0;
+    strcpy(NavEntriesLeft[4], "Customize Function Keys");
+    NavEntriesRight[4][0] = 0;
+    strcpy(NavEntriesLeft[5], "Customize Modifier Keys");
+    NavEntriesRight[5][0] = 0;
     int i = UNIVERSAL_KEYS_START;
     load_control(UniversalKeys, i++, "Inc. Screen Size", &State->key_increase_screen_size);
     load_control(UniversalKeys, i++, "Dec. Screen Size", &State->key_decrease_screen_size);
@@ -354,6 +372,28 @@ static void load_replay_controls(key_pointers keys) {
     load_control(keys, i++, "Slow motion 2x", &State->key_replay_slow_2x);
     load_control(keys, i++, "Slow motion 4x", &State->key_replay_slow_4x);
     load_control(keys, i++, "Pause", &State->key_replay_pause);
+}
+
+static void load_function_controls(key_pointers keys) {
+    int i = FUNCTION_KEYS_START;
+    load_control(keys, i++, "Function key 1", &State->key_function_1);
+    load_control(keys, i++, "Function key 2", &State->key_function_2);
+    load_control(keys, i++, "Function key 3", &State->key_function_3);
+    load_control(keys, i++, "Function key 4", &State->key_function_4);
+    load_control(keys, i++, "Function key 5", &State->key_function_5);
+    load_control(keys, i++, "Function key 6", &State->key_function_6);
+    load_control(keys, i++, "Function key 7", &State->key_function_7);
+    load_control(keys, i++, "Function key 8", &State->key_function_8);
+    load_control(keys, i++, "Function key 9", &State->key_function_9);
+    load_control(keys, i++, "Function key 10", &State->key_function_10);
+    load_control(keys, i++, "Function key 11", &State->key_function_11);
+    load_control(keys, i++, "Function key 12", &State->key_function_12);
+}
+
+static void load_modifier_controls(key_pointers keys) {
+    int i = MODIFIER_KEYS_START;
+    load_control(keys, i++, "Modifier key 1", &State->key_modifier_1);
+    load_control(keys, i++, "Modifier key 2", &State->key_modifier_2);
 }
 
 // Setup the menu to display one player's controls
@@ -425,6 +465,56 @@ static void menu_customize_replay(key_pointers keys) {
     }
 }
 
+static void menu_customize_function_keys(key_pointers keys) {
+    int choice = 0;
+    while (true) {
+        menu_nav nav;
+        nav.selected_index = choice;
+        nav.x_left = 60;
+        nav.x_right = 400;
+        nav.y_entries = 86;
+        nav.dy = 40;
+        strcpy(nav.title, "Customize Function Keys");
+
+        load_function_controls(keys);
+
+        nav.setup(FUNCTION_KEYS_END, true);
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+        if (choice >= 0 && choice < FUNCTION_KEYS_END) {
+            prompt_control(FUNCTION_KEYS_END, keys, choice, false);
+        }
+    }
+}
+
+static void menu_customize_modifier_keys(key_pointers keys) {
+    int choice = 0;
+    while (true) {
+        menu_nav nav;
+        nav.selected_index = choice;
+        nav.x_left = 60;
+        nav.x_right = 400;
+        nav.y_entries = 86;
+        nav.dy = 40;
+        strcpy(nav.title, "Customize Modifier Keys");
+
+        load_modifier_controls(keys);
+
+        nav.setup(MODIFIER_KEYS_END, true);
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+        if (choice >= 0 && choice < MODIFIER_KEYS_END) {
+            prompt_control(MODIFIER_KEYS_END, keys, choice, true);
+        }
+    }
+}
+
 // Menu to customize universal controls or select a player
 void menu_customize_controls() {
     // Initialize these pointers so we can check/modify the values in prompt_control
@@ -468,6 +558,12 @@ void menu_customize_controls() {
         }
         if (choice == 3) {
             menu_customize_replay(ReplayKeys);
+        }
+        if (choice == 4) {
+            menu_customize_function_keys(FunctionKeys);
+        }
+        if (choice == 5) {
+            menu_customize_modifier_keys(ModifierKeys);
         }
         if (choice >= UNIVERSAL_KEYS_START && choice < UNIVERSAL_KEYS_END) {
             // Modify universal control

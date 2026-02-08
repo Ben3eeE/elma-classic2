@@ -390,6 +390,21 @@ void state::reset_keys() {
     key_replay_slow_2x = EolSettings->replay_slow_2x_key_default();
     key_replay_slow_4x = EolSettings->replay_slow_4x_key_default();
     key_replay_pause = EolSettings->replay_pause_key_default();
+
+    key_function_1 = EolSettings->function_key_1_default();
+    key_function_2 = EolSettings->function_key_2_default();
+    key_function_3 = EolSettings->function_key_3_default();
+    key_function_4 = EolSettings->function_key_4_default();
+    key_function_5 = EolSettings->function_key_5_default();
+    key_function_6 = EolSettings->function_key_6_default();
+    key_function_7 = EolSettings->function_key_7_default();
+    key_function_8 = EolSettings->function_key_8_default();
+    key_function_9 = EolSettings->function_key_9_default();
+    key_function_10 = EolSettings->function_key_10_default();
+    key_function_11 = EolSettings->function_key_11_default();
+    key_function_12 = EolSettings->function_key_12_default();
+    key_modifier_1 = EolSettings->modifier_key_1_default();
+    key_modifier_2 = EolSettings->modifier_key_2_default();
 }
 
 player* state::get_player(const char* player_name) {

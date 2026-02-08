@@ -79,6 +79,21 @@ class state {
     DikScancode key_replay_slow_4x;
     DikScancode key_replay_pause;
 
+    DikScancode key_function_1;
+    DikScancode key_function_2;
+    DikScancode key_function_3;
+    DikScancode key_function_4;
+    DikScancode key_function_5;
+    DikScancode key_function_6;
+    DikScancode key_function_7;
+    DikScancode key_function_8;
+    DikScancode key_function_9;
+    DikScancode key_function_10;
+    DikScancode key_function_11;
+    DikScancode key_function_12;
+    DikScancode key_modifier_1;
+    DikScancode key_modifier_2;
+
     char editor_filename[20];
     char external_filename[20];
 
