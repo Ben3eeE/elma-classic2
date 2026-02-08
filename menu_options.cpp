@@ -216,7 +216,10 @@ void menu_options() {
         strcpy(NavEntriesRight[20 + flag_tag_opt],
                EolSettings->show_last_apple_time() ? "Yes" : "No");
 
-        nav.setup(21 + flag_tag_opt, true);
+        strcpy(NavEntriesLeft[21 + flag_tag_opt], "Record Replay FPS:");
+        sprintf(NavEntriesRight[21 + flag_tag_opt], "%d", EolSettings->recording_fps());
+
+        nav.setup(22 + flag_tag_opt, true);
 
         choice = nav.navigate();
 
@@ -360,6 +363,19 @@ void menu_options() {
 
         if (choice == 20) {
             EolSettings->set_show_last_apple_time(!EolSettings->show_last_apple_time());
+        }
+
+        if (choice == 21) {
+            int old_fps = EolSettings->recording_fps();
+            int new_fps;
+            if (old_fps == 30) {
+                new_fps = 60;
+            } else if (old_fps == 60) {
+                new_fps = 120;
+            } else {
+                new_fps = 30;
+            }
+            EolSettings->set_recording_fps(new_fps);
         }
 
         if (flag_tag_opt) {
