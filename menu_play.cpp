@@ -463,7 +463,7 @@ static void play_internal(int internal_index) {
         Rec1->erase(filename);
         Rec2->erase(filename);
 
-        int time = lejatszo(filename, F1Pressed ? CameraMode::MapViewer : CameraMode::Normal);
+        int time = lejatszo(filename, Function1Pressed ? CameraMode::MapViewer : CameraMode::Normal);
 
         MenuPalette->set();
         if (Ptop->objects_flipped) {

@@ -56,6 +56,6 @@ class menu_nav {
 };
 
 extern bool CtrlAltPressed;
-extern bool F1Pressed;
+extern bool Function1Pressed;
 
 #endif
