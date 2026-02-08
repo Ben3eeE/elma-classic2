@@ -288,7 +288,7 @@ static void load_control(key_pointers keys, int offset, const char* label, int* 
 }
 
 // Await keypress to choose a new key for one control
-static void prompt_control(int length, key_pointers keys, int index) {
+static void prompt_control(int length, key_pointers keys, int index, bool modifier_keys_only = false) {
     menu_nav nav;
     nav.selected_index = index;
     nav.x_left = 60;
@@ -312,6 +312,16 @@ static void prompt_control(int length, key_pointers keys, int index) {
             }
             if (!is_key_down(keycode)) {
                 continue;
+            }
+            // Only allow modifier keys (Shift, Ctrl, Alt, Win/Command) for modifier key bindings
+            if (modifier_keys_only) {
+                bool is_valid_modifier = (keycode == DIK_LSHIFT || keycode == DIK_RSHIFT ||
+                                         keycode == DIK_LCONTROL || keycode == DIK_RCONTROL ||
+                                         keycode == DIK_LMENU || keycode == DIK_RMENU ||
+                                         keycode == DIK_LWIN || keycode == DIK_RWIN);
+                if (!is_valid_modifier) {
+                    continue;
+                }
             }
             // Disallow multiple controls being mapped to the same key
             for (int i = UNIVERSAL_KEYS_START; i < UNIVERSAL_KEYS_END; i++) {
@@ -505,7 +515,7 @@ static void menu_customize_modifier_keys(key_pointers keys) {
             return;
         }
         if (choice >= 0 && choice < MODIFIER_KEYS_END) {
-            prompt_control(MODIFIER_KEYS_END, keys, choice);
+            prompt_control(MODIFIER_KEYS_END, keys, choice, true);
         }
     }
 }
