@@ -8,6 +8,7 @@
 #include "EDITPLAY.H"
 #include "EDITTOLT.H"
 #include "EDITTOOL.H"
+#include "eol_settings.h"
 #include "keys.h"
 #include "level.h"
 #include "lgr.h"
@@ -697,7 +698,7 @@ void editor(void) {
             }
             if (!(Pgy || Pker || Psp || Zoomfogva || Egypont)) {
                 if (c == 'p') {
-                    editplay(is_key_down(DIK_F1));
+                    editplay(is_key_down(EolSettings->function_key_1()));
                 }
                 if (c == 'x') {
                     if (editor_exit_dialog()) {
@@ -821,7 +822,7 @@ void editor(void) {
                         }
 
                         if (i == 5 && balnyomva) {
-                            editplay(is_key_down(DIK_F1));
+                            editplay(is_key_down(EolSettings->function_key_1()));
                             Tool = T_MOVE;
                         }
                         if (i == 5 && jobbnyomva) {

@@ -81,7 +81,8 @@ void menu_external_levels() {
             }
             Rec1->erase(filename);
             Rec2->erase(filename);
-            int time = lejatszo(filename, F1Pressed ? CameraMode::MapViewer : CameraMode::Normal);
+            int time =
+                lejatszo(filename, Function1Pressed ? CameraMode::MapViewer : CameraMode::Normal);
             MenuPalette->set();
             char finish_msg[100] = "";
             update_top_ten(time, finish_msg, 0, filename);
