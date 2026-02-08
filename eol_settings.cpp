@@ -122,6 +122,40 @@ void eol_settings::set_default_lgr_name(std::string name) {
 
 void eol_settings::set_show_last_apple_time(bool show) { show_last_apple_time_ = show; }
 
+void eol_settings::set_function_key_1(DikScancode key) { function_key_1_ = key; }
+
+void eol_settings::set_function_key_2(DikScancode key) { function_key_2_ = key; }
+
+void eol_settings::set_function_key_3(DikScancode key) { function_key_3_ = key; }
+
+void eol_settings::set_function_key_4(DikScancode key) { function_key_4_ = key; }
+
+void eol_settings::set_function_key_5(DikScancode key) { function_key_5_ = key; }
+
+void eol_settings::set_function_key_6(DikScancode key) { function_key_6_ = key; }
+
+void eol_settings::set_function_key_7(DikScancode key) { function_key_7_ = key; }
+
+void eol_settings::set_function_key_8(DikScancode key) { function_key_8_ = key; }
+
+void eol_settings::set_function_key_9(DikScancode key) { function_key_9_ = key; }
+
+void eol_settings::set_function_key_10(DikScancode key) { function_key_10_ = key; }
+
+void eol_settings::set_function_key_11(DikScancode key) { function_key_11_ = key; }
+
+void eol_settings::set_function_key_12(DikScancode key) { function_key_12_ = key; }
+
+void eol_settings::set_function_key_13(DikScancode key) { function_key_13_ = key; }
+
+void eol_settings::set_function_key_14(DikScancode key) { function_key_14_ = key; }
+
+void eol_settings::set_function_key_15(DikScancode key) { function_key_15_ = key; }
+
+void eol_settings::set_modifier_key_1(DikScancode key) { modifier_key_1_ = key; }
+
+void eol_settings::set_modifier_key_2(DikScancode key) { modifier_key_2_ = key; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -267,6 +301,24 @@ void eol_settings::sync_controls_to_state(state* s) {
     s->key_replay_slow_2x = EolSettings->replay_slow_2x_key();
     s->key_replay_slow_4x = EolSettings->replay_slow_4x_key();
     s->key_replay_pause = EolSettings->replay_pause_key();
+
+    s->key_function_1 = EolSettings->function_key_1();
+    s->key_function_2 = EolSettings->function_key_2();
+    s->key_function_3 = EolSettings->function_key_3();
+    s->key_function_4 = EolSettings->function_key_4();
+    s->key_function_5 = EolSettings->function_key_5();
+    s->key_function_6 = EolSettings->function_key_6();
+    s->key_function_7 = EolSettings->function_key_7();
+    s->key_function_8 = EolSettings->function_key_8();
+    s->key_function_9 = EolSettings->function_key_9();
+    s->key_function_10 = EolSettings->function_key_10();
+    s->key_function_11 = EolSettings->function_key_11();
+    s->key_function_12 = EolSettings->function_key_12();
+    s->key_function_13 = EolSettings->function_key_13();
+    s->key_function_14 = EolSettings->function_key_14();
+    s->key_function_15 = EolSettings->function_key_15();
+    s->key_modifier_1 = EolSettings->modifier_key_1();
+    s->key_modifier_2 = EolSettings->modifier_key_2();
 }
 
 void eol_settings::sync_controls_from_state(state* s) {
@@ -285,4 +337,22 @@ void eol_settings::sync_controls_from_state(state* s) {
     EolSettings->set_replay_slow_2x_key(s->key_replay_slow_2x);
     EolSettings->set_replay_slow_4x_key(s->key_replay_slow_4x);
     EolSettings->set_replay_pause_key(s->key_replay_pause);
+
+    EolSettings->set_function_key_1(s->key_function_1);
+    EolSettings->set_function_key_2(s->key_function_2);
+    EolSettings->set_function_key_3(s->key_function_3);
+    EolSettings->set_function_key_4(s->key_function_4);
+    EolSettings->set_function_key_5(s->key_function_5);
+    EolSettings->set_function_key_6(s->key_function_6);
+    EolSettings->set_function_key_7(s->key_function_7);
+    EolSettings->set_function_key_8(s->key_function_8);
+    EolSettings->set_function_key_9(s->key_function_9);
+    EolSettings->set_function_key_10(s->key_function_10);
+    EolSettings->set_function_key_11(s->key_function_11);
+    EolSettings->set_function_key_12(s->key_function_12);
+    EolSettings->set_function_key_13(s->key_function_13);
+    EolSettings->set_function_key_14(s->key_function_14);
+    EolSettings->set_function_key_15(s->key_function_15);
+    EolSettings->set_modifier_key_1(s->key_modifier_1);
+    EolSettings->set_modifier_key_2(s->key_modifier_2);
 }

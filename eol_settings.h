@@ -78,6 +78,24 @@ class eol_settings {
     Default<std::string> default_lgr_name_{"default"};
     Default<bool> show_last_apple_time_{true};
 
+    Default<DikScancode> function_key_1_{DIK_F1};
+    Default<DikScancode> function_key_2_{DIK_F2};
+    Default<DikScancode> function_key_3_{DIK_F3};
+    Default<DikScancode> function_key_4_{DIK_F4};
+    Default<DikScancode> function_key_5_{DIK_F5};
+    Default<DikScancode> function_key_6_{DIK_F6};
+    Default<DikScancode> function_key_7_{DIK_F7};
+    Default<DikScancode> function_key_8_{DIK_F8};
+    Default<DikScancode> function_key_9_{DIK_F9};
+    Default<DikScancode> function_key_10_{DIK_F10};
+    Default<DikScancode> function_key_11_{DIK_F11};
+    Default<DikScancode> function_key_12_{DIK_F12};
+    Default<DikScancode> function_key_13_{DIK_F13};
+    Default<DikScancode> function_key_14_{DIK_F14};
+    Default<DikScancode> function_key_15_{DIK_F15};
+    Default<DikScancode> modifier_key_1_{DIK_LSHIFT};
+    Default<DikScancode> modifier_key_2_{DIK_LCONTROL};
+
   public:
     static void read_settings();
     static void write_settings();
@@ -108,6 +126,24 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(replay_pause_key);
     DECLARE_FIELD_FUNCS(default_lgr_name);
     DECLARE_FIELD_FUNCS(show_last_apple_time);
+
+    DECLARE_FIELD_FUNCS(function_key_1);
+    DECLARE_FIELD_FUNCS(function_key_2);
+    DECLARE_FIELD_FUNCS(function_key_3);
+    DECLARE_FIELD_FUNCS(function_key_4);
+    DECLARE_FIELD_FUNCS(function_key_5);
+    DECLARE_FIELD_FUNCS(function_key_6);
+    DECLARE_FIELD_FUNCS(function_key_7);
+    DECLARE_FIELD_FUNCS(function_key_8);
+    DECLARE_FIELD_FUNCS(function_key_9);
+    DECLARE_FIELD_FUNCS(function_key_10);
+    DECLARE_FIELD_FUNCS(function_key_11);
+    DECLARE_FIELD_FUNCS(function_key_12);
+    DECLARE_FIELD_FUNCS(function_key_13);
+    DECLARE_FIELD_FUNCS(function_key_14);
+    DECLARE_FIELD_FUNCS(function_key_15);
+    DECLARE_FIELD_FUNCS(modifier_key_1);
+    DECLARE_FIELD_FUNCS(modifier_key_2);
 };
 
 #undef DECLARE_FIELD_FUNCS
