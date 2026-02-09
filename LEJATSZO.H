@@ -2,6 +2,7 @@
 #define LEJATSZO_H
 
 #include "recorder.h"
+#include <string>
 
 // Jatek modja ket fele lehet:
 extern int Single;
@@ -9,6 +10,9 @@ extern int Tag; // Van-e fogocska
 // extern int Coop;
 
 extern int Legkozment; // kiraj320 ebbol tudja, hogy snapshot-ot keszitsen
+extern bool VideoRecordingMode;
+extern int VideoFrameIndex;
+extern std::string VideoOutputDirectory;
 
 enum class CameraMode { Normal, MapViewer };
 
@@ -26,6 +30,7 @@ struct camera {
 // BestTime beallitasahoz kell nekik:
 long lejatszo(const char* filenev, CameraMode cameramode);
 long lejatszo_r(const char* filenev, int showkepmarad);
+void render_replay(const char* level_filename, const char* replay_filename);
 
 struct baljobbvaltozok {
     int eddighatra;

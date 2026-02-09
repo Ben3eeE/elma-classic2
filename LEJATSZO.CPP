@@ -2,6 +2,7 @@
 #include "EDITUJ.H"
 #include "eol_settings.h"
 #include "flagtag.h"
+#include "fs_utils.h"
 #include "sound_engine.h"
 #include "KIRAJZOL.H"
 #include "LEPTET.H"
@@ -26,6 +27,9 @@ int Tag = 0;
 // int Multi = 0;
 
 int Legkozment = 0;
+bool VideoRecordingMode = false;
+int VideoFrameIndex = 0;
+std::string VideoOutputDirectory;
 
 static int Kajakell;
 
@@ -956,4 +960,83 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         }
         l++;
     }
+}
+
+// Sets the path of VideoOutputDirectory to "./renders/{replay_stem}/"
+static void setup_render_directory(const char* replay_filename) {
+    std::string safe_name(replay_filename);
+    if (safe_name.length() > MAX_FILENAME_LEN + 4) {
+        safe_name.resize(MAX_FILENAME_LEN + 4);
+    }
+
+    std::filesystem::path p(safe_name);
+    std::string stem = p.stem().string();
+    std::filesystem::path out_dir = std::filesystem::path("renders") / stem;
+    std::error_code ec;
+    std::filesystem::create_directories(out_dir, ec);
+    if (ec) {
+        internal_error("Failed to create output directory for replay render", ec.message().c_str());
+    }
+
+    VideoOutputDirectory = out_dir.string();
+}
+
+void render_replay(const char* level_filename, const char* replay_filename) {
+    Single = !MultiplayerRec;
+    Tag = Rec1->flagtag();
+    setup_gameloop(level_filename);
+    setup_render_directory(replay_filename);
+
+    valtozok valt1;
+    memset(&valt1, 0, sizeof(valt1));
+    valtozok valt2;
+    memset(&valt2, 0, sizeof(valt2));
+
+    valt1.baljobbv_f.ucsoford = valt2.baljobbv_f.ucsoford = -1000.0;
+    valt1.baljobbv_f.ucsoforgas = valt2.baljobbv_f.ucsoforgas = -1000.0;
+    valt1.baljobbv_h.ucsoford = valt2.baljobbv_h.ucsoford = -1000.0;
+    valt1.baljobbv_h.ucsoforgas = valt2.baljobbv_h.ucsoforgas = -1000.0;
+    valt1.utolsougras = valt2.utolsougras = -100.0;
+    valt1.showkep = 1;
+    valt2.showkep = 1;
+
+    camera current_camera;
+    current_camera.mode = CameraMode::Normal;
+
+    VideoRecordingMode = true;
+    VideoFrameIndex = 0;
+
+    while (true) {
+        handle_events();
+        if (is_key_down(DIK_ESCAPE)) {
+            break;
+        }
+
+        double eddig = (double)VideoFrameIndex * (STOPWATCH_MULTIPLIER * 1000.0 * 0.0024) /
+                       EolSettings->recording_fps();
+
+        int befejezte1 =
+            !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
+        int befejezte2 = 0;
+        if (!Single) {
+            befejezte2 =
+                !replaymag(Motor2, &State->keys2, &valt2, Rec2, eddig, &Viewtime2, &valt1.showkep);
+        }
+
+        if ((Single && befejezte1) || (!Single && befejezte1 && befejezte2)) {
+            break;
+        }
+
+        if (!Single) {
+            flagtag_replay(eddig);
+        }
+
+        kirajzol320(eddig, &valt1, &valt2, Viewtime1.viewkinreplay, Viewtime1.timekinreplay,
+                    Viewtime2.viewkinreplay, Viewtime2.timekinreplay, current_camera);
+
+        VideoFrameIndex++;
+    }
+
+    VideoRecordingMode = false;
+    Ptop->unflip_objects();
 }

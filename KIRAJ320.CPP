@@ -21,6 +21,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <string>
+#include <format>
+#include <filesystem>
 
 // Ezek mindig beallitodnak Kepmeret-bol kirajzol320-ban:
 
@@ -347,6 +350,15 @@ static void kiview(int ajatekos, pic8* ppic, double baljobb, vect2 motorkozep, m
 
 // Mentes lemezre:
 static void menteshakell(pic8* ppic) {
+    if (VideoRecordingMode) {
+        std::string filenameStr = std::format("snp{:05}.pcx", VideoFrameIndex);
+        std::filesystem::path filename = std::filesystem::path(VideoOutputDirectory) / filenameStr;
+        forditkepet(ppic);
+        ppic->save(filename.string().c_str(), Lgr->palette_data);
+        forditkepet(ppic);
+        return;
+    }
+
     if (Legkozment) {
         Legkozment = 0;
         int i = 0;
