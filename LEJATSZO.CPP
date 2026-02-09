@@ -357,6 +357,8 @@ static void setup_gameloop(const char* filenev) {
     flagtag_reset();
 
     Motor1->apple_count = Motor2->apple_count = 0;
+
+    Lgr->pal->set();
 }
 
 // lejatszo ezt beallitja: 0 -> nem kell kiirni, 1 -> A eloszor, 2 -> B
@@ -392,7 +394,6 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
         MultiplayerRec = 1;
     }
 
-    int palmegnincs = 1;
     setup_gameloop(filenev);
 
     double eddig = 0.0;
@@ -583,10 +584,6 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
                       meghalt2);
         }
 
-        if (palmegnincs) {
-            palmegnincs = 0;
-            Lgr->pal->set();
-        }
         kirajzol320(eddig, &valt1, &valt2, Viewtime1.viewkinplay, Viewtime1.timekinplay,
                     Viewtime2.viewkinplay, Viewtime2.timekinplay, current_camera);
 
@@ -771,7 +768,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     Tag = Rec1->flagtag();
     setup_gameloop(filenev);
 
-    int palmegnincs = 1;
     reset_event_buffer();
     stopwatch_reset();
 
@@ -906,11 +902,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             set_friction_volume(valt1.inf.friction_volume + valt2.inf.friction_volume);
         }
 
-        // KIRAJZOLAS:
-        if (palmegnincs) {
-            palmegnincs = 0;
-            Lgr->pal->set();
-        }
         kirajzol320(eddig, &valt1, &valt2, Viewtime1.viewkinreplay, Viewtime1.timekinreplay,
                     Viewtime2.viewkinreplay, Viewtime2.timekinreplay, current_camera);
 
