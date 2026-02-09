@@ -337,6 +337,28 @@ static void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
 #endif
 }
 
+// Common setup function
+static void setup_gameloop(const char* filenev) {
+    load_best_time(filenev, Single);
+
+    init_physics_data();
+    if (!Ptop) {
+        internal_error("setup_gameloop() !Ptop!");
+    }
+    Ptop->flip_objects();
+    Ptop->sort_objects();
+    // setallaktiv allitja be motor kezdeti helyzetet is!:
+    Kajakell = Ptop->initialize_objects(Motor1);
+    Ptop->initialize_objects(Motor2);
+
+    // Eloszor keretet tobbszor is kirakja kirajzol320:
+    Kitoltestmegrak = Kitoltestmegrakkezd;
+
+    flagtag_reset();
+
+    Motor1->apple_count = Motor2->apple_count = 0;
+}
+
 // lejatszo ezt beallitja: 0 -> nem kell kiirni, 1 -> A eloszor, 2 -> B
 // csak akkor A vagy B eloszor, ha mindketten meghaltak, tehat
 // menu_level menu-nek ezt mar feldolgozta elore:
@@ -364,8 +386,6 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
     Rec1->set_flagtag(Tag);
     Rec2->set_flagtag(Tag);
 
-    load_best_time(filenev, Single);
-
     if (Single) {
         MultiplayerRec = 0;
     } else {
@@ -373,18 +393,7 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
     }
 
     int palmegnincs = 1;
-    init_physics_data();
-    if (!Ptop) {
-        internal_error("lejatszo-ban !Ptop!");
-    }
-    Ptop->flip_objects();
-    Ptop->sort_objects();
-    // setallaktiv allitja be motor kezdeti helyzetet es fazisokat is!:
-    Kajakell = Ptop->initialize_objects(Motor1);
-    Ptop->initialize_objects(Motor2);
-
-    // Eloszor keretet tobbszor kirakja kirajzol320:
-    Kitoltestmegrak = Kitoltestmegrakkezd;
+    setup_gameloop(filenev);
 
     double eddig = 0.0;
     reset_event_buffer();
@@ -433,9 +442,6 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
         start_motor_sound(false);
     }
 
-    flagtag_reset();
-
-    Motor1->apple_count = Motor2->apple_count = 0;
     long l = 0;
     int mindjar = 1;
     while (1) {
@@ -753,34 +759,19 @@ static int Elozoshowkep1 = 1, Elozoshowkep2 = 1;
 
 // Termeszetes befejezes eseten 0-t ad vissza:
 long lejatszo_r(const char* filenev, int showkepmarad) {
-    // Jatekmod eldontese:
-    Single = !MultiplayerRec;
-    Tag = Rec1->flagtag();
-
     // Refuse to play zero-length replays (from map-viewer mode)
     if (Rec1->is_empty()) {
         return -2;
     }
-    if (!Single && Rec2->is_empty()) {
+    if (MultiplayerRec && Rec2->is_empty()) {
         return -2;
     }
 
-    load_best_time(filenev, Single);
+    Single = !MultiplayerRec;
+    Tag = Rec1->flagtag();
+    setup_gameloop(filenev);
 
     int palmegnincs = 1;
-    init_physics_data();
-    if (!Ptop) {
-        internal_error("lejatszo-ban !Ptop!");
-    }
-    Ptop->flip_objects();
-    Ptop->sort_objects();
-    // setallaktiv allitja be motor kezdeti helyzetet is!:
-    Kajakell = Ptop->initialize_objects(Motor1);
-    Ptop->initialize_objects(Motor2);
-
-    // Eloszor keretet tobbszor is kirakja kirajzol320:
-    Kitoltestmegrak = Kitoltestmegrakkezd;
-
     reset_event_buffer();
     stopwatch_reset();
 
@@ -817,9 +808,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         start_motor_sound(false);
     }
 
-    flagtag_reset();
-
-    Motor1->apple_count = Motor2->apple_count = 0;
     long l = 0;
     int jar1 = 1, jar2 = 1;
 
