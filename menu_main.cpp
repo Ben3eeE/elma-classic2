@@ -31,14 +31,15 @@ static unsigned int gen_rand_int() {
     return result;
 }
 
-static void menu_replay() {
+static std::string select_replay_file(const char* title, int* last_selection_index,
+                                      bool allow_randomizer,
+                                      std::vector<std::string>* out_filenames) {
     finame filename;
     std::vector<std::string> replay_names;
     bool done = find_first("rec/*.rec", filename);
 
     while (!done) {
         replay_names.emplace_back(filename);
-
         done = find_next(filename);
         if (replay_names.size() >= NavEntriesLeftMaxLength - 4) {
             done = true;
@@ -47,7 +48,8 @@ static void menu_replay() {
     find_close();
 
     if (replay_names.empty()) {
-        return;
+        menu_dialog("No replay files found!", "");
+        return "";
     }
 
     std::sort(replay_names.begin(), replay_names.end(),
@@ -55,50 +57,81 @@ static void menu_replay() {
                   return strcmpi(a.c_str(), b.c_str()) < 0;
               });
 
+    if (out_filenames) {
+        *out_filenames = replay_names;
+    }
+
     int count = 0;
-    strcpy(NavEntriesLeft[count++], "Randomizer");
+    if (allow_randomizer) {
+        strcpy(NavEntriesLeft[count++], "Randomizer");
+    }
 
     for (const auto& full_name : replay_names) {
         finame display_name;
         strcpy(display_name, full_name.c_str());
-
-        // Remove extension for display:
+        // Remove extension
         int i = strlen(display_name) - 1;
         while (i >= 0 && display_name[i] != '.') {
             i--;
         }
-        if (i < 0) {
-            internal_error("menu_replay: no dot in name!: ", full_name.c_str());
+        if (i >= 0) {
+            display_name[i] = 0;
         }
-        display_name[i] = 0;
-
         strcpy(NavEntriesLeft[count++], display_name);
     }
 
-    menu_nav nav;
-    nav.search_pattern = SearchPattern::Sorted;
-    nav.search_skip_one = true;
-    nav.selected_index = 0;
-    strcpy(nav.title, "Select replay file!");
+    menu_nav val;
+    val.search_pattern = SearchPattern::Sorted;
+    val.search_skip_one = allow_randomizer;
+    val.selected_index = last_selection_index ? *last_selection_index : 0;
+    strcpy(val.title, title);
 
     nav.setup(count);
 
-    while (true) {
-        int choice = nav.navigate();
+    int choice = val.navigate();
 
-        if (choice < 0) {
+    if (last_selection_index) {
+        *last_selection_index = val.selected_index;
+    }
+
+    if (choice < 0) {
+        return "";
+    }
+
+    if (allow_randomizer && choice == 0) {
+        return "RANDOMIZER";
+    }
+
+    int file_index = allow_randomizer ? choice - 1 : choice;
+    return replay_names[file_index];
+}
+
+static void menu_replay() {
+    static int last_index = 0;
+    while (true) {
+        std::vector<std::string> replay_names;
+        std::string choice =
+            select_replay_file("Select replay file!", &last_index, true, &replay_names);
+
+        if (choice.empty()) { // ESC
             return;
         }
 
-        if (choice == 0) {
+        if (choice == "RANDOMIZER") {
+            int num_files = replay_names.size();
+
             // Randomizer
             int last_played = -1;
             int second_last_played = -1;
             while (true) {
-                int index = gen_rand_int() % (count - 1);
-                while ((index == last_played && count > 2) ||
-                       (index == second_last_played && count > 3)) {
-                    index = gen_rand_int() % (count - 1);
+                if (num_files == 0) {
+                    break; // Should be handled by select_replay_file returning empty if no files
+                }
+
+                int pl = generate_random_number() % num_files;
+                while ((pl == previous_played_rec && num_files > 1) ||
+                       (pl == two_before_previous_played_rec && num_files > 2)) {
+                    pl = generate_random_number() % num_files;
                 }
                 second_last_played = last_played;
                 last_played = index;
@@ -133,7 +166,7 @@ static void menu_replay() {
                 }
             }
         } else {
-            const char* replay_name = replay_names[choice - 1].c_str();
+            const char* replay_name = choice.c_str();
             // Play a rec file:
             loading_screen();
             int level_id = recorder::load_rec_file(replay_name, false);
@@ -141,7 +174,7 @@ static void menu_replay() {
                 F1Pressed = false;
                 char msg[128];
                 snprintf(msg, sizeof(msg), "Recording at %d FPS to renders/%s",
-                         EolSettings->recording_fps(), NavEntriesLeft[choice]);
+                         EolSettings->recording_fps(), choice.c_str());
                 int c = menu_dialog("Render replay to video frames?", msg,
                                     "Press Enter to continue, ESC to cancel");
                 if (c == KEY_ENTER) {
@@ -195,6 +228,45 @@ static void menu_replay() {
             }
         }
         MenuPalette->set();
+    }
+}
+
+static void menu_merge_replays() {
+    int selected_index = 0;
+
+    while (true) {
+        std::string file1 = select_replay_file("Select first replay", &selected_index, false, nullptr);
+        if (file1.empty()) {
+            return;
+        }
+
+        while (true) {
+            std::string file2 =
+                select_replay_file("Select second replay", &selected_index, false, nullptr);
+            if (file2.empty()) {
+                break;
+            }
+
+            loading_screen();
+            int level_id = recorder::load_merge(file1.c_str(), file2.c_str());
+
+            if (access_level_file(Rec1->level_filename) != 0) {
+                menu_dialog("Cannot find the lev file that corresponds", "to the record file!",
+                            file1.c_str(), Rec1->level_filename);
+            } else {
+                floadlevel_p(Rec1->level_filename);
+                if (Ptop->level_id != level_id) {
+                    menu_dialog("The level file has changed since the",
+                                "saving of the record file!", file1.c_str(), Rec1->level_filename);
+                } else {
+                    Rec1->rewind();
+                    Rec2->rewind();
+                    replay_from_file(Rec1->level_filename);
+                }
+            }
+            MenuPalette->set();
+            break;
+        }
     }
 }
 
@@ -262,22 +334,23 @@ static void menu_prompt_exit() {
 void menu_main() {
     MenuPalette->set();
 
-    menu_nav nav;
-    nav.selected_index = 0;
-    nav.x_left = 200;
-    nav.y_entries = 100;
-    nav.dy = 50;
-    strcpy(nav.title, "Main Menu");
+    menu_nav val;
+    val.selected_index = 0;
+    val.x_left = 200;
+    val.y_entries = 100;
+    val.dy = 45;
+    strcpy(val.title, "Main Menu");
 
     strcpy(NavEntriesLeft[0], "Play");
     strcpy(NavEntriesLeft[1], "Replay");
-    strcpy(NavEntriesLeft[2], "Demo");
-    strcpy(NavEntriesLeft[3], "Options");
-    strcpy(NavEntriesLeft[4], "Help");
-    strcpy(NavEntriesLeft[5], "Best Times");
-    strcpy(NavEntriesLeft[6], "Editor");
+    strcpy(NavEntriesLeft[2], "Merge Replays");
+    strcpy(NavEntriesLeft[3], "Demo");
+    strcpy(NavEntriesLeft[4], "Options");
+    strcpy(NavEntriesLeft[5], "Help");
+    strcpy(NavEntriesLeft[6], "Best Times");
+    strcpy(NavEntriesLeft[7], "Editor");
 
-    nav.setup(7);
+    val.setup(8);
 
     while (true) {
         int choice = nav.navigate();
@@ -291,22 +364,26 @@ void menu_main() {
         }
 
         if (choice == 2) {
-            menu_demo();
+            menu_merge_replays();
         }
 
         if (choice == 3) {
-            menu_options();
+            menu_demo();
         }
 
         if (choice == 4) {
-            menu_help();
+            menu_options();
         }
 
         if (choice == 5) {
-            menu_best_times();
+            menu_help();
         }
 
         if (choice == 6) {
+            menu_best_times();
+        }
+
+        if (choice == 7) {
             InEditor = true;
             hide_cursor();
             editor();

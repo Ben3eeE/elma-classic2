@@ -71,7 +71,9 @@ class recorder {
     ~recorder();
 
     // Load a singleplayer or multiplayer replay
-    static int load_rec_file(const char* filename, bool demo);
+    static int load_rec_file(const char* filename, int demo);
+    // Load two single player replays and merge them
+    static int load_merge(const char* filename1, const char* filename2);
     // Save a singleplayer or multiplayer replay
     static void save_rec_file(const char* filename, int level_id, int flagtag);
 

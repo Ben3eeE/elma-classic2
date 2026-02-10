@@ -3,12 +3,14 @@
 #include "fs_utils.h"
 #include "level.h"
 #include "main.h"
+#include "menu_dialog.h"
 #include "physics_init.h"
 #include "platform_utils.h"
 #include "qopen.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 recorder* Rec1 = nullptr;
 recorder* Rec2 = nullptr;
@@ -551,6 +553,42 @@ int recorder::load_rec_file(const char* filename, bool demo) {
         fclose(h);
     }
 
+    return level_id;
+}
+
+int recorder::load_merge(const char* filename1, const char* filename2) {
+    std::string path1 = "rec/";
+    path1 += filename1;
+
+    FILE* h = fopen(path1.c_str(), "rb");
+    if (!h) {
+        external_error("Failed to open rec file: ", path1.c_str());
+    }
+
+    int level_id = Rec1->load(filename1, h, true);
+    fclose(h);
+
+    if (MultiplayerRec) {
+        menu_dialog("Warning: The first replay is a multiplayer replay.",
+                    "Using only the first player for the merge.");
+    }
+
+    std::string path2 = "rec/";
+    path2 += filename2;
+    h = fopen(path2.c_str(), "rb");
+    if (!h) {
+        external_error("Failed to open rec file: ", path2.c_str());
+    }
+
+    int level_id2 = Rec2->load(filename2, h, false);
+    fclose(h);
+
+    if (level_id != level_id2) {
+        menu_dialog("Warning: The replays are from different levels!",
+                    "You may experience desynchronization.");
+    }
+
+    MultiplayerRec = 1;
     return level_id;
 }
 
