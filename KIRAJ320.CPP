@@ -363,15 +363,10 @@ static void menteshakell(pic8* ppic) {
         Legkozment = 0;
         int i = 0;
         while (1) {
-            char filenev[20];
-            if (i < 10) {
-                sprintf(filenev, "snap0%d.pcx", i);
-            } else {
-                sprintf(filenev, "snap%d.pcx", i);
-            }
-            if (access(filenev, 0) != 0) {
+            std::string filenev = std::format("snp{:05}.pcx", i);
+            if (!std::filesystem::exists(filenev)) {
                 forditkepet(ppic);
-                ppic->save(filenev, Lgr->palette_data);
+                ppic->save(filenev.c_str(), Lgr->palette_data);
                 forditkepet(ppic);
                 break;
             }
