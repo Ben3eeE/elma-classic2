@@ -106,7 +106,7 @@ void newjatekos(int A, int visszater) {
         return;
     }
 
-    mainmenu();
+    menu_main();
 }
 
 void jatekosvalasztas(int A, int visszater) {
@@ -197,5 +197,5 @@ void jatekosvalasztas(int A, int visszater) {
         return;
     }
 
-    mainmenu();
+    menu_main();
 }

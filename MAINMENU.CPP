@@ -364,7 +364,7 @@ static void kilephakell(void) {
     }
 }
 
-void mainmenu(void) {
+void menu_main(void) {
     MenuPalette->set();
 
     // State->save_aaa(); ide minek kene?
