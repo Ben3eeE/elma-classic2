@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "include-cleaner"
     paths-ignore:
       - "**.md"
       - "**/docs/**"
