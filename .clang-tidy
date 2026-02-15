@@ -3,7 +3,7 @@ Checks: >
   -*,
   bugprone-integer-division,
   bugprone-macro-parentheses,
-  misc-include-cleaner
+  misc-include-cleaner,
   misc-unused-parameters,
   modernize-deprecated-headers,
   modernize-make-shared,
