@@ -364,6 +364,15 @@ bool was_key_just_pressed(DikScancode code) {
     return SDLKeyState[sdl_code] != 0 && SDLKeyStatePrev[sdl_code] == 0;
 }
 
+bool was_any_key_just_pressed() {
+    for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
+        if (SDLKeyState[i] != 0 && SDLKeyStatePrev[i] == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool is_fullscreen() {
     Uint32 flags = SDL_GetWindowFlags(SDLWindow);
     return flags & SDL_WINDOW_FULLSCREEN;
