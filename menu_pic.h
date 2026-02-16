@@ -1,6 +1,7 @@
 #ifndef MENU_PIC_H
 #define MENU_PIC_H
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,9 @@ class menu_pic {
     void add_line_centered(const std::string& text, int x, int y);
     void set_helmet(int x, int y);
     void clear();
+    void loop();
+    void loop_until_any_key();
+    void loop(const std::function<bool()>& on_frame);
     void render(bool skip_balls_helmet = false);
     bool render_intro_anim(double time);
 };
