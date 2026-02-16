@@ -36,6 +36,19 @@ void chat::deactivate_input() {
     cursor_pos_ = 0;
 }
 
+void chat::paste_text(std::string_view text) {
+    if (!input_active_) {
+        return;
+    }
+
+    for (char c : text) {
+        if (c >= 32 && c < 127 && (int)input_buffer_.size() < MAX_INPUT_LENGTH) {
+            input_buffer_.insert(input_buffer_.begin() + cursor_pos_, c);
+            cursor_pos_++;
+        }
+    }
+}
+
 void chat::handle_input() {
     if (!input_active_) {
         return;
@@ -54,7 +67,15 @@ void chat::handle_input() {
         return;
     }
 
-    if (was_key_pressed_or_repeated(DIK_BACK)) {
+    if (was_key_just_pressed(DIK_V) && is_shortcut_modifier_down()) {
+        std::string clipboard = get_clipboard_text();
+        if (!clipboard.empty()) {
+            paste_text(clipboard);
+        }
+        return;
+    }
+
+    if (was_key_down(DIK_BACK)) {
         if (cursor_pos_ > 0) {
             input_buffer_.erase(cursor_pos_ - 1, 1);
             cursor_pos_--;

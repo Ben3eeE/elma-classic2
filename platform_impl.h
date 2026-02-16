@@ -1,6 +1,8 @@
 #ifndef PLATFORM_IMPL_H
 #define PLATFORM_IMPL_H
 
+#include <string>
+
 // DIK_ Windows scancode
 typedef int DikScancode;
 
@@ -50,6 +52,9 @@ bool was_key_down(DikScancode code);
 
 void set_input_suppressed(bool suppressed);
 bool is_input_suppressed();
+
+std::string get_clipboard_text();
+bool is_shortcut_modifier_down();
 
 bool is_fullscreen();
 long long get_milliseconds();

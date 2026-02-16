@@ -46,6 +46,7 @@ class chat {
     static constexpr int MAX_INPUT_LENGTH = 195;
 
     void submit_input();
+    void paste_text(std::string_view text);
 
     std::vector<chat_line> lines_;
     std::unordered_map<std::string, chat_command> commands_;
