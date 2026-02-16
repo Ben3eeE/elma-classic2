@@ -21,6 +21,8 @@ static bool RightMouseDownPrev = false;
 static bool LeftMouseDown = false;
 static bool RightMouseDown = false;
 
+static bool InputSuppressed = false;
+
 void message_box(const char* text) {
     // As per docs, can be called even before SDL_Init
     // SDLWindow will either be a handle to the window, or nullptr if no parent
@@ -309,7 +311,14 @@ bool right_mouse_clicked() {
     return click;
 }
 
+void set_input_suppressed(bool suppressed) { InputSuppressed = suppressed; }
+
+bool is_input_suppressed() { return InputSuppressed; }
+
 bool is_key_down(DikScancode code) {
+    if (InputSuppressed) {
+        return false;
+    }
     if (code < 0 || code >= MaxKeycode) {
         internal_error("code out of range in is_key_down()!");
         return false;
@@ -321,11 +330,17 @@ bool is_key_down(DikScancode code) {
 }
 
 bool was_key_just_pressed(DikScancode code) {
+    if (InputSuppressed) {
+        return false;
+    }
     SDL_Scancode sdl_code = windows_scancode_table[code];
     return keyboard::was_just_pressed(sdl_code);
 }
 
 DikScancode get_any_key_just_pressed() {
+    if (InputSuppressed) {
+        return false;
+    }
     for (int i = 0; i < MaxKeycode; i++) {
         if (was_key_just_pressed(i)) {
             return i;

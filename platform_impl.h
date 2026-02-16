@@ -48,6 +48,9 @@ DikScancode get_any_key_just_pressed();
 // Used for OS-level key repeat functionality (text input)
 bool was_key_down(DikScancode code);
 
+void set_input_suppressed(bool suppressed);
+bool is_input_suppressed();
+
 bool is_fullscreen();
 long long get_milliseconds();
 
