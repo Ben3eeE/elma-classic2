@@ -5,14 +5,14 @@
 static constexpr size_t TEXT_INPUT_BUFFER_MAX_SIZE = 64;
 static std::deque<char> TextInputBuffer;
 
-void add_key_to_buffer(Keycode keycode) {
-    if (!is_ascii_character(keycode)) {
+void add_char_to_buffer(char text) {
+    if (!is_ascii_character(text)) {
         return;
     }
     if (TextInputBuffer.size() >= TEXT_INPUT_BUFFER_MAX_SIZE) {
         return;
     }
-    TextInputBuffer.push_back((char)keycode);
+    TextInputBuffer.push_back(text);
 }
 
 void add_text_to_buffer(const char* text) {
