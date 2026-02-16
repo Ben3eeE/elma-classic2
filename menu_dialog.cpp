@@ -1,8 +1,9 @@
 #include "menu_dialog.h"
-#include "keys.h"
 #include "main.h"
 #include "menu_pic.h"
+#include "platform_impl.h"
 #include <cstring>
+#include <directinput/scancodes.h>
 
 // Display the menu with the provided text, then return the key pressed by the user.
 DialogResult menu_dialog(const char* text1, const char* text2, const char* text3, const char* text4,
@@ -26,18 +27,21 @@ DialogResult menu_dialog(const char* text1, const char* text2, const char* text3
     for (int i = 0; i < text_count; i++) {
         menu.add_line_centered(text_array[i], 320, y0 + i * dy);
     }
-    empty_keypress_buffer();
-    while (true) {
-        if (has_keypress()) {
-            Keycode c = get_keypress();
-            if (c == KEY_ESC) {
-                return DialogResult::Esc;
-            }
-            if (c == KEY_ENTER) {
-                return DialogResult::Enter;
-            }
-            return DialogResult::Other;
+    DialogResult result;
+    menu.loop([&] {
+        if (was_key_just_pressed(DIK_ESCAPE)) {
+            result = DialogResult::Esc;
+            return false;
         }
-        menu.render();
-    }
+        if (was_key_just_pressed(DIK_RETURN)) {
+            result = DialogResult::Enter;
+            return false;
+        }
+        if (was_any_key_just_pressed()) {
+            result = DialogResult::Other;
+            return false;
+        }
+        return true;
+    });
+    return result;
 }
