@@ -6,6 +6,7 @@
 #include "best_times.h"
 #include "ECSET.H"
 #include "EDITUJ.H"
+#include "eol/chat.h"
 #include "eol_settings.h"
 #include "flagtag.h"
 #include "LEJATSZO.H"
@@ -86,6 +87,8 @@ void init_renderer() {
 
     SmallFont = new abc8("small.abc");
     SmallFont->set_spacing(1);
+
+    GameChat = new chat();
 }
 
 void beallitmereteket(int splitscreen) {
@@ -876,6 +879,10 @@ void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int 
             kirakegyjatekost(0, Bpic, t, Motor2, pvalt2, viewki2, timeki2, Motor1, pvalt1,
                              current_camera);
         }
+    }
+
+    if (GameChat) {
+        GameChat->render(npic, SmallFont);
     }
 
     // Mentes lemezre:
