@@ -72,6 +72,7 @@ elma_sources = files(
     'sprite.cpp',
     'gl_renderer.cpp',
     'src/debug/profiler.cpp',
+    'src/eol/chat.cpp',
     'src/glad/glad.c',
 )
 
