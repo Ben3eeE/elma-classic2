@@ -179,6 +179,33 @@ void pic8::fill_box(int x1, int y1, int x2, int y2, unsigned char index) {
     }
 }
 
+void pic8::fill_triangle(int tip_x, int tip_y, int base_x, int base_y, int spread,
+                         unsigned char index) {
+    if (tip_x == base_x) {
+        int len = std::abs(tip_y - base_y);
+        if (len == 0) {
+            return;
+        }
+        int step = (base_y > tip_y) ? 1 : -1;
+        for (int i = 0; i <= len; i++) {
+            int w = spread * i / len;
+            int y = tip_y + step * i;
+            fill_box(tip_x - w, y, tip_x + w, y, index);
+        }
+    } else if (tip_y == base_y) {
+        int len = std::abs(tip_x - base_x);
+        if (len == 0) {
+            return;
+        }
+        int step = (base_x > tip_x) ? 1 : -1;
+        for (int i = 0; i <= len; i++) {
+            int w = spread * i / len;
+            int x = tip_x + step * i;
+            fill_box(x, tip_y - w, x, tip_y + w, index);
+        }
+    }
+}
+
 // Read a .spr file
 // char Header[1] == 0x2D
 // short width

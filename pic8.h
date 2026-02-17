@@ -44,6 +44,10 @@ class pic8 {
 #endif
     void fill_box(int x1, int y1, int x2, int y2, unsigned char index);
     void fill_box(unsigned char index);
+    // Draw a filled axis-aligned isoceles triangle from tip (point) to base (wide end).
+    // `spread` is the half-width of the base perpendicular to the tip-base axis.
+    void fill_triangle(int tip_x, int tip_y, int base_x, int base_y, int spread,
+                       unsigned char index);
     void line(int x1, int y1, int x2, int y2, unsigned char index);
     void subview(int x1, int y1, int x2, int y2, pic8* source);
 
