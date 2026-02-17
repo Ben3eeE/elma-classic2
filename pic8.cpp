@@ -170,6 +170,9 @@ void pic8::fill_box(int x1, int y1, int x2, int y2, unsigned char index) {
     if (y2 >= height) {
         y2 = height - 1;
     }
+    if (x1 > x2 || y1 > y2) {
+        return;
+    }
     int length = x2 - x1 + 1;
     for (int y = y1; y <= y2; y++) {
         memset(rows[y] + x1, index, length);
