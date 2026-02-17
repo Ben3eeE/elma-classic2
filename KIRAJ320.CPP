@@ -32,6 +32,50 @@ int Kitoltestmegrakkezd = 10;
 
 static abc8* SmallFont = nullptr;
 
+static void draw_gravity_arrow(pic8* ppic, int cx, int cy, object::Property property) {
+    double zoom = EolSettings->zoom();
+    int half = (int)(ANIM_WIDTH * zoom) / 2;
+    int center_x = cx + half;
+    int center_y = cy + half;
+
+    unsigned char color = SmallFont->get_color();
+
+    // Arrow shaft length and width
+    int shaft_len = std::max(1, (int)(8 * zoom));
+    int shaft_w = std::max(1, (int)(2 * zoom));
+    // Arrowhead size
+    int head_len = std::max(1, (int)(5 * zoom));
+    int head_w = std::max(1, (int)(5 * zoom));
+
+    if (property == object::Property::GravityUp || property == object::Property::GravityDown) {
+        int dir = (property == object::Property::GravityUp) ? 1 : -1;
+        // Shaft: vertical box centered horizontally
+        int sx1 = center_x - shaft_w / 2;
+        int sx2 = center_x + shaft_w / 2;
+        int sy1 = center_y - dir * shaft_len;
+        int sy2 = center_y + dir * shaft_len;
+        if (sy1 > sy2) {
+            std::swap(sy1, sy2);
+        }
+        ppic->fill_box(sx1, sy1, sx2, sy2, color);
+        int tip_y = center_y + dir * shaft_len;
+        ppic->fill_triangle(center_x, tip_y + dir * head_len, center_x, tip_y, head_w, color);
+    } else {
+        int dir = (property == object::Property::GravityLeft) ? -1 : 1;
+        // Shaft: horizontal box centered vertically
+        int sy1 = center_y - shaft_w / 2;
+        int sy2 = center_y + shaft_w / 2;
+        int sx1 = center_x - dir * shaft_len;
+        int sx2 = center_x + dir * shaft_len;
+        if (sx1 > sx2) {
+            std::swap(sx1, sx2);
+        }
+        ppic->fill_box(sx1, sy1, sx2, sy2, color);
+        int tip_x = center_x + dir * shaft_len;
+        ppic->fill_triangle(tip_x + dir * head_len, center_y, tip_x, center_y, head_w, color);
+    }
+}
+
 static double Kepmeret = 1.0;
 
 static double Szorzo = 1.1;
@@ -721,6 +765,12 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
         }
 
         blit8(ppic, pobjpic, pker->canvas_x - balalsox, pker->canvas_y - balalsoy + dy);
+
+        if (EolSettings->show_gravity_arrows() && pker->type == object::Type::Food &&
+            pker->property != object::Property::None) {
+            draw_gravity_arrow(ppic, pker->canvas_x - balalsox, pker->canvas_y - balalsoy + dy,
+                               pker->property);
+        }
     }
 
     // Motorosok kirajzolasa:
