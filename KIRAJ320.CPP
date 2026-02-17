@@ -32,6 +32,55 @@ int Kitoltestmegrakkezd = 10;
 
 static abc8* SmallFont = nullptr;
 
+// Gravity arrow sprites indexed by object::Property (1=Up, 2=Down, 3=Left, 4=Right)
+static pic8* GravityArrows[5] = {};
+
+static pic8* load_arrow_bmp() { return pic8::from_bmp("resources/gravarrow.bmp"); }
+
+static void free_gravity_arrows() {
+    for (int i = 0; i < 5; i++) {
+        delete GravityArrows[i];
+        GravityArrows[i] = nullptr;
+    }
+}
+
+void init_gravity_arrows() {
+    free_gravity_arrows();
+
+    pic8* arrow_down = load_arrow_bmp();
+    if (!arrow_down) {
+        return;
+    }
+
+    unsigned char transparency_color = arrow_down->gpixel(0, 0);
+
+    int target_height = (int)(ANIM_WIDTH * EolSettings->zoom());
+    arrow_down = pic8::resize(arrow_down, target_height);
+    pic8* arrow_up = pic8::flip_vertical(arrow_down);
+
+    // Screen is rendered upside-down, so up/down arrows are swapped.
+    // Left/right are derived by transposing the vertical arrows.
+    pic8* arrows[] = {arrow_down, arrow_up, pic8::transpose(arrow_up), pic8::transpose(arrow_down)};
+    for (int i = 0; i < 4; i++) {
+        arrows[i]->add_transparency(transparency_color);
+        GravityArrows[(int)object::Property::GravityUp + i] = arrows[i];
+    }
+}
+
+static void draw_gravity_arrow(pic8* pic, int obj_i, int obj_j, object::Property property) {
+    pic8* arrow = GravityArrows[(int)property];
+    if (!arrow) {
+        return;
+    }
+
+    int obj_half_size = (int)(ANIM_WIDTH * EolSettings->zoom()) / 2;
+    int arrow_i = obj_i + obj_half_size - arrow->get_width() / 2;
+    int arrow_j = obj_j + obj_half_size - arrow->get_height() / 2;
+
+    constexpr unsigned char FONT_PALETTE_INDEX = 0x19;
+    blit8_recolor(pic, arrow, arrow_i, arrow_j, FONT_PALETTE_INDEX);
+}
+
 static double Kepmeret = 1.0;
 
 static double Szorzo = 1.1;
@@ -132,6 +181,8 @@ void beallitmereteket(int splitscreen) {
     Viewysize = (int)(70.0 * sqrt(double(Cysize) / double(SCREEN_HEIGHT)));  // 80
     Viewxorig = (int)(40.0 * (Kepmeret - 0.6) / 0.4);
     Viewxtolas = Cxsize - 2 * Viewxorig - Viewxsize;
+
+    init_gravity_arrows();
 }
 
 void forditkepet(pic8* ppic) {
@@ -721,6 +772,12 @@ static void kirakegyjatekost(int ajatekos, pic8* ppic, double t, motorst* pmot, 
         }
 
         blit8(ppic, pobjpic, pker->canvas_x - balalsox, pker->canvas_y - balalsoy + dy);
+
+        if (EolSettings->show_gravity_arrows() && pker->type == object::Type::Food &&
+            pker->property != object::Property::None) {
+            draw_gravity_arrow(ppic, pker->canvas_x - balalsox, pker->canvas_y - balalsoy + dy,
+                               pker->property);
+        }
     }
 
     // Motorosok kirajzolasa:
