@@ -122,6 +122,8 @@ void eol_settings::set_default_lgr_name(std::string name) {
 
 void eol_settings::set_show_last_apple_time(bool show) { show_last_apple_time_ = show; }
 
+void eol_settings::set_show_gravity_arrows(bool b) { show_gravity_arrows_ = b; }
+
 void eol_settings::set_recording_fps(int fps) { recording_fps_ = fps; }
 
 void eol_settings::set_show_demo_menu(bool show) { show_demo_menu_ = show; }
@@ -226,6 +228,7 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(show_demo_menu)                                                                     \
     JSON_FIELD(show_help_menu)                                                                     \
     JSON_FIELD(show_best_times_menu)                                                               \
+    JSON_FIELD(show_gravity_arrows)                                                                \
     JSON_FIELD(still_objects)                                                                      \
     JSON_FIELD(all_internals_accessible)
 
