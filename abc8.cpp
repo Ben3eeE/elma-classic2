@@ -190,6 +190,24 @@ bool abc8::has_char(unsigned char c) const {
     return ppsprite && ppsprite[c] != nullptr;
 }
 
+unsigned char abc8::get_color() const {
+    for (int i = 0; i < 256; i++) {
+        if (!ppsprite[i]) {
+            continue;
+        }
+        unsigned char bg = ppsprite[i]->gpixel(0, 0);
+        for (int y = 0; y < ppsprite[i]->get_height(); y++) {
+            for (int x = 0; x < ppsprite[i]->get_width(); x++) {
+                unsigned char c = ppsprite[i]->gpixel(x, y);
+                if (c != bg) {
+                    return c;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 void abc8::write_centered(pic8* dest, int x, int y, const char* text) {
     int width = len(text);
     write(dest, x - width / 2, y, text);

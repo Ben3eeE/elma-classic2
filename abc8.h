@@ -19,6 +19,7 @@ class abc8 {
     int len(const char* text);
     void set_spacing(int new_spacing);
     bool has_char(unsigned char c) const;
+    unsigned char get_color() const;
 };
 
 #endif
