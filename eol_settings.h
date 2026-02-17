@@ -77,6 +77,7 @@ class eol_settings {
     Default<DikScancode> replay_pause_key_{DIK_SPACE};
     Default<std::string> default_lgr_name_{"default"};
     Default<bool> show_last_apple_time_{true};
+    Default<bool> show_gravity_arrows_{false};
     Clamp<int> recording_fps_{30, 30, 120};
 
   public:
@@ -109,6 +110,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(replay_pause_key);
     DECLARE_FIELD_FUNCS(default_lgr_name);
     DECLARE_FIELD_FUNCS(show_last_apple_time);
+    DECLARE_FIELD_FUNCS(show_gravity_arrows);
     DECLARE_FIELD_FUNCS(recording_fps);
 };
 
