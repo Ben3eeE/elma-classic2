@@ -31,6 +31,8 @@ class pic8 {
     pic8(const char* filename, FILE* h = nullptr);
     static pic8* from_bmp(const char* filename);
     static pic8* resize(pic8* src, int height);
+    static pic8* flip_vertical(pic8* src);
+    static pic8* transpose(pic8* src);
     ~pic8();
     bool save(const char* filename, unsigned char* pal = nullptr, FILE* h = nullptr);
     void ppixel(int x, int y, unsigned char index);

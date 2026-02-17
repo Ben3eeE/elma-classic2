@@ -99,6 +99,28 @@ pic8* pic8::resize(pic8* src, int target_height) {
     return scaled;
 }
 
+pic8* pic8::flip_vertical(pic8* src) {
+    int w = src->get_width();
+    int h = src->get_height();
+    pic8* dst = new pic8(w, h);
+    for (int j = 0; j < h; j++) {
+        memcpy(dst->get_row(j), src->get_row(h - 1 - j), w);
+    }
+    return dst;
+}
+
+pic8* pic8::transpose(pic8* src) {
+    int w = src->get_width();
+    int h = src->get_height();
+    pic8* dst = new pic8(h, w);
+    for (int j = 0; j < h; j++) {
+        for (int i = 0; i < w; i++) {
+            dst->ppixel(j, i, src->gpixel(i, j));
+        }
+    }
+    return dst;
+}
+
 bool pic8::save(const char* filename, unsigned char* pal, FILE* h) {
     int i = 0;
     while (filename[i]) {
