@@ -6,7 +6,9 @@
 #include "keys.h"
 #include "gl_renderer.h"
 #include "main.h"
+#include "menu_pic.h"
 #include "M_PIC.H"
+#include "pic8.h"
 #include <directinput/scancodes.h>
 #include <SDL.h>
 #include <sdl/scancodes_windows.h>
@@ -373,6 +375,37 @@ DikScancode get_any_key_just_pressed() {
     }
 
     return DIK_UNKNOWN;
+}
+
+void blit_overlay_with_palette(pic8* source, int x1, int y1, int x2, int y2,
+                               unsigned char* palette_data) {
+    if (EolSettings->renderer() == RendererType::OpenGL) {
+        palette overlay_pal(palette_data);
+        overlay_pal.set();
+        gl_scissor(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+        gl_present();
+        gl_scissor_off();
+        MenuPalette->set();
+        SDL_GL_SwapWindow(SDLWindow);
+    } else {
+        SDL_LockSurface(SDLSurfaceMain);
+        unsigned char* dest_pixels = (unsigned char*)SDLSurfaceMain->pixels;
+        int dest_pitch = SDLSurfaceMain->pitch;
+        int bpp = SDLSurfaceMain->format->BytesPerPixel;
+        for (int y = y1; y <= y2; y++) {
+            unsigned char* row = source->get_row(y);
+            for (int x = x1; x <= x2; x++) {
+                unsigned char idx = row[x];
+                unsigned char r = palette_data[3 * idx];
+                unsigned char g = palette_data[3 * idx + 1];
+                unsigned char b = palette_data[3 * idx + 2];
+                Uint32 color = SDL_MapRGB(SDLSurfaceMain->format, r, g, b);
+                memcpy(dest_pixels + y * dest_pitch + x * bpp, &color, bpp);
+            }
+        }
+        SDL_UnlockSurface(SDLSurfaceMain);
+        SDL_UpdateWindowSurface(SDLWindow);
+    }
 }
 
 bool is_fullscreen() {

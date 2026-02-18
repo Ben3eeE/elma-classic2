@@ -219,6 +219,14 @@ void gl_update_palette(const void* palette) {
 
 void gl_present() { glDrawArrays(GL_TRIANGLES, 0, 6); }
 
+void gl_scissor(int x, int y, int w, int h) {
+    glEnable(GL_SCISSOR_TEST);
+    // Convert top-down y to OpenGL bottom-left origin
+    glScissor(x, FrameHeight - y - h, w, h);
+}
+
+void gl_scissor_off() { glDisable(GL_SCISSOR_TEST); }
+
 void gl_cleanup() {
     if (VBO) {
         glDeleteBuffers(1, &VBO);

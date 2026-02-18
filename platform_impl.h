@@ -42,4 +42,8 @@ long long get_milliseconds();
 void platform_recreate_window();
 bool has_window();
 
+class pic8;
+void blit_overlay_with_palette(pic8* source, int x1, int y1, int x2, int y2,
+                               unsigned char* palette_data);
+
 #endif
