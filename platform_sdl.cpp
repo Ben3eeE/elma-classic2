@@ -379,15 +379,31 @@ DikScancode get_any_key_just_pressed() {
 
 void blit_overlay_with_palette(pic8* source, int x1, int y1, int x2, int y2,
                                unsigned char* palette_data) {
+    // Copy source into the paletted surface (same as what bltfront does internally)
+    unsigned char* paletted_pixels = (unsigned char*)SDLSurfacePaletted->pixels;
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        memcpy(paletted_pixels + y * SDLSurfacePaletted->w, source->get_row(y), SCREEN_WIDTH);
+    }
+
     if (EolSettings->renderer() == RendererType::OpenGL) {
+        // Upload frame data once
+        gl_upload_frame(paletted_pixels);
+        // Draw full screen with MenuPalette (no swap)
+        MenuPalette->set();
+        gl_present();
+        // Draw grid region with LGR palette (no swap)
         palette overlay_pal(palette_data);
         overlay_pal.set();
         gl_scissor(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
         gl_present();
         gl_scissor_off();
+        // Restore and swap once
         MenuPalette->set();
         SDL_GL_SwapWindow(SDLWindow);
     } else {
+        // Blit paletted surface to 32-bit surface using MenuPalette
+        SDL_BlitSurface(SDLSurfacePaletted, nullptr, SDLSurfaceMain, nullptr);
+        // Overwrite grid region with LGR palette colors
         SDL_LockSurface(SDLSurfaceMain);
         unsigned char* dest_pixels = (unsigned char*)SDLSurfaceMain->pixels;
         int dest_pitch = SDLSurfaceMain->pitch;
@@ -404,6 +420,7 @@ void blit_overlay_with_palette(pic8* source, int x1, int y1, int x2, int y2,
             }
         }
         SDL_UnlockSurface(SDLSurfaceMain);
+        // Present once
         SDL_UpdateWindowSurface(SDLWindow);
     }
 }
