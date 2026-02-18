@@ -12,6 +12,7 @@ endif
 
 elma_sources = files(
     'abc8.cpp',
+    'color_picker.cpp',
     'physics_init.cpp',
     'anim.cpp',
     'physics_move.cpp',
