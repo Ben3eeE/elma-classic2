@@ -1,8 +1,10 @@
 #include "menu_options.h"
+#include "color_picker.h"
 #include "eol_settings.h"
 #include "fs_utils.h"
 #include "JATEKOS.H"
 #include "level_load.h"
+#include "lgr.h"
 #include "menu_controls.h"
 #include "menu_nav.h"
 #include "menu_pic.h"
@@ -246,6 +248,17 @@ void menu_options() {
         nav.add_row(
             "Show Apple Time:", EolSettings->show_last_apple_time() ? "Yes" : "No", NAV_FUNC() {
                 EolSettings->set_show_last_apple_time(!EolSettings->show_last_apple_time());
+            });
+
+        nav.add_row(
+            "Apple Time Color:", std::to_string(EolSettings->last_apple_time_color()), NAV_FUNC() {
+                if (Lgr && Lgr->palette_data) {
+                    int result =
+                        color_picker(Lgr->palette_data, EolSettings->last_apple_time_color());
+                    if (result >= 0) {
+                        EolSettings->set_last_apple_time_color(result);
+                    }
+                }
             });
 
         nav.add_row(
