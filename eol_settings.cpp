@@ -122,6 +122,8 @@ void eol_settings::set_default_lgr_name(std::string name) {
 
 void eol_settings::set_show_last_apple_time(bool show) { show_last_apple_time_ = show; }
 
+void eol_settings::set_last_apple_time_color(int color) { last_apple_time_color_ = color; }
+
 void eol_settings::set_recording_fps(int fps) { recording_fps_ = fps; }
 
 /*
@@ -214,6 +216,7 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(replay_pause_key)                                                                   \
     JSON_FIELD(default_lgr_name)                                                                   \
     JSON_FIELD(show_last_apple_time)                                                               \
+    JSON_FIELD(last_apple_time_color)                                                              \
     JSON_FIELD(recording_fps)
 
 #define JSON_FIELD(name) {#name, s.name()},
