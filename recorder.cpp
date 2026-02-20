@@ -552,6 +552,33 @@ int recorder::load_rec_file(const char* filename, bool demo) {
     return level_id;
 }
 
+recorder::merge_result recorder::load_merge(const std::string& filename1,
+                                            const std::string& filename2) {
+    std::string path = "rec/" + filename1;
+    FILE* h1 = fopen(path.c_str(), "rb");
+    if (!h1) {
+        external_error("Failed to open rec file: ", path.c_str());
+    }
+    int level_id1 = Rec1->load(filename1.c_str(), h1, true);
+    bool was_multi = MultiplayerRec != 0;
+    fclose(h1);
+
+    path = "rec/" + filename2;
+    FILE* h2 = fopen(path.c_str(), "rb");
+    if (!h2) {
+        external_error("Failed to open rec file: ", path.c_str());
+    }
+    int level_id2 = Rec2->load(filename2.c_str(), h2, true);
+    bool was_multi2 = MultiplayerRec != 0;
+    fclose(h2);
+
+    MultiplayerRec = 1;
+    Rec1->set_flagtag(false);
+    Rec2->set_flagtag(false);
+
+    return {level_id1, was_multi, was_multi2, level_id1 != level_id2};
+}
+
 void recorder::save_rec_file(const char* filename, int level_id) {
     if (MultiplayerRec) {
         char path[40];
