@@ -94,10 +94,6 @@ void platform_recreate_window() {
     int y;
     SDL_GetWindowPosition(SDLWindow, &x, &y);
 
-    int width;
-    int height;
-    SDL_GetWindowSize(SDLWindow, &width, &height);
-
     gl_cleanup();
 
     if (SDLSurfacePaletted) {
@@ -113,7 +109,10 @@ void platform_recreate_window() {
     SDL_DestroyWindow(SDLWindow);
     SDLWindow = nullptr;
 
-    create_window(x, y, width, height);
+    delete[] SurfaceBuffer;
+    SurfaceBuffer = new unsigned char*[SCREEN_HEIGHT];
+
+    create_window(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
     initialize_renderer();
     create_palette_surface();
 }
