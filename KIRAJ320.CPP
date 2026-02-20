@@ -7,6 +7,7 @@
 #include "ECSET.H"
 #include "EDITUJ.H"
 #include "eol_settings.h"
+#include "src/eol/status_messages.h"
 #include "flagtag.h"
 #include "LEJATSZO.H"
 #include "level.h"
@@ -803,6 +804,8 @@ static void kirakegyjatekost(bool ajatekos, pic8* ppic, double t, motorst* pmot,
         int y = BOTTOM_MARGIN;
         SmallFont->write_right_align(ppic, x, y, tmp);
     }
+
+    StatusMessages.render(ppic, SmallFont);
 }
 
 static pic8* Bpic = NULL;
