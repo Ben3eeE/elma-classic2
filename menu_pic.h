@@ -15,6 +15,7 @@ class pic8;
 extern pic8* BufferMain;
 extern pic8* BufferBall;
 extern abc8* MenuFont;
+extern abc8* MediumFont;
 extern palette* MenuPalette;
 extern pic8* Intro;
 

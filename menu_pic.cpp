@@ -25,6 +25,7 @@ static pic8* BackgroundTileMain = nullptr;
 static pic8* BackgroundTileBall = nullptr;
 
 abc8* MenuFont = nullptr;
+abc8* MediumFont = nullptr;
 
 // Menu red helmet animation
 static anim* Helmet = nullptr;
@@ -41,6 +42,7 @@ void init_menu_pictures() {
     BackgroundTileBall = new pic8("szoveg2.pcx"); // "text2"
     MenuFont = new abc8("menu.abc");
     MenuFont->set_spacing(2);
+    MediumFont = new abc8("medium.abc");
 
     ErrorGraphicsLoaded = true;
 
