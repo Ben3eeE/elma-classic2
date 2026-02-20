@@ -4,6 +4,7 @@
 #include "sound_engine.h"
 #include "vect2.h"
 #include <cstdio>
+#include <string>
 #include <vector>
 
 struct motorst;
@@ -70,10 +71,19 @@ class recorder {
     recorder();
     ~recorder();
 
+    struct merge_result {
+        int level_id;           // level_id from the first replay
+        bool rec1_was_multi;    // first file was already a multiplayer replay
+        bool rec2_was_multi;    // second file was already a multiplayer replay
+        bool level_id_mismatch; // the two replays are from different levels
+    };
+
     // Load a singleplayer or multiplayer replay
     static int load_rec_file(const char* filename, bool demo);
     // Save a singleplayer or multiplayer replay
     static void save_rec_file(const char* filename, int level_id);
+    // Load two replay files and merge them into a multiplayer replay
+    static merge_result load_merge(const std::string& filename1, const std::string& filename2);
 
     bool is_empty() const { return frame_count_ == 0; }
     int frame_count() const { return frame_count_; }
