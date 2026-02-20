@@ -90,11 +90,7 @@ static void menu_resolution() {
 
     for (const auto& res : RESOLUTIONS) {
         std::string label = std::format("{}x{}", res.width, res.height);
-        nav.add_row(
-            label, NAV_FUNC(&res) {
-                EolSettings->set_screen_width(res.width);
-                EolSettings->set_screen_height(res.height);
-            });
+        nav.add_row(label, NAV_FUNC(&res) { update_resolution(res.width, res.height); });
     }
 
     std::string current =
