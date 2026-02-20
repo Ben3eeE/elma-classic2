@@ -18,10 +18,10 @@ pic8* lockbackbuffer_pic(bool flipped) {
 
     if (!Lockbuff) {
         Lockbuff = new pic8(10, 10);
-        Lockbuff->width = SCREEN_WIDTH;
-        Lockbuff->height = SCREEN_HEIGHT;
         Lockbuff->rows = NULL;
     }
+    Lockbuff->width = SCREEN_WIDTH;
+    Lockbuff->height = SCREEN_HEIGHT;
     Lockbuff->rows = lock_backbuffer(flipped);
     return Lockbuff;
 }
@@ -44,10 +44,10 @@ void lockfrontbuffer_pic(bool flipped) {
 
     if (!Lockbuff) {
         Lockbuff = new pic8(10, 10);
-        Lockbuff->width = SCREEN_WIDTH;
-        Lockbuff->height = SCREEN_HEIGHT;
         Lockbuff->rows = NULL;
     }
+    Lockbuff->width = SCREEN_WIDTH;
+    Lockbuff->height = SCREEN_HEIGHT;
 
     Lockbuff->rows = lock_frontbuffer(flipped);
 }
