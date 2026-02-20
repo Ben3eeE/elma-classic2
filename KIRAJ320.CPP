@@ -1,5 +1,7 @@
 #include "KIRAJZOL.H"
 #include "abc8.h"
+#include "eol/eol_table.h"
+#include "menu_pic.h"
 #include "affine_pic.h"
 #include "anim.h"
 #include "affine_pic_render.h"
@@ -803,6 +805,9 @@ static void kirakegyjatekost(bool ajatekos, pic8* ppic, double t, motorst* pmot,
         int y = BOTTOM_MARGIN;
         SmallFont->write_right_align(ppic, x, y, tmp);
     }
+
+    extern eol_table DemoTable;
+    DemoTable.render(ppic, MediumFont, SmallFont, TableAlign::Left);
 }
 
 static pic8* Bpic = NULL;

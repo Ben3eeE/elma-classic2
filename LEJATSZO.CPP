@@ -1,5 +1,6 @@
 #include "LEJATSZO.H"
 #include "EDITUJ.H"
+#include "eol/eol_table.h"
 #include "eol_settings.h"
 #include "flagtag.h"
 #include "fs_utils.h"
@@ -27,6 +28,7 @@ int Tag = 0;
 // int Multi = 0;
 
 int Legkozment = 0;
+eol_table DemoTable;
 bool VideoRecordingMode = false;
 int VideoFrameIndex = 0;
 std::string VideoOutputDirectory;
@@ -380,6 +382,26 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
     // internal_error( "Ezegyhosszusor,szetkellvagnibiztosanhibaEzegy hosszu sor, szet kell vagni
     // biztosan!",
     //	"Ez egy masik hosszu sor, szet kell vagni biztosan!" );
+
+    DemoTable.set_title("Players online");
+    DemoTable.clear_columns();
+    DemoTable.add_column(120, ColAlign::Left);
+    DemoTable.add_column(120, ColAlign::Right);
+    DemoTable.clear_rows();
+    DemoTable.add_row({"Zweq", "Playing"});
+    DemoTable.add_row({"Kopsi", "Idle"});
+    DemoTable.add_row({"Ramone", "Playing"});
+    DemoTable.add_row({"zero", "Spectating"});
+    DemoTable.add_row({"Markku", "Playing"});
+    DemoTable.add_row({"Pab", "Playing"});
+    DemoTable.add_row({"Sla", "Idle"});
+    DemoTable.add_row({"jalli", "Playing"});
+    DemoTable.add_row({"Kazan", "Spectating"});
+    DemoTable.add_row({"talli", "Playing"});
+    DemoTable.add_row({"Mawane", "Idle"});
+    DemoTable.add_row({"SveinR", "Playing"});
+    DemoTable.add_row({"Orec", "Spectating"});
+    DemoTable.add_row({"BarTek", "Playing"});
 
     // Azert allitom 1-be, hogy mindenkeppen eszrevegyem, ha nem allitom
     // meg kilepes elott be rendesen:
