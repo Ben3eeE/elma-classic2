@@ -807,6 +807,11 @@ static void kirakegyjatekost(bool ajatekos, pic8* ppic, double t, motorst* pmot,
 
 static pic8* Bpic = NULL;
 
+void invalidate_renderer() {
+    delete Bpic;
+    Bpic = nullptr;
+}
+
 extern int Ucsosurlodas;
 
 void kirajzol320(double t, valtozok* pvalt1, valtozok* pvalt2, int viewki1, int timeki1,

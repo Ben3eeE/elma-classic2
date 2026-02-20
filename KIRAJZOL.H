@@ -18,6 +18,7 @@ extern int Kitoltestmegrak;
 extern int Kitoltestmegrakkezd;
 
 void init_renderer();
+void invalidate_renderer();
 
 void novelkepmeret(void);
 void csokkentkepmeret(void);
