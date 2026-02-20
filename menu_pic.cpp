@@ -111,6 +111,19 @@ static int ScrollingAnimationY = 0;
 static unsigned char* GreenRow = nullptr;
 static unsigned char* BlackRow = nullptr;
 
+void reinit_menu_pictures() {
+    delete BufferMain;
+    BufferMain = new pic8(SCREEN_WIDTH, SCREEN_HEIGHT);
+    delete BufferBall;
+    BufferBall = new pic8(SCREEN_WIDTH, SCREEN_HEIGHT);
+    delete ScreenBuffer;
+    ScreenBuffer = new pic8(SCREEN_WIDTH, SCREEN_HEIGHT);
+    delete[] GreenRow;
+    GreenRow = nullptr;
+    delete[] BlackRow;
+    BlackRow = nullptr;
+}
+
 static void render_ball(vect2 r, double radius, pic8* source_pic) {
     // Solid colors are used to render the balls in top half of the screen during scrolling intro
     if (!GreenRow) {
