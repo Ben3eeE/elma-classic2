@@ -13,6 +13,7 @@
 #include "physics_init.h"
 #include "platform_impl.h"
 #include "segments.h"
+#include "src/eol/status_messages.h"
 #include "timer.h"
 #include <algorithm>
 #include <cmath>
@@ -259,11 +260,13 @@ static void toggleresz(player_keys* popciok, valtozok* pvalt, int* pviewkin, int
     }
     // View ablak:
     if (was_key_just_pressed(popciok->toggle_minimap)) {
+        StatusMessages.add("Toggled minimap");
         *pviewkin = !*pviewkin;
     }
 
     // Ido kint legyen vagy ne:
     if (was_key_just_pressed(popciok->toggle_timer)) {
+        StatusMessages.add("Toggled timer");
         *ptimekin = !*ptimekin;
     }
 }
