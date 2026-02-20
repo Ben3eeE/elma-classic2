@@ -52,6 +52,7 @@ bool is_fullscreen();
 long long get_milliseconds();
 
 void platform_recreate_window();
+void apply_resolution(int width, int height);
 bool has_window();
 
 #endif

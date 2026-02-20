@@ -1,7 +1,11 @@
 #include "platform_impl.h"
+#include "editor_canvas.h"
 #include "editor_dialog.h"
 #include "eol_settings.h"
 #include "EDITUJ.H"
+#include "KIRAJZOL.H"
+#include "level_load.h"
+#include "menu_pic.h"
 #include "sound_engine.h"
 #include "keys.h"
 #include "platform_sdl_keyboard.h"
@@ -115,6 +119,19 @@ void platform_recreate_window() {
     create_window(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
     initialize_renderer();
     create_palette_surface();
+}
+
+void apply_resolution(int width, int height) {
+    SCREEN_WIDTH = width;
+    SCREEN_HEIGHT = height;
+    EolSettings->set_screen_width(width);
+    EolSettings->set_screen_height(height);
+    platform_recreate_window();
+    reinit_menu_pictures();
+    editor_canvas_update_resolution();
+    invalidate_level();
+    invalidate_renderer();
+    MenuPalette->set();
 }
 
 long long get_milliseconds() { return SDL_GetTicks64(); }
