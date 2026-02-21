@@ -1,4 +1,5 @@
 #include "menu/replay_cache.h"
+#include "debug/profiler.h"
 #include "fs_utils.h"
 #include "recorder.h"
 #include <filesystem>
@@ -17,6 +18,7 @@ void replay_cache::start() {
         return;
     }
     worker_ = std::thread([this] {
+        START_TIME(cache_timer);
         std::unordered_map<int, std::vector<std::string>> scanned;
         std::unordered_map<std::string, int> scanned_reverse;
 
@@ -61,6 +63,7 @@ void replay_cache::start() {
             filename_to_level_ = std::move(scanned_reverse);
             apply_pending();
         }
+        END_TIME(cache_timer, "Replay cache")
         ready_.store(true, std::memory_order_release);
     });
 }
