@@ -54,6 +54,7 @@ elma_sources = files(
     'menu_play.cpp',
     'qopen.cpp',
     'recorder.cpp',
+    'replay_cache.cpp',
     'platform_sdl.cpp',
     'platform_sdl_keyboard.cpp',
     'skip.cpp',
