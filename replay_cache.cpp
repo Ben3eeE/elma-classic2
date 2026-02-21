@@ -1,4 +1,5 @@
 #include "replay_cache.h"
+#include "debug/profiler.h"
 #include "fs_utils.h"
 #include "recorder.h"
 #include <algorithm>
@@ -17,6 +18,7 @@ void replay_cache::start() {
         return;
     }
     worker_ = std::thread([this]() {
+        START_TIME(cache_timer);
         std::unordered_map<int, std::vector<std::string>> scanned;
 
         std::filesystem::directory_iterator it;
@@ -54,6 +56,7 @@ void replay_cache::start() {
             std::lock_guard<std::mutex> lock(mutex_);
             entries_ = std::move(scanned);
         }
+        END_TIME(cache_timer, "Replay cache")
         ready_.store(true);
     });
 }
