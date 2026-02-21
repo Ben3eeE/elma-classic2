@@ -15,6 +15,7 @@
 #include "menu_pic.h"
 #include "menu_play.h"
 #include "recorder.h"
+#include "replay_cache.h"
 #include "platform_impl.h"
 #include <algorithm>
 #include <cstdlib>
@@ -203,20 +204,30 @@ static void merge_play(const std::string& file1, const std::string& file2) {
     replay_from_file(Rec1->level_filename);
 }
 
-static void menu_merge_replays() {
-    std::string picked_file;
-    std::vector<std::string> replay_names = find_replay_files();
-
-    menu_nav nav("Select first replay");
-
-    for (const std::string& filename : replay_names) {
+static menu_nav build_replay_nav(const std::string& title,
+                                 const std::vector<std::string>& filenames,
+                                 std::string& picked_file) {
+    menu_nav nav(title);
+    for (const std::string& filename : filenames) {
         constexpr int EXT_LEN = 4;
         std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
         nav.add_row(short_name, NAV_FUNC(&picked_file, filename) { picked_file = filename; });
     }
-
     nav.search_pattern = SearchPattern::Sorted;
     nav.sort_rows();
+    return nav;
+}
+
+static void menu_merge_replays() {
+    if (!ReplayCache.is_ready()) {
+        loading_screen();
+        ReplayCache.wait();
+    }
+
+    std::string picked_file;
+    std::vector<std::string> replay_names = find_replay_files();
+
+    menu_nav nav = build_replay_nav("Select first replay", replay_names, picked_file);
 
     if (nav.row_count() == 0) {
         return;
@@ -230,9 +241,19 @@ static void menu_merge_replays() {
         }
         std::string file1 = picked_file;
 
-        nav.title = "Select second replay";
+        // Get level filename from cache to filter second picker
+        rec_header header = recorder::read_header(file1);
+        std::vector<std::string> level_replays = ReplayCache.filenames_for_level(header.level_id);
+
+        menu_nav nav2 = build_replay_nav("Select second replay", level_replays, picked_file);
+
+        if (nav2.row_count() == 0) {
+            menu_dialog("No other replays found for this level.");
+            continue;
+        }
+
         MenuPalette->set();
-        if (nav.navigate() < 0) {
+        if (nav2.navigate() < 0) {
             continue;
         }
 
