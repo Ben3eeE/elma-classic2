@@ -351,6 +351,8 @@ int recorder::total_events() const { return event_count; }
 
 double recorder::event_time(int index) const { return events[index].time; }
 
+WavEvent recorder::event_id(int index) const { return events[index].event_id; }
+
 int recorder::event_object_id(int index) const { return events[index].object_id; }
 
 int recorder::current_event_position() const { return current_event_index; }

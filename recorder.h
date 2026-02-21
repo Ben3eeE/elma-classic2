@@ -90,6 +90,7 @@ class recorder {
     double frame_time(int index) const;
     int total_events() const;
     double event_time(int index) const;
+    WavEvent event_id(int index) const;
     int event_object_id(int index) const;
     int current_event_position() const;
     bool recall_event_reverse(double time, WavEvent* event_id, double* volume, int* object_id);

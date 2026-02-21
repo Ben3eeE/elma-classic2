@@ -302,6 +302,64 @@ static void query_turn_timeline(const turn_timeline& tl, double t, bool rewindin
     *baljobb = baljobbszamol(t - it->ucsoford, it->direction);
 }
 
+// Find the gravity that was active before the event at event_index
+static MotorGravity find_previous_gravity(recorder* rec, int event_index) {
+    MotorGravity gravity = MotorGravity::Down;
+    for (int i = 0; i < event_index; i++) {
+        int obj_id = rec->event_object_id(i);
+        if (obj_id >= 0 && Ptop->objects[obj_id] &&
+            Ptop->objects[obj_id]->type == object::Type::Food) {
+            switch (Ptop->objects[obj_id]->property) {
+            case object::Property::GravityUp:
+                gravity = MotorGravity::Up;
+                break;
+            case object::Property::GravityDown:
+                gravity = MotorGravity::Down;
+                break;
+            case object::Property::GravityLeft:
+                gravity = MotorGravity::Left;
+                break;
+            case object::Property::GravityRight:
+                gravity = MotorGravity::Right;
+                break;
+            case object::Property::None:
+                break;
+            }
+        }
+    }
+    return gravity;
+}
+
+// Undo events that occurred after the current time (for rewind)
+static void reverse_events(motorst* pmot, valtozok* pvalt, recorder* rec, double time) {
+    WavEvent event_id;
+    double volume;
+    int object_id;
+    while (rec->recall_event_reverse(time, &event_id, &volume, &object_id)) {
+        if (object_id >= 0 && Ptop->objects[object_id] &&
+            Ptop->objects[object_id]->type == object::Type::Food) {
+            // Restore the apple
+            Ptop->objects[object_id]->active = true;
+            pmot->apple_count--;
+
+            // Restore gravity to what it was before this event
+            pmot->gravity_direction = find_previous_gravity(rec, rec->current_event_position());
+        } else if (event_id == WavEvent::RightVolt || event_id == WavEvent::LeftVolt) {
+            // Find the previous volt event to restore utolsougras
+            pvalt->utolsougras = -100.0;
+            pvalt->ugras1volt = 0;
+            for (int i = rec->current_event_position() - 1; i >= 0; i--) {
+                WavEvent prev_id = rec->event_id(i);
+                if (prev_id == WavEvent::RightVolt || prev_id == WavEvent::LeftVolt) {
+                    pvalt->utolsougras = rec->event_time(i);
+                    pvalt->ugras1volt = (prev_id == WavEvent::RightVolt) ? 1 : 0;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 // Ide csak *pmeghalt == 0-val erkezhet
 static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                       long* pmegvanido, int* pmeghalt, double eddig, double dt) {
