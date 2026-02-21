@@ -14,6 +14,8 @@
 #include "platform_impl.h"
 #include "platform_utils.h"
 #include "physics_init.h"
+#include "recorder.h"
+#include "replay_cache.h"
 #include "skip.h"
 #include "timer.h"
 #include "directinput/scancodes.h"
@@ -81,6 +83,7 @@ static void menu_save_play(int level_id) {
     }
     strcat(tmp, ".rec");
     recorder::save_rec_file(tmp, level_id);
+    ReplayCache.upsert(tmp, Rec1->level_filename, level_id);
 }
 
 void update_top_ten(int time, char* time_message, int internal_index,
@@ -236,6 +239,12 @@ static text_line ExtraTimeText[14];
 MenuLevel menu_level(int internal_index, bool nav_on_play_next, const char* time_message,
                      const char* external_filename) {
     bool external_level = external_filename != nullptr;
+
+    // Auto-save current run so Replay and Merge can reference it from disk
+    if (!Rec1->is_empty()) {
+        recorder::save_rec_file("!last.rec", Ptop->level_id);
+        ReplayCache.upsert("!last.rec", Ptop->level_id);
+    }
 
     player* player1 = State->get_player(State->player1);
     player* player2 = State->get_player(State->player2);
