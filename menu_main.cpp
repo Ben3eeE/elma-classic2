@@ -123,20 +123,27 @@ static void replay_randomizer(std::vector<std::string>& filenames) {
     }
 }
 
+static std::vector<std::string> find_replay_files() {
+    std::vector<std::string> filenames;
+    finame filename;
+    bool done = find_first("rec/*.rec", filename);
+    while (!done) {
+        filenames.emplace_back(filename);
+        done = find_next(filename);
+    }
+    find_close();
+    return filenames;
+}
+
 static void menu_replay() {
-    std::vector<std::string> replay_names;
+    std::vector<std::string> replay_names = find_replay_files();
 
     menu_nav nav("Select replay file!");
     nav.add_row("Randomizer", NAV_FUNC(&replay_names) { replay_randomizer(replay_names); });
 
-    finame filename;
-    bool done = find_first("rec/*.rec", filename);
-    while (!done) {
-        replay_names.emplace_back(filename);
-
+    for (const std::string& filename : replay_names) {
         constexpr int EXT_LEN = 4;
-        int len = strlen(filename);
-        std::string short_name = std::string(filename, len - EXT_LEN);
+        std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
         nav.add_row(
             short_name, NAV_FUNC(filename) {
                 if (is_key_down(DIK_F1)) {
@@ -147,10 +154,7 @@ static void menu_replay() {
                     replay_play(filename);
                 }
             });
-
-        done = find_next(filename);
     }
-    find_close();
 
     nav.search_pattern = SearchPattern::Sorted;
     nav.search_skip = 1;
