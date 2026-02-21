@@ -14,6 +14,7 @@
 #include "menu_options.h"
 #include "menu_pic.h"
 #include "menu_play.h"
+#include "recorder.h"
 #include "platform_impl.h"
 #include <algorithm>
 #include <cstdlib>
@@ -176,6 +177,69 @@ static void menu_replay() {
     }
 }
 
+static void merge_play(const std::string& file1, const std::string& file2) {
+    MenuPalette->set();
+    loading_screen();
+
+    recorder::merge_result result = recorder::load_merge(file1, file2);
+
+    if (result.rec1_was_multi || result.rec2_was_multi) {
+        menu_dialog("Note: Only player 1 used from multiplayer replays.");
+    }
+
+    if (result.level_id_mismatch) {
+        DikScancode key = menu_dialog("Warning: Replays are from different levels!",
+                                      "Press Enter to continue, ESC to cancel.");
+        if (key == DIK_ESCAPE) {
+            return;
+        }
+    }
+
+    LoadReplayResult loaded = validate_replay_level(result.level_id, file1);
+    if (loaded != LoadReplayResult::Success) {
+        return;
+    }
+
+    replay_from_file(Rec1->level_filename);
+}
+
+static void menu_merge_replays() {
+    std::string picked_file;
+    std::vector<std::string> replay_names = find_replay_files();
+
+    menu_nav nav("Select first replay");
+
+    for (const std::string& filename : replay_names) {
+        constexpr int EXT_LEN = 4;
+        std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
+        nav.add_row(short_name, NAV_FUNC(&picked_file, filename) { picked_file = filename; });
+    }
+
+    nav.search_pattern = SearchPattern::Sorted;
+    nav.sort_rows();
+
+    if (nav.row_count() == 0) {
+        return;
+    }
+
+    while (true) {
+        nav.title = "Select first replay";
+        MenuPalette->set();
+        if (nav.navigate() < 0) {
+            return;
+        }
+        std::string file1 = picked_file;
+
+        nav.title = "Select second replay";
+        MenuPalette->set();
+        if (nav.navigate() < 0) {
+            continue;
+        }
+
+        merge_play(file1, picked_file);
+    }
+}
+
 static void menu_demo() {
     constexpr int DEMO_REPLAY_COUNT = 3;
     char demo_names[DEMO_REPLAY_COUNT][MAX_FILENAME_LEN + 4] = {"demor1.rec", "demor2.rec",
@@ -246,6 +310,7 @@ void menu_main() {
 
         nav.add_row("Play", NAV_FUNC() { menu_play(); });
         nav.add_row("Replay", NAV_FUNC() { menu_replay(); });
+        nav.add_row("Merge Replays", NAV_FUNC() { menu_merge_replays(); });
         if (EolSettings->show_demo_menu()) {
             nav.add_row("Demo", NAV_FUNC() { menu_demo(); });
         }
