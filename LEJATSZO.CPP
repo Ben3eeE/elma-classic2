@@ -515,14 +515,7 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
         pvalt->forgas = 1.0;
     } else {
         pvalt->forgas = (eddig - pvalt->ucsoforgas) / turn_time;
-#ifdef DEBUG
-        if (pvalt->forgas < 0.0) {
-            internal_error("lejatszo-ban forgas < 0.0!");
-        }
-#endif
-        if (pvalt->forgas > 1.0) {
-            pvalt->forgas = 1.0;
-        }
+        pvalt->forgas = std::clamp(pvalt->forgas, 0.0, 1.0);
     }
 
     pvalt->baljobb = baljobbszamol(eddig - pvalt->ucsoford, hatra);
@@ -964,15 +957,8 @@ static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
     baljobbelintez(&pvalt->baljobbv_h, NULL, eddig, pmot->flipped_camera);
 
     // Kirajzolashoz kellenek:
-    pvalt->ugrasnagysag = 1.0 - (eddig - pvalt->utolsougras) / VoltDelay;
-    if (pvalt->ugrasnagysag < 0) {
-        pvalt->ugrasnagysag = 0;
-    }
-#ifdef DEBUG
-    if (pvalt->ugrasnagysag > 1.00001) {
-        internal_error("pvalt->ugrasnagysag > 1.00001!");
-    }
-#endif
+    pvalt->ugrasnagysag = 1.0 - std::abs(eddig - pvalt->utolsougras) / VoltDelay;
+    pvalt->ugrasnagysag = std::clamp(pvalt->ugrasnagysag, 0.0, 1.0);
 
     return visszaad;
 }
@@ -1029,12 +1015,29 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         start_motor_sound(false);
     }
 
+    // Precompute turn timelines for stateless animation
+    bool centered = EolSettings->center_camera();
+    turn_timeline bike_turns_1 = build_bike_turn_timeline(Rec1);
+    turn_timeline camera_turns_1;
+    if (!centered) {
+        camera_turns_1 = build_camera_turn_timeline(Rec1, bike_turns_1);
+    }
+    turn_timeline bike_turns_2;
+    turn_timeline camera_turns_2;
+    if (!Single) {
+        bike_turns_2 = build_bike_turn_timeline(Rec2);
+        if (!centered) {
+            camera_turns_2 = build_camera_turn_timeline(Rec2, bike_turns_2);
+        }
+    }
+
     long l = 0;
     int jar1 = 1, jar2 = 1;
 
     double current_replay_time = 0.0;
     double last_stopwatch = stopwatch();
     bool paused = false;
+    bool rewinding = false;
 
     while (1) {
         handle_events(); // Billentyut itt olvassuk be
@@ -1062,6 +1065,8 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             speed *= 0.25;
         }
 
+        rewinding = is_key_down(State->key_replay_rewind);
+
         if (is_key_down(State->key_replay_pause)) {
             paused = true;
         } else {
@@ -1069,11 +1074,31 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         }
 
         if (!paused) {
-            current_replay_time += dt * speed;
+            if (rewinding) {
+                current_replay_time -= dt * speed;
+                current_replay_time = std::max(current_replay_time, 0.0);
+            } else {
+                current_replay_time += dt * speed;
+            }
         }
 
         // Kiszamolja mennyit kell leptetni:
         double eddig = current_replay_time;
+
+        // Reverse events when rewinding (before replaymag)
+        if (rewinding) {
+            reverse_events(Motor1, &valt1, Rec1, eddig);
+            if (!Single) {
+                reverse_events(Motor2, &valt2, Rec2, eddig);
+            }
+        }
+
+        // Mute sounds during rewind
+        bool prev_mute = Mute;
+        if (rewinding) {
+            Mute = true;
+        }
+
         // recall koordokat es Hatra-t is beallitja:
         int befejezte1 =
             !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
@@ -1082,6 +1107,38 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         if (!Single) {
             befejezte2 =
                 !replaymag(Motor2, &State->keys2, &valt2, Rec2, eddig, &Viewtime2, &valt1.showkep);
+        }
+
+        // Restore mute state
+        if (rewinding) {
+            Mute = prev_mute;
+        }
+
+        // Override baljobbelintez output with precomputed timelines
+        query_turn_timeline(bike_turns_1, eddig, rewinding, &valt1.baljobbv_f.forgas,
+                            &valt1.baljobbv_f.baljobb);
+        valt1.baljobbv_f.eddighatra = Motor1->flipped_bike;
+        if (!centered) {
+            query_turn_timeline(camera_turns_1, eddig, rewinding, &valt1.baljobbv_h.forgas,
+                                &valt1.baljobbv_h.baljobb);
+            valt1.baljobbv_h.eddighatra = Motor1->flipped_camera;
+        }
+
+        if (!Single) {
+            query_turn_timeline(bike_turns_2, eddig, rewinding, &valt2.baljobbv_f.forgas,
+                                &valt2.baljobbv_f.baljobb);
+            valt2.baljobbv_f.eddighatra = Motor2->flipped_bike;
+            if (!centered) {
+                query_turn_timeline(camera_turns_2, eddig, rewinding, &valt2.baljobbv_h.forgas,
+                                    &valt2.baljobbv_h.baljobb);
+                valt2.baljobbv_h.eddighatra = Motor2->flipped_camera;
+            }
+        }
+
+        // Guard end-of-replay during rewind
+        if (rewinding) {
+            befejezte1 = 0;
+            befejezte2 = 0;
         }
 
         if ((Single && befejezte1) || (!Single && befejezte1 && befejezte2)) {
@@ -1116,10 +1173,12 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         }
 
         // HANG ELINTEZES:
-        if (Single) {
+        if (rewinding) {
+            set_motor_frequency(true, 1.0, 0);
+            set_motor_frequency(false, 1.0, 0);
+            set_friction_volume(0);
+        } else if (Single) {
             set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
-            // if( valt1.inf.motor_frequency > 1.5 )
-            //	internal_error( "> 1.5!" );
             set_friction_volume(valt1.inf.friction_volume);
         } else {
             set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
