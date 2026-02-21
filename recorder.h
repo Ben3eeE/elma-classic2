@@ -95,6 +95,8 @@ class recorder {
     void store_event(double time, WavEvent event_id, double volume, int object_id);
     // Return true if a new event has occurred
     bool recall_event(double time, WavEvent* event_id, double* volume, int* object_id);
+    // Walk events backward: returns true for each event whose time > `time`
+    bool recall_event_reverse(double time, WavEvent* event_id, double* volume, int* object_id);
 
     bool flagtag() const { return (bool)(flagtag_); };
     void set_flagtag(bool flagtag) { flagtag_ = (int)(flagtag); }
