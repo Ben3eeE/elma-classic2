@@ -53,12 +53,7 @@ static void replay_time(const std::string& filename) {
 
 enum class LoadReplayResult { Success, Fail, Abort };
 
-static LoadReplayResult load_replay(const std::string& filename) {
-    MenuPalette->set();
-    loading_screen();
-
-    int level_id = recorder::load_rec_file(filename.c_str(), false);
-
+static LoadReplayResult validate_replay_level(int level_id, const std::string& filename) {
     if (access_level_file(Rec1->level_filename) != 0) {
         DikScancode key =
             menu_dialog("Cannot find the lev file that corresponds", "to the record file!",
@@ -75,6 +70,14 @@ static LoadReplayResult load_replay(const std::string& filename) {
     }
 
     return LoadReplayResult::Success;
+}
+
+static LoadReplayResult load_replay(const std::string& filename) {
+    MenuPalette->set();
+    loading_screen();
+
+    int level_id = recorder::load_rec_file(filename.c_str(), false);
+    return validate_replay_level(level_id, filename);
 }
 
 static void replay_play(const std::string& filename) {
