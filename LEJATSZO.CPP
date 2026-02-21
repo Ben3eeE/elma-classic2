@@ -699,6 +699,18 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
 // char Ccc[] = "Cs1_2";
 
+static void reverse_events(motorst* pmot, recorder* prec, double time) {
+    WavEvent wav;
+    double vol;
+    int obj;
+    while (prec->recall_event_reverse(time, &wav, &vol, &obj)) {
+        if (obj >= 0 && Ptop->objects[obj] && Ptop->objects[obj]->type == object::Type::Food) {
+            Ptop->objects[obj]->active = true;
+            pmot->apple_count--;
+        }
+    }
+}
+
 // Hamissal ter vissza, ha nincsen mar tobb:
 static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                       double eddig, viewtimest* pvt, int* pmasikshow) {
