@@ -19,6 +19,7 @@
 #include <cstring>
 #include <directinput/scancodes.h>
 #include <filesystem>
+#include <vector>
 
 // Jatek modja ket fele lehet:
 int Single = 1;
@@ -118,11 +119,7 @@ static int spritefeldolgoz(int sorszam, int* pkajaszam, motorst* pmot) {
 }
 
 static double baljobbszamol(double eltelt, int hatra) {
-#ifdef DEBUG
-    if (eltelt < 0) {
-        internal_error("baljobbszamol-ban eltelt < 0!");
-    }
-#endif
+    eltelt = std::max(eltelt, 0.0);
     double camera_flip_time = EolSettings->turn_time() + 0.15;
     if (hatra) {
         if (eltelt > camera_flip_time) {
@@ -137,7 +134,173 @@ static double baljobbszamol(double eltelt, int hatra) {
     }
 }
 
-// static int Marvoltgaz = 0;
+struct turn_point {
+    double time;          // frame boundary time when direction changes
+    int direction;        // new flipped_bike (or flipped_camera) value
+    double ucsoford;      // precomputed baljobb offset
+    double forgas_offset; // forgas of previous turn at this turn's time (for smooth cancellation)
+};
+
+struct turn_timeline {
+    std::vector<turn_point> points; // sorted by time
+    int initial_direction;          // direction before first turn
+};
+
+// Compute forgas at time t for a turn starting at turn_time with the given offset
+static double compute_forgas(double t, double turn_start, double forgas_offset) {
+    double turn_time = EolSettings->turn_time();
+    if (turn_time == 0.0) {
+        return 1.0;
+    }
+    double raw = (t - turn_start) / turn_time;
+    return std::clamp(forgas_offset + (1.0 - forgas_offset) * raw, 0.0, 1.0);
+}
+
+static turn_timeline build_bike_turn_timeline(recorder* rec) {
+    turn_timeline tl;
+    int frame_count = rec->frame_count();
+    if (frame_count == 0) {
+        tl.initial_direction = 0;
+        return tl;
+    }
+
+    tl.initial_direction = rec->frame_flipped(0) ? 1 : 0;
+    int prev_direction = tl.initial_direction;
+    double camera_flip_time = EolSettings->turn_time() + 0.15;
+    double prev_ucsoford = -1000.0;
+
+    for (int i = 1; i < frame_count; i++) {
+        int cur_direction = rec->frame_flipped(i) ? 1 : 0;
+        if (cur_direction != prev_direction) {
+            double time = rec->frame_time(i);
+            double eltelt = time - prev_ucsoford;
+            double ucsoford;
+            if (camera_flip_time > 0.0 && eltelt < camera_flip_time) {
+                ucsoford = time + eltelt - camera_flip_time;
+            } else {
+                ucsoford = time;
+            }
+
+            // Compute forgas_offset: how far the previous turn's forgas was at this time
+            double forgas_offset = 0.0;
+            if (!tl.points.empty()) {
+                auto& prev = tl.points.back();
+                forgas_offset = compute_forgas(time, prev.time, prev.forgas_offset);
+            }
+
+            tl.points.push_back({time, cur_direction, ucsoford, forgas_offset});
+            prev_ucsoford = ucsoford;
+            prev_direction = cur_direction;
+        }
+    }
+    return tl;
+}
+
+static turn_timeline build_camera_turn_timeline(recorder* rec, const turn_timeline& bike_tl) {
+    turn_timeline tl;
+    int frame_count = rec->frame_count();
+    if (frame_count == 0) {
+        tl.initial_direction = 0;
+        return tl;
+    }
+
+    // Walk events to build a gravity timeline indexed by time
+    // We need to determine gravity at each frame to compute flipped_camera
+    MotorGravity gravity = MotorGravity::Down;
+    int event_index = 0;
+    int total_events = rec->total_events();
+
+    int prev_flipped_bike = rec->frame_flipped(0) ? 1 : 0;
+    int prev_camera = (gravity == MotorGravity::Up) ? !prev_flipped_bike : prev_flipped_bike;
+    tl.initial_direction = prev_camera;
+
+    double camera_flip_time = EolSettings->turn_time() + 0.15;
+    double prev_ucsoford = -1000.0;
+
+    // Use bike turn timeline to track flipped_bike at each frame
+    int bike_turn_idx = 0;
+    int cur_flipped_bike = bike_tl.initial_direction;
+
+    for (int i = 0; i < frame_count; i++) {
+        double frame_time = rec->frame_time(i);
+
+        // Update flipped_bike from bike timeline
+        while (bike_turn_idx < (int)bike_tl.points.size() &&
+               bike_tl.points[bike_turn_idx].time <= frame_time) {
+            cur_flipped_bike = bike_tl.points[bike_turn_idx].direction;
+            bike_turn_idx++;
+        }
+
+        // Process food events up to this frame's time to update gravity
+        while (event_index < total_events && rec->event_time(event_index) <= frame_time) {
+            int obj_id = rec->event_object_id(event_index);
+            if (obj_id >= 0 && Ptop->objects[obj_id] &&
+                Ptop->objects[obj_id]->type == object::Type::Food) {
+                switch (Ptop->objects[obj_id]->property) {
+                case object::Property::GravityUp:
+                    gravity = MotorGravity::Up;
+                    break;
+                case object::Property::GravityDown:
+                    gravity = MotorGravity::Down;
+                    break;
+                case object::Property::GravityLeft:
+                    gravity = MotorGravity::Left;
+                    break;
+                case object::Property::GravityRight:
+                    gravity = MotorGravity::Right;
+                    break;
+                case object::Property::None:
+                    break;
+                }
+            }
+            event_index++;
+        }
+
+        int cur_camera = (gravity == MotorGravity::Up) ? !cur_flipped_bike : cur_flipped_bike;
+        if (cur_camera != prev_camera) {
+            double eltelt = frame_time - prev_ucsoford;
+            double ucsoford;
+            if (camera_flip_time > 0.0 && eltelt < camera_flip_time) {
+                ucsoford = frame_time + eltelt - camera_flip_time;
+            } else {
+                ucsoford = frame_time;
+            }
+            double forgas_offset = 0.0;
+            if (!tl.points.empty()) {
+                auto& prev = tl.points.back();
+                forgas_offset = compute_forgas(frame_time, prev.time, prev.forgas_offset);
+            }
+
+            tl.points.push_back({frame_time, cur_camera, ucsoford, forgas_offset});
+            prev_ucsoford = ucsoford;
+            prev_camera = cur_camera;
+        }
+    }
+    return tl;
+}
+
+static void query_turn_timeline(const turn_timeline& tl, double t, bool rewinding, double* forgas,
+                                double* baljobb) {
+    if (tl.points.empty() || t < tl.points[0].time) {
+        // No turns before time t
+        *forgas = 1.0;
+        *baljobb = baljobbszamol(t + 1000.0, tl.initial_direction);
+        return;
+    }
+
+    // Binary search: find last turn at or before t
+    // upper_bound gives first element > t, so we go back one
+    auto it = std::upper_bound(tl.points.begin(), tl.points.end(), t,
+                               [](double val, const turn_point& tp) { return val < tp.time; });
+    --it; // guaranteed valid since t >= points[0].time
+
+    // During rewind, use forgas_offset for smooth cancellation blending,
+    // but only when there was an actual mid-animation cancellation (offset < 1.0).
+    // When the previous turn completed fully (offset >= 1.0), use 0 for full squish.
+    double offset = (rewinding && it->forgas_offset < 1.0) ? it->forgas_offset : 0.0;
+    *forgas = compute_forgas(t, it->time, offset);
+    *baljobb = baljobbszamol(t - it->ucsoford, it->direction);
+}
 
 // Ide csak *pmeghalt == 0-val erkezhet
 static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
