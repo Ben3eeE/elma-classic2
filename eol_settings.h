@@ -75,6 +75,7 @@ class eol_settings {
     Default<DikScancode> replay_slow_2x_key_{DIK_DOWN};
     Default<DikScancode> replay_slow_4x_key_{DIK_NEXT};
     Default<DikScancode> replay_pause_key_{DIK_SPACE};
+    Default<DikScancode> replay_rewind_key_{DIK_LEFT};
     Default<std::string> default_lgr_name_{"default"};
     Default<bool> show_last_apple_time_{true};
     Clamp<int> recording_fps_{30, 30, 120};
@@ -107,6 +108,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(replay_slow_2x_key);
     DECLARE_FIELD_FUNCS(replay_slow_4x_key);
     DECLARE_FIELD_FUNCS(replay_pause_key);
+    DECLARE_FIELD_FUNCS(replay_rewind_key);
     DECLARE_FIELD_FUNCS(default_lgr_name);
     DECLARE_FIELD_FUNCS(show_last_apple_time);
     DECLARE_FIELD_FUNCS(recording_fps);

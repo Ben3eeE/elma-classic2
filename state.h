@@ -78,6 +78,7 @@ class state {
     DikScancode key_replay_slow_2x;
     DikScancode key_replay_slow_4x;
     DikScancode key_replay_pause;
+    DikScancode key_replay_rewind;
 
     char editor_filename[20];
     char external_filename[20];
