@@ -341,6 +341,34 @@ bool recorder::recall_event(double time, WavEvent* event_id, double* volume, int
     return false;
 }
 
+bool recorder::frame_flipped(int index) const {
+    return (frames[index].flags >> FLAG_FLIPPED) & 1;
+}
+
+double recorder::frame_time(int index) const { return index * FRAME_INDEX_TO_TIME; }
+
+int recorder::total_events() const { return event_count; }
+
+double recorder::event_time(int index) const { return events[index].time; }
+
+int recorder::event_object_id(int index) const { return events[index].object_id; }
+
+int recorder::current_event_position() const { return current_event_index; }
+
+bool recorder::recall_event_reverse(double time, WavEvent* event_id, double* volume,
+                                    int* object_id) {
+    if (current_event_index > 0) {
+        if (events[current_event_index - 1].time > time) {
+            current_event_index--;
+            *event_id = events[current_event_index].event_id;
+            *volume = events[current_event_index].volume;
+            *object_id = events[current_event_index].object_id;
+            return true;
+        }
+    }
+    return false;
+}
+
 static void read_error(const char* filename) {
     internal_error("Failed to read rec file: ", filename);
 }

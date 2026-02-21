@@ -86,6 +86,14 @@ class recorder {
     // Return true if a new event has occurred
     bool recall_event(double time, WavEvent* event_id, double* volume, int* object_id);
 
+    bool frame_flipped(int index) const;
+    double frame_time(int index) const;
+    int total_events() const;
+    double event_time(int index) const;
+    int event_object_id(int index) const;
+    int current_event_position() const;
+    bool recall_event_reverse(double time, WavEvent* event_id, double* volume, int* object_id);
+
     bool flagtag() const { return (bool)(flagtag_); };
     void set_flagtag(bool flagtag) { flagtag_ = (int)(flagtag); }
 
