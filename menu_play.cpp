@@ -8,6 +8,7 @@
 #include "level.h"
 #include "level_load.h"
 #include "main.h"
+#include "menu_dialog.h"
 #include "menu_external.h"
 #include "menu_nav.h"
 #include "menu_pic.h"
@@ -83,7 +84,7 @@ static void menu_save_play(int level_id) {
     }
     strcat(tmp, ".rec");
     recorder::save_rec_file(tmp, level_id);
-    ReplayCache.upsert(tmp, Rec1->level_filename, level_id);
+    ReplayCache.upsert(tmp, level_id);
 }
 
 void update_top_ten(int time, char* time_message, int internal_index,
@@ -234,6 +235,60 @@ void replay_from_file(const char* filename) {
     }
 }
 
+static void merge_with_last() {
+    if (!ReplayCache.is_ready()) {
+        loading_screen();
+        ReplayCache.wait();
+    }
+
+    std::vector<std::string> level_replays = ReplayCache.filenames_for_level(Ptop->level_id);
+
+    std::string picked_file;
+    menu_nav nav("Merge with");
+    for (const std::string& filename : level_replays) {
+        constexpr int EXT_LEN = 4;
+        std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
+        nav.add_row(short_name, NAV_FUNC(&picked_file, filename) { picked_file = filename; });
+    }
+    nav.search_pattern = SearchPattern::Sorted;
+    nav.sort_rows();
+
+    if (nav.row_count() == 0) {
+        menu_dialog("No replays found for this level.");
+        return;
+    }
+
+    MenuPalette->set();
+    if (nav.navigate() < 0) {
+        return;
+    }
+
+    MenuPalette->set();
+    loading_screen();
+
+    recorder::merge_result result = recorder::load_merge("!last.rec", picked_file);
+
+    if (result.rec1_was_multi || result.rec2_was_multi) {
+        menu_dialog("Note: Only player 1 used from multiplayer replays.");
+    }
+
+    if (result.level_id_mismatch) {
+        DikScancode key = menu_dialog("Warning: Replays are from different levels!",
+                                      "Press Enter to continue, ESC to cancel.");
+        if (key == KEY_ESC) {
+            return;
+        }
+    }
+
+    load_level_play(Rec1->level_filename);
+    if (Ptop->level_id != result.level_id) {
+        menu_dialog("The level file has changed since the", "saving of the record file!");
+        return;
+    }
+
+    replay_from_file(Rec1->level_filename);
+}
+
 static text_line ExtraTimeText[14];
 
 MenuLevel menu_level(int internal_index, bool nav_on_play_next, const char* time_message,
@@ -371,6 +426,12 @@ MenuLevel menu_level(int internal_index, bool nav_on_play_next, const char* time
             });
 
         nav.add_row("Save play", NAV_FUNC() { menu_save_play(Ptop->level_id); });
+
+        nav.add_row(
+            "Merge with...", NAV_FUNC() {
+                merge_with_last();
+                MenuPalette->set();
+            });
 
         nav.add_row(
             "Best times", NAV_FUNC(&external_level, &internal_index) {
