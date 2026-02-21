@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "mergerec4"
     paths-ignore:
       - "**.md"
       - "**/docs/**"
@@ -142,11 +143,11 @@ jobs:
 
       - name: Configure
         if: runner.os == 'windows'
-        run: meson setup build -Dbuildtype=release --vsenv
+        run: meson setup build -Dbuildtype=release -Dprofile_performance=true --vsenv
 
       - name: Configure
         if: runner.os != 'windows'
-        run: meson setup build -Dbuildtype=release
+        run: meson setup build -Dbuildtype=release -Dprofile_performance=true
 
       - name: Build
         run: meson compile -C build
