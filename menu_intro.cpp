@@ -13,6 +13,7 @@
 #include "pic8.h"
 #include "platform_impl.h"
 #include "recorder.h"
+#include "replay_cache.h"
 #include "state.h"
 #include "qopen.h"
 #include <cstring>
@@ -32,6 +33,8 @@ void menu_intro() {
     eol_settings::sync_controls_to_state(State);
 
     init_physics_data();
+
+    ReplayCache.start();
 
     // test_player();
 
