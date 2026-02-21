@@ -711,6 +711,26 @@ static void reverse_events(motorst* pmot, recorder* prec, double time) {
     }
 }
 
+// During rewind, bypass the turn animation state machine entirely.
+// Show the current direction from frame data with no animation, and set
+// reference points far in the past so forward play resumes cleanly.
+static void rewind_override_animations(valtozok* pvalt, motorst* pmot, double eddig) {
+    pvalt->baljobbv_f.eddighatra = pmot->flipped_bike;
+    pvalt->baljobbv_f.ucsoforgas = eddig - 1000.0;
+    pvalt->baljobbv_f.ucsoford = eddig - 1000.0;
+    pvalt->baljobbv_f.forgas = 1.0;
+    pvalt->baljobbv_f.baljobb = pmot->flipped_bike ? 0.0 : 1.0;
+
+    pvalt->baljobbv_h.eddighatra = pmot->flipped_camera;
+    pvalt->baljobbv_h.ucsoforgas = eddig - 1000.0;
+    pvalt->baljobbv_h.ucsoford = eddig - 1000.0;
+    pvalt->baljobbv_h.forgas = 1.0;
+    pvalt->baljobbv_h.baljobb = pmot->flipped_camera ? 0.0 : 1.0;
+
+    pvalt->ugrasnagysag = 0;
+    pvalt->utolsougras = eddig - 1000.0;
+}
+
 // Hamissal ter vissza, ha nincsen mar tobb:
 static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                       double eddig, viewtimest* pvt, int* pmasikshow) {
@@ -755,15 +775,10 @@ static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
     baljobbelintez(&pvalt->baljobbv_h, NULL, eddig, pmot->flipped_camera);
 
     // Kirajzolashoz kellenek:
-    pvalt->ugrasnagysag = 1.0 - (eddig - pvalt->utolsougras) / VoltDelay;
+    pvalt->ugrasnagysag = 1.0 - std::abs(eddig - pvalt->utolsougras) / VoltDelay;
     if (pvalt->ugrasnagysag < 0) {
         pvalt->ugrasnagysag = 0;
     }
-#ifdef DEBUG
-    if (pvalt->ugrasnagysag > 1.00001) {
-        internal_error("pvalt->ugrasnagysag > 1.00001!");
-    }
-#endif
 
     return visszaad;
 }
@@ -826,7 +841,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     double current_replay_time = 0.0;
     double last_stopwatch = stopwatch();
     bool paused = false;
-
     while (1) {
         handle_events(); // Billentyut itt olvassuk be
 
@@ -853,18 +867,31 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             speed *= 0.25;
         }
 
-        if (is_key_down(State->key_replay_pause)) {
-            paused = true;
-        } else {
-            paused = false;
-        }
+        bool rewinding = is_key_down(State->key_replay_rewind);
+
+        paused = is_key_down(State->key_replay_pause);
 
         if (!paused) {
-            current_replay_time += dt * speed;
+            if (rewinding) {
+                current_replay_time -= dt * speed;
+                if (current_replay_time < 0.0) {
+                    current_replay_time = 0.0;
+                }
+            } else {
+                current_replay_time += dt * speed;
+            }
         }
 
         // Kiszamolja mennyit kell leptetni:
         double eddig = current_replay_time;
+
+        if (rewinding) {
+            reverse_events(Motor1, Rec1, eddig);
+            if (!Single) {
+                reverse_events(Motor2, Rec2, eddig);
+            }
+        }
+
         // recall koordokat es Hatra-t is beallitja:
         int befejezte1 =
             !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
@@ -873,6 +900,15 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         if (!Single) {
             befejezte2 =
                 !replaymag(Motor2, &State->keys2, &valt2, Rec2, eddig, &Viewtime2, &valt1.showkep);
+        }
+
+        if (rewinding) {
+            rewind_override_animations(&valt1, Motor1, eddig);
+            if (!Single) {
+                rewind_override_animations(&valt2, Motor2, eddig);
+            }
+            befejezte1 = 0;
+            befejezte2 = 0;
         }
 
         if ((Single && befejezte1) || (!Single && befejezte1 && befejezte2)) {
@@ -907,10 +943,14 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         }
 
         // HANG ELINTEZES:
-        if (Single) {
+        if (rewinding) {
+            set_motor_frequency(true, 1.0, 0);
+            if (!Single) {
+                set_motor_frequency(false, 1.0, 0);
+            }
+            set_friction_volume(0);
+        } else if (Single) {
             set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
-            // if( valt1.inf.motor_frequency > 1.5 )
-            //	internal_error( "> 1.5!" );
             set_friction_volume(valt1.inf.friction_volume);
         } else {
             set_motor_frequency(true, valt1.inf.motor_frequency, valt1.inf.gas);
