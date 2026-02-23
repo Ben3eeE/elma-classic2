@@ -813,7 +813,6 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
     double current_replay_time = 0.0;
     double last_stopwatch = stopwatch();
-    bool paused = false;
 
     while (1) {
         handle_events(); // Billentyut itt olvassuk be
@@ -841,11 +840,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             speed *= 0.25;
         }
 
-        if (is_key_down(State->key_replay_pause)) {
-            paused = true;
-        } else {
-            paused = false;
-        }
+        bool paused = is_key_down(State->key_replay_pause);
 
         if (!paused) {
             current_replay_time += dt * speed;
