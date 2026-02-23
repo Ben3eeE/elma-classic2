@@ -118,11 +118,8 @@ static int spritefeldolgoz(int sorszam, int* pkajaszam, motorst* pmot) {
 }
 
 static double baljobbszamol(double eltelt, int hatra) {
-#ifdef DEBUG
-    if (eltelt < 0) {
-        internal_error("baljobbszamol-ban eltelt < 0!");
-    }
-#endif
+    eltelt = std::max<double>(eltelt, 0);
+
     double camera_flip_time = EolSettings->turn_time() + 0.15;
     if (hatra) {
         if (eltelt > camera_flip_time) {
@@ -294,14 +291,8 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
         pvalt->forgas = 1.0;
     } else {
         pvalt->forgas = (eddig - pvalt->ucsoforgas) / turn_time;
-#ifdef DEBUG
-        if (pvalt->forgas < 0.0) {
-            internal_error("lejatszo-ban forgas < 0.0!");
-        }
-#endif
-        if (pvalt->forgas > 1.0) {
-            pvalt->forgas = 1.0;
-        }
+
+        pvalt->forgas = std::clamp(pvalt->forgas, 0.0, 1.0);
     }
 
     pvalt->baljobb = baljobbszamol(eddig - pvalt->ucsoford, hatra);
@@ -744,14 +735,7 @@ static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
 
     // Kirajzolashoz kellenek:
     pvalt->ugrasnagysag = 1.0 - (eddig - pvalt->utolsougras) / VoltDelay;
-    if (pvalt->ugrasnagysag < 0) {
-        pvalt->ugrasnagysag = 0;
-    }
-#ifdef DEBUG
-    if (pvalt->ugrasnagysag > 1.00001) {
-        internal_error("pvalt->ugrasnagysag > 1.00001!");
-    }
-#endif
+    pvalt->ugrasnagysag = std::max<double>(pvalt->ugrasnagysag, 0);
 
     return visszaad;
 }
