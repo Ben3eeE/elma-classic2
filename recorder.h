@@ -98,6 +98,15 @@ class recorder {
     // Walk events backward: returns true for each event whose time > `time`
     bool recall_event_reverse(double time, WavEvent* event_id, double* volume, int* object_id);
 
+    // Find frame time of the last direction change at or before `time`,
+    // detected from the flipped_bike flag in frame data.
+    // Returns -1000.0 if no direction change found.
+    double find_last_turn_frame_time(double time) const;
+
+    // Find time of the last volt (RightVolt or LeftVolt) at or before `time`.
+    // Sets `is_right_volt` to indicate direction. Returns -1000.0 if none found.
+    double find_last_volt_time(double time, bool* is_right_volt) const;
+
     bool flagtag() const { return (bool)(flagtag_); };
     void set_flagtag(bool flagtag) { flagtag_ = (int)(flagtag); }
 

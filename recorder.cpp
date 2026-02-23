@@ -341,6 +341,36 @@ bool recorder::recall_event(double time, WavEvent* event_id, double* volume, int
     return false;
 }
 
+double recorder::find_last_turn_frame_time(double time) const {
+    int index = std::min((int)(TIME_TO_FRAME_INDEX * time), frame_count_ - 1);
+    index = std::max(index, 0);
+    bool current_flipped = (frames[index].flags >> FLAG_FLIPPED) & 1;
+    for (int i = index - 1; i >= 0; i--) {
+        bool prev_flipped = (frames[i].flags >> FLAG_FLIPPED) & 1;
+        if (prev_flipped != current_flipped) {
+            return (i + 1) * FRAME_INDEX_TO_TIME;
+        }
+    }
+    return -1000.0;
+}
+
+double recorder::find_last_volt_time(double time, bool* is_right_volt) const {
+    for (int i = current_event_index; i >= 0; i--) {
+        if (events[i].time > time) {
+            continue;
+        }
+        if (events[i].event_id == WavEvent::RightVolt) {
+            *is_right_volt = true;
+            return events[i].time;
+        }
+        if (events[i].event_id == WavEvent::LeftVolt) {
+            *is_right_volt = false;
+            return events[i].time;
+        }
+    }
+    return -1000.0;
+}
+
 bool recorder::recall_event_reverse(double time, WavEvent* event_id, double* volume,
                                     int* object_id) {
     if (current_event_index > 0 && events[current_event_index - 1].time > time) {
