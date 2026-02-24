@@ -83,7 +83,7 @@ void menu_options() {
     while (true) {
         menu_nav nav("Options");
         nav.select_row(choice);
-        nav.x_left = 72;
+        nav.x_left = 0;
         nav.x_right = 390;
         nav.y_entries = 77;
         nav.dy = 36;
@@ -121,6 +121,8 @@ void menu_options() {
             NAV_FUNC() { State->animated_objects = !State->animated_objects; });
 
         BOOL_OPTION("Still Objects:", still_objects);
+
+        BOOL_OPTION("Access all internals:", all_internals_accessible);
 
         nav.add_row(
             "Swap Bikes:", State->player1_bike1 ? "No" : "Yes",

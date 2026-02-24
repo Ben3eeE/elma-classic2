@@ -1,5 +1,6 @@
 #include "abc8.h"
 #include "best_times.h"
+#include "eol_settings.h"
 #include "level.h"
 #include "main.h"
 #include "menu_nav.h"
@@ -141,11 +142,15 @@ void menu_best_times_choose_level(bool single) {
             visible_levels = int(State->players[i].levels_completed);
         }
     }
-    // Also show the last uncompleted level
-    visible_levels++;
-    // Disallow "More Levels"
-    if (visible_levels >= INTERNAL_LEVEL_COUNT) {
+    if (EolSettings->all_internals_accessible()) {
         visible_levels = INTERNAL_LEVEL_COUNT - 1;
+    } else {
+        // Also show the last uncompleted level
+        visible_levels++;
+        // Disallow "More Levels"
+        if (visible_levels >= INTERNAL_LEVEL_COUNT) {
+            visible_levels = INTERNAL_LEVEL_COUNT - 1;
+        }
     }
 
     std::string title = std::format("{} Player Best Times", single ? "Single" : "Multi");

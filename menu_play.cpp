@@ -16,6 +16,7 @@
 #include "physics_init.h"
 #include "skip.h"
 #include "timer.h"
+#include "eol_settings.h"
 #include "directinput/scancodes.h"
 #include <cstdlib>
 #include <cstring>
@@ -245,7 +246,8 @@ MenuLevel menu_level(int internal_index, bool nav_on_play_next, const char* time
     int show_skip_level = 0;
     int default_choice = 0;
     if (Single && !external_level) {
-        if (player1->levels_completed > internal_index &&
+        if ((EolSettings->all_internals_accessible() ||
+             player1->levels_completed > internal_index) &&
             internal_index < INTERNAL_LEVEL_COUNT - 1) {
             show_play_next = 1;
         }
@@ -468,6 +470,9 @@ void menu_play() {
                 levels_completed = player2->levels_completed + 1;
             }
         }
+        if (EolSettings->all_internals_accessible()) {
+            levels_completed = INTERNAL_LEVEL_COUNT;
+        }
         if (levels_completed > INTERNAL_LEVEL_COUNT) {
             levels_completed = INTERNAL_LEVEL_COUNT;
         }
@@ -483,8 +488,11 @@ void menu_play() {
             });
 
         for (int i = 0; i < levels_completed; i++) {
-            std::string level_name = std::format(
-                "{} {}", i + 1, player1->skipped[i] ? "SKIPPED!" : get_internal_level_name(i));
+            std::string level_name =
+                std::format("{} {}", i + 1,
+                            player1->skipped[i] && !EolSettings->all_internals_accessible()
+                                ? "SKIPPED!"
+                                : get_internal_level_name(i));
             nav.add_row(level_name, NAV_FUNC() { play_internal(choice - 1, is_key_down(DIK_F1)); });
         }
 
