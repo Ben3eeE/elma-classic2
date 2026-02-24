@@ -910,6 +910,13 @@ void canvas::draw_qupdown(updown& qupdown, int x, int y) {
         y += qupdown.slope;
     }
 
+    // Check out of bounds
+    int y2 = y + height;
+    int x2 = x + width;
+    if (x < 120 || x2 >= pixel_width - 50 || y < 20 || y2 >= pixel_height - 20) {
+        return;
+    }
+
     // Draw upside down
     for (int i = 0; i < height; i++) {
         int j = 0;
