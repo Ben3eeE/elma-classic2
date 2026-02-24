@@ -702,6 +702,31 @@ static void reverse_events(motorst* pmot, recorder* prec, double time) {
     }
 }
 
+// During rewind, compute animation state from the recorder's event list
+// instead of relying on the forward-only state machine.
+static void rewind_override_animations(valtozok* pvalt, motorst* pmot, recorder* prec,
+                                       double eddig) {
+    double turn_time = prec->find_last_turn_frame_time(eddig);
+
+    pvalt->baljobbv_f.eddighatra = pmot->flipped_bike;
+    pvalt->baljobbv_f.ucsoforgas = turn_time;
+    pvalt->baljobbv_f.ucsoford = turn_time;
+    baljobbelintez(&pvalt->baljobbv_f, nullptr, eddig, pmot->flipped_bike);
+
+    pvalt->baljobbv_h.eddighatra = pmot->flipped_camera;
+    pvalt->baljobbv_h.ucsoforgas = eddig - 1000.0;
+    pvalt->baljobbv_h.ucsoford = eddig - 1000.0;
+    pvalt->baljobbv_h.forgas = 1.0;
+    pvalt->baljobbv_h.baljobb = pmot->flipped_camera ? 0.0 : 1.0;
+
+    bool is_right_volt = true;
+    double volt_time = prec->find_last_volt_time(eddig, &is_right_volt);
+    pvalt->utolsougras = volt_time;
+    pvalt->ugras1volt = is_right_volt ? 1 : 0;
+    pvalt->ugrasnagysag = 1.0 - (eddig - pvalt->utolsougras) / VoltDelay;
+    pvalt->ugrasnagysag = std::max<double>(pvalt->ugrasnagysag, 0);
+}
+
 // Hamissal ter vissza, ha nincsen mar tobb:
 static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
                       double eddig, viewtimest* pvt, int* pmasikshow) {
