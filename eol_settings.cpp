@@ -130,6 +130,8 @@ void eol_settings::set_show_best_times_menu(bool show) { show_best_times_menu_ =
 
 void eol_settings::set_still_objects(bool still) { still_objects_ = still; }
 
+void eol_settings::set_all_internals_accessible(bool b) { all_internals_accessible_ = b; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -224,7 +226,8 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(show_demo_menu)                                                                     \
     JSON_FIELD(show_help_menu)                                                                     \
     JSON_FIELD(show_best_times_menu)                                                               \
-    JSON_FIELD(still_objects)
+    JSON_FIELD(still_objects)                                                                      \
+    JSON_FIELD(all_internals_accessible)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }
