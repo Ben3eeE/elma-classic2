@@ -861,14 +861,22 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             speed *= 0.25;
         }
 
+        bool rewinding = is_key_down(State->key_replay_rewind);
+
         bool paused = is_key_down(State->key_replay_pause);
 
         if (!paused) {
-            current_replay_time += dt * speed;
+            if (rewinding) {
+                current_replay_time -= dt * speed;
+                current_replay_time = std::max(current_replay_time, 0.0);
+            } else {
+                current_replay_time += dt * speed;
+            }
         }
 
         // Kiszamolja mennyit kell leptetni:
         double eddig = current_replay_time;
+
         // recall koordokat es Hatra-t is beallitja:
         int befejezte1 =
             !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
@@ -877,6 +885,15 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         if (!Single) {
             befejezte2 =
                 !replaymag(Motor2, &State->keys2, &valt2, Rec2, eddig, &Viewtime2, &valt1.showkep);
+        }
+
+        if (rewinding) {
+            reverse_events(Motor1, Rec1, eddig);
+            rewind_override_animations(&valt1, Motor1, Rec1, eddig);
+            if (!Single) {
+                reverse_events(Motor2, Rec2, eddig);
+                rewind_override_animations(&valt2, Motor2, Rec2, eddig);
+            }
         }
 
         if ((Single && befejezte1) || (!Single && befejezte1 && befejezte2)) {
