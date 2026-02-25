@@ -273,7 +273,7 @@ constexpr int PLAYER_KEYS_END = PLAYER_KEYS_START + 10;
 static_assert(KEY_POINTERS_MAX > PLAYER_KEYS_END);
 
 constexpr int REPLAY_KEYS_START = 0;
-constexpr int REPLAY_KEYS_END = REPLAY_KEYS_START + 7;
+constexpr int REPLAY_KEYS_END = REPLAY_KEYS_START + 9;
 static_assert(KEY_POINTERS_MAX > REPLAY_KEYS_END);
 
 // Setup the menu to display one control key
@@ -350,6 +350,8 @@ static void load_replay_controls(menu_nav* nav, key_pointers keys) {
     load_control(nav, keys, i++, "Slow motion 4x", &State->key_replay_slow_4x);
     load_control(nav, keys, i++, "Pause", &State->key_replay_pause);
     load_control(nav, keys, i++, "Rewind", &State->key_replay_rewind);
+    load_control(nav, keys, i++, "Frame advance", &State->key_replay_frame_advance);
+    load_control(nav, keys, i++, "Frame devance", &State->key_replay_frame_devance);
     if (i != REPLAY_KEYS_END) {
         internal_error("REPLAY_KEYS_END is misaligned!");
     }
