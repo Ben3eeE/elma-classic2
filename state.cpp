@@ -391,6 +391,8 @@ void state::reset_keys() {
     key_replay_slow_4x = EolSettings->replay_slow_4x_key_default();
     key_replay_pause = EolSettings->replay_pause_key_default();
     key_replay_rewind = EolSettings->replay_rewind_key_default();
+    key_replay_frame_advance = EolSettings->replay_frame_advance_key_default();
+    key_replay_frame_devance = EolSettings->replay_frame_devance_key_default();
 }
 
 player* state::get_player(const char* player_name) {

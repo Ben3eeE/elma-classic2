@@ -115,6 +115,14 @@ void eol_settings::set_replay_pause_key(DikScancode key) { replay_pause_key_ = k
 
 void eol_settings::set_replay_rewind_key(DikScancode key) { replay_rewind_key_ = key; }
 
+void eol_settings::set_replay_frame_advance_key(DikScancode key) {
+    replay_frame_advance_key_ = key;
+}
+
+void eol_settings::set_replay_frame_devance_key(DikScancode key) {
+    replay_frame_devance_key_ = key;
+}
+
 void eol_settings::set_default_lgr_name(std::string name) {
     if (default_lgr_name_.value != name) {
         default_lgr_name_ = std::move(name);
@@ -221,6 +229,8 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(replay_slow_4x_key)                                                                 \
     JSON_FIELD(replay_pause_key)                                                                   \
     JSON_FIELD(replay_rewind_key)                                                                  \
+    JSON_FIELD(replay_frame_advance_key)                                                           \
+    JSON_FIELD(replay_frame_devance_key)                                                           \
     JSON_FIELD(default_lgr_name)                                                                   \
     JSON_FIELD(show_last_apple_time)                                                               \
     JSON_FIELD(recording_fps)                                                                      \
@@ -284,6 +294,8 @@ void eol_settings::sync_controls_to_state(state* s) {
     s->key_replay_slow_4x = EolSettings->replay_slow_4x_key();
     s->key_replay_pause = EolSettings->replay_pause_key();
     s->key_replay_rewind = EolSettings->replay_rewind_key();
+    s->key_replay_frame_advance = EolSettings->replay_frame_advance_key();
+    s->key_replay_frame_devance = EolSettings->replay_frame_devance_key();
 }
 
 void eol_settings::sync_controls_from_state(state* s) {
@@ -303,4 +315,6 @@ void eol_settings::sync_controls_from_state(state* s) {
     EolSettings->set_replay_slow_4x_key(s->key_replay_slow_4x);
     EolSettings->set_replay_pause_key(s->key_replay_pause);
     EolSettings->set_replay_rewind_key(s->key_replay_rewind);
+    EolSettings->set_replay_frame_advance_key(s->key_replay_frame_advance);
+    EolSettings->set_replay_frame_devance_key(s->key_replay_frame_devance);
 }
