@@ -31,6 +31,8 @@ constexpr int FLAG_FLIPPED = 1;
 constexpr int FLAG_FLAGTAG_A = 2;
 constexpr int FLAG_FLAGTAG_IMMUNITY = 3;
 
+double recorder::frame_duration() { return FRAME_INDEX_TO_TIME; }
+
 recorder::recorder() {
     frame_count_ = 0;
     event_count = 0;

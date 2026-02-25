@@ -834,6 +834,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
     double current_replay_time = 0.0;
     double last_stopwatch = stopwatch();
+    bool frame_stepping = false;
 
     while (1) {
         handle_events(); // Billentyut itt olvassuk be
@@ -865,7 +866,23 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         bool paused = is_key_down(State->key_replay_pause);
 
-        if (!paused) {
+        bool frame_advance = was_key_just_pressed(State->key_replay_frame_advance);
+        bool frame_devance = was_key_just_pressed(State->key_replay_frame_devance);
+
+        if (frame_advance || frame_devance) {
+            frame_stepping = true;
+        } else if (frame_stepping && (rewinding || paused || speed != 1.0)) {
+            frame_stepping = false;
+        }
+
+        if (frame_stepping) {
+            if (frame_advance) {
+                current_replay_time += recorder::frame_duration();
+            } else if (frame_devance) {
+                current_replay_time -= recorder::frame_duration();
+                current_replay_time = std::max(current_replay_time, 0.0);
+            }
+        } else if (!paused) {
             if (rewinding) {
                 current_replay_time -= dt * speed;
                 current_replay_time = std::max(current_replay_time, 0.0);
@@ -887,7 +904,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
                 !replaymag(Motor2, &State->keys2, &valt2, Rec2, eddig, &Viewtime2, &valt1.showkep);
         }
 
-        if (rewinding) {
+        if (rewinding || (frame_stepping && frame_devance)) {
             reverse_events(Motor1, Rec1, eddig);
             rewind_override_animations(&valt1, Motor1, Rec1, eddig);
             if (!Single) {

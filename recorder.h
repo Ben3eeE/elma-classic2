@@ -85,6 +85,8 @@ class recorder {
     // Load two replay files and merge them into a multiplayer replay
     static merge_result load_merge(const std::string& filename1, const std::string& filename2);
 
+    static double frame_duration();
+
     bool is_empty() const { return frame_count_ == 0; }
     int frame_count() const { return frame_count_; }
     void erase(const char* lev_filename);
