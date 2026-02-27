@@ -27,10 +27,12 @@ constexpr int RIGHTMOST_CHUNK_WIDTH = 1000000;
 constexpr int DISTANCE_DEFAULT = 1000000;
 constexpr int DISTANCE_SKY_CLIPPING_CORRECTION = 10000;
 
-// Canvas margins in meters
-constexpr double MARGIN_X = 209.0;
-constexpr double MARGIN_Y_MINIMAP = 84.0;
-constexpr double MARGIN_Y = 21.0;
+// Canvas margins in meters (at zoom 1.0). Scaled inversely with zoom at
+// runtime so the canvas always extends far enough to cover the camera viewport.
+constexpr double MARGIN_X_BASE = 209.0;
+constexpr double MARGIN_Y_MINIMAP_BASE = 84.0;
+constexpr double MARGIN_Y_BASE = 21.0;
+constexpr double DEFAULT_METERS_TO_PIXELS = 100.0 * 0.48;
 
 static void memory_error() {
     external_error("You do not have enough memory to load this level!",
@@ -105,20 +107,26 @@ void canvas::set_origin_and_dimensions() {
         seg = Segments->next_segment();
     }
 
+    // Scale margins inversely with zoom so the canvas covers the viewport
+    const double zoom_scale = DEFAULT_METERS_TO_PIXELS / MetersToPixels;
+    const double margin_x = MARGIN_X_BASE * zoom_scale;
+    const double margin_y_minimap = MARGIN_Y_MINIMAP_BASE * zoom_scale;
+    const double margin_y = MARGIN_Y_BASE * zoom_scale;
+
     if (is_minimap) {
         // Minimap, we don't need to quantize
         // Add a small buffer around the level to avoid crashing from out of bounds
-        origin = vect2(minx - MARGIN_X, miny - MARGIN_Y_MINIMAP);
-        width = (maxx + MARGIN_X) - origin.x;
-        height = (maxy + MARGIN_Y_MINIMAP) - origin.y;
+        origin = vect2(minx - margin_x, miny - margin_y_minimap);
+        width = (maxx + margin_x) - origin.x;
+        height = (maxy + margin_y_minimap) - origin.y;
     } else {
         // Main view, we need to quantize
         // Add a small buffer around the level to avoid crashing from out of bounds
-        origin = vect2(minx - MARGIN_X, miny - MARGIN_Y);
+        origin = vect2(minx - margin_x, miny - margin_y);
         quantize(&origin.x);
         quantize(&origin.y);
-        width = (maxx + MARGIN_X) - origin.x;
-        height = (maxy + MARGIN_Y) - origin.y;
+        width = (maxx + margin_x) - origin.x;
+        height = (maxy + margin_y) - origin.y;
     }
 }
 
@@ -1114,11 +1122,12 @@ canvas::canvas(bool minimap) {
 
     // Set canvas dimensions
     set_origin_and_dimensions();
+    const double zoom_scale = DEFAULT_METERS_TO_PIXELS / MetersToPixels;
     if (is_minimap) {
         pixel_width = (int)(width * MetersToMinimapPixels);
         pixel_height = (int)(height * MetersToMinimapPixels);
 
-        constexpr double MAX_HEIGHT = LEVEL_MAX_SIZE + MARGIN_Y_MINIMAP * 2;
+        const double MAX_HEIGHT = LEVEL_MAX_SIZE + MARGIN_Y_MINIMAP_BASE * zoom_scale * 2;
         if (height > MAX_HEIGHT) {
             internal_error("canvas::canvas is too tall!");
         }
@@ -1126,7 +1135,7 @@ canvas::canvas(bool minimap) {
         pixel_width = (int)(width * MetersToPixels);
         pixel_height = (int)(height * MetersToPixels);
 
-        constexpr double MAX_HEIGHT = LEVEL_MAX_SIZE + MARGIN_Y * 2;
+        const double MAX_HEIGHT = LEVEL_MAX_SIZE + MARGIN_Y_BASE * zoom_scale * 2;
         if (height > MAX_HEIGHT) {
             internal_error("canvas::canvas is too tall!");
         }
