@@ -6,3 +6,5 @@
 esp32/build/
 esp32/sdkconfig
 esp32/sdkconfig.old
+esp32/assets/*.lgr
+esp32/assets/*.res
