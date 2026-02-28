@@ -22,8 +22,10 @@
 #include <cmath>
 #include <cstring>
 #include <string>
+#ifndef ESP32_BADGE
 #include <format>
 #include <filesystem>
+#endif
 
 // Ezek mindig beallitodnak Kepmeret-bol kirajzol320-ban:
 
@@ -123,7 +125,7 @@ void beallitmereteket(int splitscreen) {
     if (EolSettings->center_camera()) {
         Mo_bal = (Cxsize / MetersToPixels) * 0.50;
     } else {
-        Mo_bal = (SCREEN_WIDTH / MetersToPixels) * 0.15;
+        Mo_bal = (SCREEN_WIDTH / MetersToPixels) * 0.15 * EolSettings->zoom();
     }
     Mo_dx = Cxsize / MetersToPixels - 2.0 * Mo_bal;
     Mo_y = Cysize / MetersToPixels / 2.0;
@@ -336,6 +338,10 @@ static void kiview(bool ajatekos, pic8* ppic, double baljobb, vect2 motorkozep, 
 
 // Mentes lemezre:
 static void menteshakell(pic8* ppic) {
+#ifdef ESP32_BADGE
+    (void)ppic;
+    // No screenshot/recording support on badge
+#else
     if (VideoRecordingMode) {
         std::string filenameStr = std::format("snp{:05}.pcx", VideoFrameIndex);
         std::filesystem::path filename = std::filesystem::path(VideoOutputDirectory) / filenameStr;
@@ -359,6 +365,7 @@ static void menteshakell(pic8* ppic) {
             i++;
         }
     }
+#endif
 }
 
 static void kitolthatteret(pic8* ppic) {

@@ -21,7 +21,7 @@ constexpr double PI = 3.141592;
 bool is_ascii_character(unsigned char c);
 bool is_char_valid_for_filename(unsigned char c);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(ESP32_BADGE)
 
 void itoa(int value, char* str, int base);
 

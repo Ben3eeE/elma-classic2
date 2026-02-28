@@ -79,6 +79,7 @@ void init_motor(motorst* motor) {
 
 void set_zoom_factor() {
     double zoom_factor = 0.48 * EolSettings->zoom();
+
     MetersToPixels = 100.0 * zoom_factor;
     PixelsToMeters = 1.0 / MetersToPixels;
 

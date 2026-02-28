@@ -18,7 +18,14 @@
 #include <cmath>
 #include <cstring>
 #include <directinput/scancodes.h>
+#ifndef ESP32_BADGE
 #include <filesystem>
+#endif
+
+#ifdef ESP32_BADGE
+#include "esp_log.h"
+static const char* LEJATSZO_TAG = "lejatszo";
+#endif
 
 // Jatek modja ket fele lehet:
 int Single = 1;
@@ -70,8 +77,14 @@ static void initsoundlejatszoban(void) {
 }
 
 // Player 1 es 2-re:
+#ifdef ESP32_BADGE
+// Hide minimap on badge (too small screen)
+static viewtimest Viewtime1 = {0, 0, 1, 0};
+static viewtimest Viewtime2 = {0, 0, 1, 0};
+#else
 static viewtimest Viewtime1 = {1, 0, 1, 0};
 static viewtimest Viewtime2 = {1, 0, 1, 0};
+#endif
 
 // 0-meghalt, 1-megnyerte, 2-semmi kulonos:
 static int spritefeldolgoz(int sorszam, int* pkajaszam, motorst* pmot) {
@@ -391,6 +404,15 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
     setup_gameloop(filenev);
 
+#ifdef ESP32_BADGE
+    ESP_LOGI(LEJATSZO_TAG, "After setup: bike=(%.2f,%.2f) lwheel=(%.2f,%.2f) rwheel=(%.2f,%.2f) body=(%.2f,%.2f)",
+             Motor1->bike.r.x, Motor1->bike.r.y,
+             Motor1->left_wheel.r.x, Motor1->left_wheel.r.y,
+             Motor1->right_wheel.r.x, Motor1->right_wheel.r.y,
+             Motor1->body_r.x, Motor1->body_r.y);
+    ESP_LOGI(LEJATSZO_TAG, "HeadRadius=%.4f, Kajakell=%d", HeadRadius, Kajakell);
+#endif
+
     double eddig = 0.0;
     reset_event_buffer();
 
@@ -482,6 +504,13 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
             if (!meghalt1) {
                 belsoresz(Motor1, &State->keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
+#ifdef ESP32_BADGE
+                if (meghalt1) {
+                    ESP_LOGE(LEJATSZO_TAG, "DIED at eddig=%.4f head=(%.2f,%.2f) bike=(%.2f,%.2f)",
+                             eddig, Motor1->head_r.x, Motor1->head_r.y,
+                             Motor1->bike.r.x, Motor1->bike.r.y);
+                }
+#endif
             }
 
             if (!Single && !meghalt2) {
@@ -598,6 +627,10 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
         // Vizsgalat kilepesre:
         if (is_key_down(DIK_ESCAPE) || is_key_down(State->key_escape_alias)) {
+#ifdef ESP32_BADGE
+            ESP_LOGI(LEJATSZO_TAG, "ESC pressed, exiting level (escape=%d, alias=%d)",
+                     is_key_down(DIK_ESCAPE), is_key_down(State->key_escape_alias));
+#endif
             MeghalteloszorAB = 0;
             double eltelido = stopwatch();
             // Motor hangjat kikapcsolja:
@@ -610,6 +643,7 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
             double tpl = double(l) / eltelido;
             tpl *= STOPWATCH_MULTIPLIER * 1000.0;
             int framerate = (int)(tpl);
+#ifndef ESP32_BADGE
             if (std::filesystem::exists("f_rate.inf")) {
                 // igyhagyni fopen-t!:
                 FILE* h = fopen("f_rate.inf", "w");
@@ -619,6 +653,7 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
                 fprintf(h, "%d", framerate);
                 fclose(h);
             }
+#endif
             Ptop->unflip_objects();
             Rec1->encode_frame_count();
             Rec2->encode_frame_count();
@@ -966,6 +1001,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
             double tpl = double(l) / eltelido;
             tpl *= STOPWATCH_MULTIPLIER * 1000.0;
             int framerate = (int)(tpl);
+#ifndef ESP32_BADGE
             if (std::filesystem::exists("f_rate.inf")) {
                 // igyhagyni fopen-t!:
                 FILE* h = fopen("f_rate.inf", "w");
@@ -975,6 +1011,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
                 fprintf(h, "%d", framerate);
                 fclose(h);
             }
+#endif
             // Hang kikapcsolas:
             set_motor_frequency(true, 1.0, 0);
             set_motor_frequency(false, 1.0, 0);
@@ -996,6 +1033,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 }
 
 // Sets the path of VideoOutputDirectory to "./renders/{replay_stem}/"
+#ifndef ESP32_BADGE
 void setup_render_directory(const std::string& replay_filename) {
     std::filesystem::path p(replay_filename);
     std::string stem = p.stem().string();
@@ -1067,3 +1105,4 @@ void render_replay(const char* level_filename) {
     VideoRecordingMode = false;
     Ptop->unflip_objects();
 }
+#endif // ESP32_BADGE

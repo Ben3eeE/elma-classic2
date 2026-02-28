@@ -1,5 +1,7 @@
 #include "lgr.h"
+#ifndef ESP32_BADGE
 #include "editor_dialog.h"
+#endif
 #include "EDITUJ.H"
 #include "affine_pic.h"
 #include "anim.h"
@@ -21,11 +23,15 @@
 #include "debug/profiler.h"
 #include <algorithm>
 #include <cstring>
+#ifndef ESP32_BADGE
 #include <filesystem>
+#endif
 #include <vector>
 
 constexpr int MAGIC_NUMBER = 187565543;
 
+#ifndef ESP32_BADGE
+// On ESP32, these globals and functions are provided by lgr_esp32.cpp
 lgrfile* Lgr = nullptr;
 static char CurrentLgrName[30] = "";
 
@@ -141,6 +147,7 @@ void lgrfile::load_lgr_file(const char* lgr_name) {
 
     external_error("Could not open file lgr/default.lgr!");
 }
+#endif // ESP32_BADGE
 
 static void bike_slice(pic8* bike, affine_pic** ret, bike_box* bbox) {
     pic8* slice = new pic8(bbox->x2 - bbox->x1 + 1, bbox->y2 - bbox->y1 + 1);

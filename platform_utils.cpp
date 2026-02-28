@@ -1,4 +1,4 @@
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(ESP32_BADGE)
 #include <cassert>
 #include <cstring>
 #include <string>

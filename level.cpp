@@ -436,6 +436,7 @@ int access_level_file(const char* filename) {
     return access(tmp, 0);
 }
 
+#ifndef ESP32_BADGE
 char BestTime[30] = "";
 
 void load_best_time(const char* filename, int single) {
@@ -472,6 +473,7 @@ void load_best_time(const char* filename, int single) {
         BestTime[0] = 0;
     }
 }
+#endif // ESP32_BADGE
 
 static char InternalLevelLgrs[INTERNAL_LEVEL_COUNT + 1][10]; // 1-indexed
 static char StrlwrBuffer[50] = "";
