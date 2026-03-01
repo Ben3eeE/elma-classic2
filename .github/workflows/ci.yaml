@@ -151,6 +151,9 @@ jobs:
       - name: Build
         run: meson compile -C build
 
+      - name: Test
+        run: meson test -C build
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
