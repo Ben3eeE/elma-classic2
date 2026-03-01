@@ -31,7 +31,7 @@ bool VideoRecordingMode = false;
 int VideoFrameIndex = 0;
 std::string VideoOutputDirectory;
 
-static int Kajakell;
+int Kajakell;
 
 static void update_freecam(double dt, camera& current_camera) {
     double speed = 30.0;
@@ -55,11 +55,6 @@ static void update_freecam(double dt, camera& current_camera) {
     current_camera.x = std::clamp(current_camera.x, current_camera.min_x, current_camera.max_x);
     current_camera.y = std::clamp(current_camera.y, current_camera.min_y, current_camera.max_y);
 }
-
-struct viewtimest {
-    int viewkinplay, viewkinreplay;
-    int timekinplay, timekinreplay;
-};
 
 static void initsoundlejatszoban(void) {
     static int Hangmarmegy = 0;
@@ -136,8 +131,8 @@ static double baljobbszamol(double eltelt, int hatra) {
 // static int Marvoltgaz = 0;
 
 // Ide csak *pmeghalt == 0-val erkezhet
-static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
-                      long* pmegvanido, int* pmeghalt, double eddig, double dt) {
+void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
+               long* pmegvanido, int* pmeghalt, double eddig, double dt) {
     // Ugras elintezese:
     int ugrik1 = 0, ugrik2 = 0;
     if (eddig > pvalt->utolsougras + VoltDelay) {
@@ -298,8 +293,8 @@ static void baljobbelintez(baljobbvaltozok* pvalt, recorder* prec, double eddig,
     pvalt->baljobb = baljobbszamol(eddig - pvalt->ucsoford, hatra);
 }
 
-static void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
-                      viewtimest* pvt, double eddig, int* pmasikshow, int meghalt) {
+void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
+               viewtimest* pvt, double eddig, int* pmasikshow, int meghalt) {
     toggleresz(popciok, pvalt, &pvt->viewkinplay, &pvt->timekinplay, pmasikshow);
 
     // Hatra fordulas elintezes:

@@ -2,6 +2,7 @@
 #define LEJATSZO_H
 
 #include "recorder.h"
+#include "state.h"
 #include <string>
 
 // Jatek modja ket fele lehet:
@@ -57,6 +58,18 @@ struct valtozok {
 
     baljobbvaltozok baljobbv_f, baljobbv_h;
 };
+
+struct viewtimest {
+    int viewkinplay, viewkinreplay;
+    int timekinplay, timekinreplay;
+};
+
+extern int Kajakell;
+
+void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
+               long* pmegvanido, int* pmeghalt, double eddig, double dt);
+void kulsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, recorder* prec,
+               viewtimest* pvt, double eddig, int* pmasikshow, int meghalt);
 
 // lejatszo ezt beallitja: 0 -> nem kell kiirni, 1 -> A eloszor, 2 -> B
 // csak akkor A vagy B eloszor, ha mindketten meghaltak, tehat
