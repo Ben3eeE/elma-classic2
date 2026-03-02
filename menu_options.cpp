@@ -158,6 +158,76 @@ static void menu_gameplay() {
     }
 }
 
+static void menu_graphics() {
+    int choice = 0;
+    while (true) {
+        menu_nav nav("Graphics");
+        nav.select_row(choice);
+        nav.x_left = 0;
+        nav.x_right = 390;
+
+        nav.add_row(
+            "Video Detail:", State->high_quality ? "High" : "Low", NAV_FUNC() {
+                State->high_quality = !State->high_quality;
+                invalidate_level();
+            });
+
+        nav.add_row(
+            "Zoom:", std::format("{:.2f}", EolSettings->zoom()), NAV_FUNC() {
+                double old_zoom = EolSettings->zoom();
+                EolSettings->set_zoom(old_zoom + 0.25);
+                if (old_zoom == EolSettings->zoom()) {
+                    EolSettings->set_zoom(0.25);
+                }
+            });
+
+        BOOL_OPTION("Zoom Textures:", zoom_textures);
+
+        nav.add_row(
+            "Pics In Background:", EolSettings->pictures_in_background() ? "Yes" : "No",
+            NAV_FUNC() {
+                EolSettings->set_pictures_in_background(!EolSettings->pictures_in_background());
+                invalidate_level();
+            });
+
+        nav.add_row(
+            "Animated Objects:", State->animated_objects ? "Yes" : "No",
+            NAV_FUNC() { State->animated_objects = !State->animated_objects; });
+
+        BOOL_OPTION("Still Objects:", still_objects);
+
+        BOOL_OPTION("Centered Camera:", center_camera);
+
+        nav.add_row("Default LGR:", EolSettings->default_lgr_name(), NAV_FUNC() { menu_lgr(); });
+
+        nav.add_row(
+            "Swap Bikes:", State->player1_bike1 ? "No" : "Yes",
+            NAV_FUNC() { State->player1_bike1 = !State->player1_bike1; });
+
+        nav.add_row(
+            "Turn Time:",
+            [] {
+                if (EolSettings->turn_time() == 0.0) {
+                    return std::string("Instant");
+                }
+                return std::format("{:.2f}s", EolSettings->turn_time());
+            }(),
+            NAV_FUNC() {
+                double old_turn_time = EolSettings->turn_time();
+                double new_turn_time = std::round((old_turn_time - 0.10) * 100.0) / 100.0;
+                EolSettings->set_turn_time(new_turn_time);
+                if (old_turn_time == EolSettings->turn_time()) {
+                    EolSettings->set_turn_time(0.35);
+                }
+            });
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+    }
+}
+
 void menu_options() {
     int choice = 0;
     while (true) {
@@ -169,37 +239,10 @@ void menu_options() {
         nav.dy = 36;
 
         nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
-
-        nav.add_row(
-            "Animated Menus:", State->animated_menus ? "Yes" : "No",
-            NAV_FUNC() { State->animated_menus = !State->animated_menus; });
-
-        nav.add_row(
-            "Video Detail:", State->high_quality ? "High" : "Low", NAV_FUNC() {
-                State->high_quality = !State->high_quality;
-                invalidate_level();
-            });
-
-        nav.add_row(
-            "Animated Objects:", State->animated_objects ? "Yes" : "No",
-            NAV_FUNC() { State->animated_objects = !State->animated_objects; });
-
-        BOOL_OPTION("Still Objects:", still_objects);
-
-        nav.add_row(
-            "Swap Bikes:", State->player1_bike1 ? "No" : "Yes",
-            NAV_FUNC() { State->player1_bike1 = !State->player1_bike1; });
+        nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
 
         nav.add_row("Customize Controls ...", NAV_FUNC() { menu_customize_controls(); });
 
-        nav.add_row(
-            "Pics In Background:", EolSettings->pictures_in_background() ? "Yes" : "No",
-            NAV_FUNC() {
-                EolSettings->set_pictures_in_background(!EolSettings->pictures_in_background());
-                invalidate_level();
-            });
-
-        BOOL_OPTION("Centered Camera:", center_camera);
         BOOL_OPTION("Centered Minimap:", center_map);
 
         nav.add_row(
@@ -261,20 +304,6 @@ void menu_options() {
             });
 
         nav.add_row(
-            "Resolution:",
-            std::format("{}x{}", EolSettings->screen_width(), EolSettings->screen_height()),
-            NAV_FUNC() { menu_resolution(); });
-
-        nav.add_row(
-            "Zoom:", std::format("{:.2f}", EolSettings->zoom()), NAV_FUNC() {
-                double old_zoom = EolSettings->zoom();
-                EolSettings->set_zoom(old_zoom + 0.25);
-                if (old_zoom == EolSettings->zoom()) {
-                    EolSettings->set_zoom(0.25);
-                }
-            });
-
-        nav.add_row(
             "Minimap Zoom:", std::format("{:.2f}", EolSettings->minimap_zoom()), NAV_FUNC() {
                 double old_zoom = EolSettings->minimap_zoom();
                 EolSettings->set_minimap_zoom(old_zoom + 0.25);
@@ -283,7 +312,10 @@ void menu_options() {
                 }
             });
 
-        BOOL_OPTION("Zoom Textures:", zoom_textures);
+        nav.add_row(
+            "Resolution:",
+            std::format("{}x{}", EolSettings->screen_width(), EolSettings->screen_height()),
+            NAV_FUNC() { menu_resolution(); });
 
         nav.add_row(
             "Renderer:",
@@ -308,26 +340,10 @@ void menu_options() {
             });
 
         nav.add_row(
-            "Turn Time:",
-            [] {
-                if (EolSettings->turn_time() == 0.0) {
-                    return std::string("Instant");
-                } else {
-                    return std::format("{:.2f}s", EolSettings->turn_time());
-                }
-            }(),
-            NAV_FUNC() {
-                double old_turn_time = EolSettings->turn_time();
-                double new_turn_time = std::round((old_turn_time - 0.10) * 100.0) / 100.0;
-                EolSettings->set_turn_time(new_turn_time);
-                if (old_turn_time == EolSettings->turn_time()) {
-                    EolSettings->set_turn_time(0.35);
-                }
-            });
+            "Animated Menus:", State->animated_menus ? "Yes" : "No",
+            NAV_FUNC() { State->animated_menus = !State->animated_menus; });
 
         BOOL_OPTION("LCtrl search:", lctrl_search);
-
-        nav.add_row("Default LGR:", EolSettings->default_lgr_name(), NAV_FUNC() { menu_lgr(); });
 
         BOOL_OPTION("Show Apple Time:", show_last_apple_time);
 
