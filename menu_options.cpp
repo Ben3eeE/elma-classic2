@@ -342,27 +342,42 @@ static void menu_overlay() {
     }
 }
 
+static void menu_menu_settings() {
+    int choice = 0;
+    while (true) {
+        menu_nav nav("Menu");
+        nav.select_row(choice);
+        nav.x_left = 0;
+        nav.x_right = 390;
+
+        nav.add_row(
+            "Animated Menus:", State->animated_menus ? "Yes" : "No",
+            NAV_FUNC() { State->animated_menus = !State->animated_menus; });
+
+        BOOL_OPTION("Demo menu:", show_demo_menu);
+        BOOL_OPTION("Help menu:", show_help_menu);
+        BOOL_OPTION("Best Times menu:", show_best_times_menu);
+        BOOL_OPTION("LCtrl search:", lctrl_search);
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+    }
+}
+
 void menu_options() {
     int choice = 0;
     while (true) {
         menu_nav nav("Options");
         nav.select_row(choice);
-        nav.x_left = 0;
-        nav.x_right = 390;
-        nav.y_entries = 77;
-        nav.dy = 36;
 
         nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
         nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
         nav.add_row("Display", NAV_FUNC() { menu_display(); });
         nav.add_row("Controls", NAV_FUNC() { menu_customize_controls(); });
         nav.add_row("Overlay", NAV_FUNC() { menu_overlay(); });
-
-        nav.add_row(
-            "Animated Menus:", State->animated_menus ? "Yes" : "No",
-            NAV_FUNC() { State->animated_menus = !State->animated_menus; });
-
-        BOOL_OPTION("LCtrl search:", lctrl_search);
+        nav.add_row("Menu", NAV_FUNC() { menu_menu_settings(); });
 
         nav.add_row(
             "Record Replay FPS:", std::to_string(EolSettings->recording_fps()), NAV_FUNC() {
@@ -377,10 +392,6 @@ void menu_options() {
                 }
                 EolSettings->set_recording_fps(new_fps);
             });
-
-        BOOL_OPTION("Demo menu:", show_demo_menu);
-        BOOL_OPTION("Help menu:", show_help_menu);
-        BOOL_OPTION("Best Times menu:", show_best_times_menu);
 
         choice = nav.navigate();
 
