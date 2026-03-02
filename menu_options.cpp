@@ -221,11 +221,8 @@ static void menu_graphics() {
 
         nav.add_row(
             "Zoom:", std::format("{:.2f}", EolSettings->zoom()), NAV_FUNC() {
-                double old_zoom = EolSettings->zoom();
-                EolSettings->set_zoom(old_zoom + 0.25);
-                if (old_zoom == EolSettings->zoom()) {
-                    EolSettings->set_zoom(0.25);
-                }
+                menu_zoom_picker("Pick a zoom level!", EolSettings->zoom(),
+                                 [](double z) { EolSettings->set_zoom(z); });
             });
 
         BOOL_OPTION("Zoom Textures:", zoom_textures);
