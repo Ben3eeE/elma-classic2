@@ -59,6 +59,7 @@ class menu_nav {
         add_row(left, "", handler);
     }
     void add_header(std::string text);
+    void add_spacer();
     void add_overlay(std::string text, int x, int y,
                      OverlayAlignment alignment = OverlayAlignment::Left);
     void sort_rows();

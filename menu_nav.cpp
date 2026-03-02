@@ -37,6 +37,8 @@ void menu_nav::add_header(std::string text) {
     entries.push_back(std::move(row));
 }
 
+void menu_nav::add_spacer() { add_header(""); }
+
 void menu_nav::add_overlay(std::string text, int x, int y, OverlayAlignment alignment) {
     overlays.emplace_back(std::move(text), x, y, alignment);
 }

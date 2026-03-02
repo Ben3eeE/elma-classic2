@@ -143,6 +143,7 @@ void menu_options() {
         BOOL_OPTION("Access all internals:", all_internals_accessible);
 
         // Graphics
+        nav.add_spacer();
         nav.add_header("Graphics");
 
         nav.add_row(
@@ -202,6 +203,7 @@ void menu_options() {
             });
 
         // Display
+        nav.add_spacer();
         nav.add_header("Display");
 
         nav.add_row(
@@ -232,11 +234,13 @@ void menu_options() {
             });
 
         // Controls
+        nav.add_spacer();
         nav.add_header("Controls");
 
         nav.add_row("Customize Controls ...", NAV_FUNC() { menu_customize_controls(); });
 
         // Overlay
+        nav.add_spacer();
         nav.add_header("Overlay");
 
         BOOL_OPTION("Centered Minimap:", center_map);
@@ -311,6 +315,7 @@ void menu_options() {
         BOOL_OPTION("Show Apple Time:", show_last_apple_time);
 
         // Other
+        nav.add_spacer();
         nav.add_header("Other");
 
         nav.add_row(
