@@ -104,6 +104,34 @@ static void menu_resolution() {
     nav.navigate();
 }
 
+struct minimap_size {
+    int width;
+    int height;
+};
+
+static constexpr minimap_size MINIMAP_SIZES[] = {
+    {140, 70}, {180, 90}, {220, 110}, {280, 140}, {350, 175}, {420, 210},
+};
+
+static void menu_minimap_size() {
+    menu_nav nav("Pick a minimap size!");
+
+    for (const auto& size : MINIMAP_SIZES) {
+        std::string label = std::format("{}x{}", size.width, size.height);
+        nav.add_row(
+            label, NAV_FUNC(&size) {
+                EolSettings->set_minimap_width(size.width);
+                EolSettings->set_minimap_height(size.height);
+            });
+    }
+
+    std::string current =
+        std::format("{}x{}", EolSettings->minimap_width(), EolSettings->minimap_height());
+    nav.select_row(current);
+
+    nav.navigate();
+}
+
 #define BOOL_OPTION(text, setting)                                                                 \
     nav.add_row(                                                                                   \
         text, EolSettings->setting() ? "Yes" : "No",                                               \
@@ -315,28 +343,7 @@ static void menu_overlay() {
         nav.add_row(
             "Minimap Size:",
             std::format("{}x{}", EolSettings->minimap_width(), EolSettings->minimap_height()),
-            NAV_FUNC() {
-                int w = EolSettings->minimap_width();
-                if (w == 140) {
-                    EolSettings->set_minimap_width(180);
-                    EolSettings->set_minimap_height(90);
-                } else if (w == 180) {
-                    EolSettings->set_minimap_width(220);
-                    EolSettings->set_minimap_height(110);
-                } else if (w == 220) {
-                    EolSettings->set_minimap_width(280);
-                    EolSettings->set_minimap_height(140);
-                } else if (w == 280) {
-                    EolSettings->set_minimap_width(350);
-                    EolSettings->set_minimap_height(175);
-                } else if (w == 350) {
-                    EolSettings->set_minimap_width(420);
-                    EolSettings->set_minimap_height(210);
-                } else {
-                    EolSettings->set_minimap_width(140);
-                    EolSettings->set_minimap_height(70);
-                }
-            });
+            NAV_FUNC() { menu_minimap_size(); });
 
         nav.add_row(
             "Minimap Zoom:", std::format("{:.2f}", EolSettings->minimap_zoom()), NAV_FUNC() {
