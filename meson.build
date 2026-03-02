@@ -122,3 +122,41 @@ executable(
     dependencies: [nlohmann_json_dep, gl_dep, sdl2_dep],
     win_subsystem: win_subsystem,
 )
+
+test_sources = files(
+    'physics_init.cpp',
+    'physics_move.cpp',
+    'physics_collision.cpp',
+    'physics_forces.cpp',
+    'pic8.cpp',
+    'level.cpp',
+    'segments.cpp',
+    'object.cpp',
+    'polygon.cpp',
+    'sprite.cpp',
+    'recorder.cpp',
+    'flagtag.cpp',
+    'LEJATSZO.CPP',
+    'vect2.cpp',
+    'platform_utils.cpp',
+    'fs_utils.cpp',
+    'qopen.cpp',
+    'eol_settings.cpp',
+    # Headless stubs
+    'src/test/platform_headless.cpp',
+    'src/test/sound_engine_headless.cpp',
+    # Test harness
+    'src/test/test_globals.cpp',
+    'src/test/test_replay.cpp',
+    'src/test/test_main.cpp',
+)
+
+elma_physics_test = executable('elma_physics_test', test_sources,
+    include_directories: inc,
+    cpp_args: cpp_args,
+    dependencies: [nlohmann_json_dep],
+)
+
+test('elma_physics_test', elma_physics_test,
+    workdir: meson.project_source_root() / 'src' / 'test',
+)
