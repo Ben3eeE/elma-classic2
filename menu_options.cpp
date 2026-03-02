@@ -214,6 +214,48 @@ static void menu_graphics() {
     }
 }
 
+static void menu_display() {
+    int choice = 0;
+    while (true) {
+        menu_nav nav("Display");
+        nav.select_row(choice);
+        nav.x_left = 0;
+        nav.x_right = 390;
+
+        nav.add_row(
+            "Resolution:",
+            std::format("{}x{}", EolSettings->screen_width(), EolSettings->screen_height()),
+            NAV_FUNC() { menu_resolution(); });
+
+        nav.add_row(
+            "Renderer:",
+            [] {
+                switch (EolSettings->renderer()) {
+                case RendererType::Software:
+                    return "Software";
+                case RendererType::OpenGL:
+                    return "OpenGL";
+                }
+                return "";
+            }(),
+            NAV_FUNC() {
+                switch (EolSettings->renderer()) {
+                case RendererType::Software:
+                    EolSettings->set_renderer(RendererType::OpenGL);
+                    return;
+                case RendererType::OpenGL:
+                    EolSettings->set_renderer(RendererType::Software);
+                    return;
+                }
+            });
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+    }
+}
+
 void menu_options() {
     int choice = 0;
     while (true) {
@@ -226,8 +268,13 @@ void menu_options() {
 
         nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
         nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
+        nav.add_row("Display", NAV_FUNC() { menu_display(); });
 
         nav.add_row("Customize Controls ...", NAV_FUNC() { menu_customize_controls(); });
+
+        nav.add_row(
+            "Animated Menus:", State->animated_menus ? "Yes" : "No",
+            NAV_FUNC() { State->animated_menus = !State->animated_menus; });
 
         BOOL_OPTION("Centered Minimap:", center_map);
 
@@ -299,35 +346,9 @@ void menu_options() {
             });
 
         nav.add_row(
-            "Resolution:",
-            std::format("{}x{}", EolSettings->screen_width(), EolSettings->screen_height()),
-            NAV_FUNC() { menu_resolution(); });
-
-        nav.add_row(
-            "Renderer:",
-            [] {
-                switch (EolSettings->renderer()) {
-                case RendererType::Software:
-                    return "Software";
-                case RendererType::OpenGL:
-                    return "OpenGL";
-                }
-                return "";
-            }(),
-            NAV_FUNC() {
-                switch (EolSettings->renderer()) {
-                case RendererType::Software:
-                    EolSettings->set_renderer(RendererType::OpenGL);
-                    return;
-                case RendererType::OpenGL:
-                    EolSettings->set_renderer(RendererType::Software);
-                    return;
-                }
-            });
-
-        nav.add_row(
             "Animated Menus:", State->animated_menus ? "Yes" : "No",
             NAV_FUNC() { State->animated_menus = !State->animated_menus; });
+
 
         BOOL_OPTION("LCtrl search:", lctrl_search);
 
