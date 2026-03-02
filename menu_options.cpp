@@ -366,18 +366,13 @@ static void menu_menu_settings() {
     }
 }
 
-void menu_options() {
+static void menu_other() {
     int choice = 0;
     while (true) {
-        menu_nav nav("Options");
+        menu_nav nav("Other");
         nav.select_row(choice);
-
-        nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
-        nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
-        nav.add_row("Display", NAV_FUNC() { menu_display(); });
-        nav.add_row("Controls", NAV_FUNC() { menu_customize_controls(); });
-        nav.add_row("Overlay", NAV_FUNC() { menu_overlay(); });
-        nav.add_row("Menu", NAV_FUNC() { menu_menu_settings(); });
+        nav.x_left = 0;
+        nav.x_right = 390;
 
         nav.add_row(
             "Record Replay FPS:", std::to_string(EolSettings->recording_fps()), NAV_FUNC() {
@@ -392,6 +387,27 @@ void menu_options() {
                 }
                 EolSettings->set_recording_fps(new_fps);
             });
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+    }
+}
+
+void menu_options() {
+    int choice = 0;
+    while (true) {
+        menu_nav nav("Options");
+        nav.select_row(choice);
+
+        nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
+        nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
+        nav.add_row("Display", NAV_FUNC() { menu_display(); });
+        nav.add_row("Controls", NAV_FUNC() { menu_customize_controls(); });
+        nav.add_row("Overlay", NAV_FUNC() { menu_overlay(); });
+        nav.add_row("Menu", NAV_FUNC() { menu_menu_settings(); });
+        nav.add_row("Other", NAV_FUNC() { menu_other(); });
 
         choice = nav.navigate();
 
