@@ -132,6 +132,25 @@ static void menu_minimap_size() {
     nav.navigate();
 }
 
+static constexpr double MINIMAP_ZOOMS[] = {
+    0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 3.00,
+};
+
+static void menu_minimap_zoom() {
+    menu_nav nav("Pick a minimap zoom!");
+
+    for (const auto& zoom : MINIMAP_ZOOMS) {
+        std::string label = std::format("{:.2f}", zoom);
+        nav.add_row(
+            label, NAV_FUNC(&zoom) { EolSettings->set_minimap_zoom(zoom); });
+    }
+
+    std::string current = std::format("{:.2f}", EolSettings->minimap_zoom());
+    nav.select_row(current);
+
+    nav.navigate();
+}
+
 #define BOOL_OPTION(text, setting)                                                                 \
     nav.add_row(                                                                                   \
         text, EolSettings->setting() ? "Yes" : "No",                                               \
@@ -346,13 +365,8 @@ static void menu_overlay() {
             NAV_FUNC() { menu_minimap_size(); });
 
         nav.add_row(
-            "Minimap Zoom:", std::format("{:.2f}", EolSettings->minimap_zoom()), NAV_FUNC() {
-                double old_zoom = EolSettings->minimap_zoom();
-                EolSettings->set_minimap_zoom(old_zoom + 0.25);
-                if (old_zoom == EolSettings->minimap_zoom()) {
-                    EolSettings->set_minimap_zoom(0.25);
-                }
-            });
+            "Minimap Zoom:", std::format("{:.2f}", EolSettings->minimap_zoom()),
+            NAV_FUNC() { menu_minimap_zoom(); });
 
         BOOL_OPTION("Show Apple Time:", show_last_apple_time);
 
