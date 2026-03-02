@@ -3,17 +3,13 @@
 #include "fs_utils.h"
 #include "JATEKOS.H"
 #include "level_load.h"
-#include "M_PIC.H"
 #include "menu_controls.h"
 #include "menu_nav.h"
 #include "menu_pic.h"
-#include "platform_utils.h"
 #include "state.h"
-#include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <format>
-#include <vector>
 
 void menu_help() {
     menu_pic menu;
