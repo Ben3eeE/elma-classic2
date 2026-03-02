@@ -109,15 +109,13 @@ static void menu_resolution() {
         text, EolSettings->setting() ? "Yes" : "No",                                               \
         NAV_FUNC() { EolSettings->set_##setting(!EolSettings->setting()); });
 
-void menu_options() {
+static void menu_gameplay() {
     int choice = 0;
     while (true) {
-        menu_nav nav("Options");
+        menu_nav nav("Gameplay");
         nav.select_row(choice);
         nav.x_left = 0;
         nav.x_right = 390;
-        nav.y_entries = 77;
-        nav.dy = 36;
 
         nav.add_row(
             "Play mode:", State->single ? "Single Player" : "Multiplayer",
@@ -137,6 +135,41 @@ void menu_options() {
             "Sound:", State->sound_on ? "Enabled" : "Disabled",
             NAV_FUNC() { State->sound_on = !State->sound_on; });
 
+        BOOL_OPTION("Access all internals:", all_internals_accessible);
+
+        nav.add_row(
+            "Record Replay FPS:", std::to_string(EolSettings->recording_fps()), NAV_FUNC() {
+                int old_fps = EolSettings->recording_fps();
+                int new_fps;
+                if (old_fps == 30) {
+                    new_fps = 60;
+                } else if (old_fps == 60) {
+                    new_fps = 120;
+                } else {
+                    new_fps = 30;
+                }
+                EolSettings->set_recording_fps(new_fps);
+            });
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+    }
+}
+
+void menu_options() {
+    int choice = 0;
+    while (true) {
+        menu_nav nav("Options");
+        nav.select_row(choice);
+        nav.x_left = 0;
+        nav.x_right = 390;
+        nav.y_entries = 77;
+        nav.dy = 36;
+
+        nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
+
         nav.add_row(
             "Animated Menus:", State->animated_menus ? "Yes" : "No",
             NAV_FUNC() { State->animated_menus = !State->animated_menus; });
@@ -152,8 +185,6 @@ void menu_options() {
             NAV_FUNC() { State->animated_objects = !State->animated_objects; });
 
         BOOL_OPTION("Still Objects:", still_objects);
-
-        BOOL_OPTION("Access all internals:", all_internals_accessible);
 
         nav.add_row(
             "Swap Bikes:", State->player1_bike1 ? "No" : "Yes",
@@ -299,20 +330,6 @@ void menu_options() {
         nav.add_row("Default LGR:", EolSettings->default_lgr_name(), NAV_FUNC() { menu_lgr(); });
 
         BOOL_OPTION("Show Apple Time:", show_last_apple_time);
-
-        nav.add_row(
-            "Record Replay FPS:", std::to_string(EolSettings->recording_fps()), NAV_FUNC() {
-                int old_fps = EolSettings->recording_fps();
-                int new_fps;
-                if (old_fps == 30) {
-                    new_fps = 60;
-                } else if (old_fps == 60) {
-                    new_fps = 120;
-                } else {
-                    new_fps = 30;
-                }
-                EolSettings->set_recording_fps(new_fps);
-            });
 
         BOOL_OPTION("Demo menu:", show_demo_menu);
         BOOL_OPTION("Help menu:", show_help_menu);
