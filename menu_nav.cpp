@@ -30,6 +30,13 @@ void menu_nav::add_row(std::string left, std::string right, nav_func handler) {
     entries.emplace_back(std::move(left), std::move(right), std::move(handler));
 }
 
+void menu_nav::add_header(std::string text) {
+    nav_row row;
+    row.text_left = std::move(text);
+    row.is_header = true;
+    entries.push_back(std::move(row));
+}
+
 void menu_nav::add_overlay(std::string text, int x, int y, OverlayAlignment alignment) {
     overlays.emplace_back(std::move(text), x, y, alignment);
 }
@@ -58,6 +65,23 @@ int menu_nav::calculate_visible_entries() {
     return max_visible_entries;
 }
 
+// Skip past header rows in the given direction. Returns the adjusted index.
+static int skip_headers(const std::vector<nav_row>& entries, int index, int direction) {
+    int count = (int)entries.size();
+    while (index >= 0 && index < count && entries[index].is_header) {
+        index += direction;
+    }
+    // If we went out of bounds, reverse direction to find nearest non-header
+    if (index < 0 || index >= count) {
+        index = std::clamp(index, 0, count - 1);
+        int reverse = -direction;
+        while (index >= 0 && index < count && entries[index].is_header) {
+            index += reverse;
+        }
+    }
+    return std::clamp(index, 0, count - 1);
+}
+
 // Render menu and return selected index (or -1 if Esc)
 int menu_nav::prompt_choice(bool render_only) {
     if (row_count() < 1) {
@@ -66,8 +90,9 @@ int menu_nav::prompt_choice(bool render_only) {
 
     search_input.clear();
 
-    // Bound current selection
+    // Bound current selection and skip past any leading headers
     selected_index = std::min(selected_index, (int)row_count() - 1);
+    selected_index = skip_headers(entries, selected_index, 1);
 
     int max_visible_entries = calculate_visible_entries();
 
@@ -100,8 +125,11 @@ int menu_nav::prompt_choice(bool render_only) {
                 }
             }
             if (was_key_just_pressed(DIK_RETURN)) {
-                return selected_index;
+                if (!entries[selected_index].is_header) {
+                    return selected_index;
+                }
             }
+            int prev_index = selected_index;
             if (was_key_down(DIK_UP)) {
                 selected_index--;
             }
@@ -117,6 +145,13 @@ int menu_nav::prompt_choice(bool render_only) {
             int wheel = get_mouse_wheel_delta();
             if (wheel != 0) {
                 selected_index -= wheel;
+            }
+            // Skip header rows after movement
+            if (selected_index != prev_index) {
+                int direction = selected_index > prev_index ? 1 : -1;
+                selected_index = std::max(selected_index, 0);
+                selected_index = std::min(selected_index, (int)row_count() - 1);
+                selected_index = skip_headers(entries, selected_index, direction);
             }
         }
 
@@ -168,13 +203,18 @@ int menu_nav::prompt_choice(bool render_only) {
 
             // Only the visible menu entries
             for (int i = 0; i < max_visible_entries && i < row_count() - view_index; i++) {
-                menu->add_line(entries[view_index + i].text_left, x_left, y_entries + i * dy);
-            }
-            for (int i = 0; i < max_visible_entries && i < row_count() - view_index; i++) {
-                menu->add_line(entries[view_index + i].text_right, x_right, y_entries + i * dy);
+                const nav_row& row = entries[view_index + i];
+                if (row.is_header) {
+                    menu->add_line_centered(row.text_left, 320, y_entries + i * dy);
+                } else {
+                    menu->add_line(row.text_left, x_left, y_entries + i * dy);
+                    menu->add_line(row.text_right, x_right, y_entries + i * dy);
+                }
             }
         }
-        menu->set_helmet(x_left - 30, y_entries + (selected_index - view_index) * dy);
+        if (!entries[selected_index].is_header) {
+            menu->set_helmet(x_left - 30, y_entries + (selected_index - view_index) * dy);
+        }
         menu->render();
         if (render_only) {
             return -1;

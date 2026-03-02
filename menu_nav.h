@@ -18,6 +18,7 @@ struct nav_row {
     std::string text_left;
     std::string text_right;
     nav_func handler;
+    bool is_header = false;
 };
 
 enum class OverlayAlignment {
@@ -57,6 +58,7 @@ class menu_nav {
     void add_row(const std::string& left, const nav_func& handler = nullptr) {
         add_row(left, "", handler);
     }
+    void add_header(std::string text);
     void add_overlay(std::string text, int x, int y,
                      OverlayAlignment alignment = OverlayAlignment::Left);
     void sort_rows();
