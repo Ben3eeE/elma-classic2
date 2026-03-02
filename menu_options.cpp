@@ -270,25 +270,13 @@ static void menu_display() {
     }
 }
 
-void menu_options() {
+static void menu_overlay() {
     int choice = 0;
     while (true) {
-        menu_nav nav("Options");
+        menu_nav nav("Overlay");
         nav.select_row(choice);
         nav.x_left = 0;
         nav.x_right = 390;
-        nav.y_entries = 77;
-        nav.dy = 36;
-
-        nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
-        nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
-        nav.add_row("Display", NAV_FUNC() { menu_display(); });
-
-        nav.add_row("Customize Controls ...", NAV_FUNC() { menu_customize_controls(); });
-
-        nav.add_row(
-            "Animated Menus:", State->animated_menus ? "Yes" : "No",
-            NAV_FUNC() { State->animated_menus = !State->animated_menus; });
 
         BOOL_OPTION("Centered Minimap:", center_map);
 
@@ -359,14 +347,36 @@ void menu_options() {
                 }
             });
 
+        BOOL_OPTION("Show Apple Time:", show_last_apple_time);
+
+        choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
+    }
+}
+
+void menu_options() {
+    int choice = 0;
+    while (true) {
+        menu_nav nav("Options");
+        nav.select_row(choice);
+        nav.x_left = 0;
+        nav.x_right = 390;
+        nav.y_entries = 77;
+        nav.dy = 36;
+
+        nav.add_row("Gameplay", NAV_FUNC() { menu_gameplay(); });
+        nav.add_row("Graphics", NAV_FUNC() { menu_graphics(); });
+        nav.add_row("Display", NAV_FUNC() { menu_display(); });
+        nav.add_row("Controls", NAV_FUNC() { menu_customize_controls(); });
+        nav.add_row("Overlay", NAV_FUNC() { menu_overlay(); });
+
         nav.add_row(
             "Animated Menus:", State->animated_menus ? "Yes" : "No",
             NAV_FUNC() { State->animated_menus = !State->animated_menus; });
 
-
         BOOL_OPTION("LCtrl search:", lctrl_search);
-
-        BOOL_OPTION("Show Apple Time:", show_last_apple_time);
 
         BOOL_OPTION("Demo menu:", show_demo_menu);
         BOOL_OPTION("Help menu:", show_help_menu);
