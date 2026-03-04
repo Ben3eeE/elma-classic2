@@ -226,6 +226,20 @@ void menu_options() {
             });
 
         nav.add_row(
+            "Minimap Opacity:", std::format("{}%", EolSettings->minimap_opacity()), NAV_FUNC() {
+                int opacity = EolSettings->minimap_opacity();
+                if (opacity == 25) {
+                    EolSettings->set_minimap_opacity(50);
+                } else if (opacity == 50) {
+                    EolSettings->set_minimap_opacity(75);
+                } else if (opacity == 75) {
+                    EolSettings->set_minimap_opacity(100);
+                } else {
+                    EolSettings->set_minimap_opacity(25);
+                }
+            });
+
+        nav.add_row(
             "Resolution:",
             std::format("{}x{}", EolSettings->screen_width(), EolSettings->screen_height()),
             NAV_FUNC() { menu_resolution(); });
