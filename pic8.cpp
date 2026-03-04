@@ -769,6 +769,53 @@ void blit8(pic8* dest, pic8* source, int x, int y) {
     blit8(dest, source, x, y, x1, y1, x2, y2);
 }
 
+// Blit source onto dest at (x, y) with 2x2 Bayer dithering.
+// Supported opacity values: 25, 50, or 75.
+void blit8_dither(pic8* dest, pic8* source, int x, int y, int opacity) {
+    const int src_w = source->get_width();
+    const int src_h = source->get_height();
+
+    constexpr int SKIP = 0;      // skip row (all source pixels kept by dest)
+    constexpr int MEMCPY = 1;    // memcpy entire row (all source pixels written)
+    constexpr int COPY_EVEN = 2; // copy at even columns
+    constexpr int COPY_ODD = 3;  // copy at odd columns
+
+    int action[2]; // action[row_parity]
+    switch (opacity) {
+    case 25:
+        action[0] = COPY_ODD;
+        action[1] = MEMCPY;
+        break;
+    case 50:
+        action[0] = COPY_ODD;
+        action[1] = COPY_EVEN;
+        break;
+    case 75:
+        action[0] = SKIP;
+        action[1] = COPY_EVEN;
+        break;
+    default:
+        internal_error("blit8_dither: unsupported opacity value");
+    }
+
+    for (int row = 0; row < src_h; row++) {
+        const int act = action[(y + row) & 1];
+        if (act == SKIP) {
+            continue;
+        }
+        unsigned char* dst_row = dest->get_row(y + row) + x;
+        unsigned char* src_row = source->get_row(row);
+        if (act == MEMCPY) {
+            memcpy(dst_row, src_row, src_w);
+            continue;
+        }
+        const int start = (act == COPY_ODD) ? 1 : 0;
+        for (int col = start; col < src_w; col += 2) {
+            dst_row[col] = src_row[col];
+        }
+    }
+}
+
 bool get_pcx_pal(const char* filename, unsigned char* pal) {
     FILE* h = qopen(filename, "rb");
     if (!h) {

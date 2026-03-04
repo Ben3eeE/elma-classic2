@@ -54,6 +54,7 @@ class pic8 {
 };
 
 void blit8(pic8* dest, pic8* source, int x = 0, int y = 0);
+void blit8_dither(pic8* dest, pic8* source, int x, int y, int opacity);
 
 bool get_pcx_pal(const char* filename, unsigned char* pal);
 bool get_pcx_pal(const char* filename, palette** pal);
