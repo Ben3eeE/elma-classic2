@@ -258,6 +258,24 @@ static void kiview(bool ajatekos, pic8* ppic, double baljobb, vect2 motorkozep, 
     int vy1 = 1;
     int vy2 = vy1 + Viewysize - 1;
 
+    int opacity = EolSettings->minimap_opacity();
+
+    // Save game scene pixels under the minimap area (including 1px border margin)
+    int save_x1 = vx1 - 1;
+    int save_y1 = vy1 - 1;
+    int save_x2 = vx2 + 1;
+    int save_y2 = vy2 + 1;
+    int save_w = save_x2 - save_x1 + 1;
+    int save_h = save_y2 - save_y1 + 1;
+    static pic8* save_pic = nullptr;
+    if (opacity < 100) {
+        if (!save_pic || save_pic->get_width() != save_w || save_pic->get_height() != save_h) {
+            delete save_pic;
+            save_pic = new pic8(save_w, save_h);
+        }
+        blit8(save_pic, ppic, 0, 0, save_x1, save_y1, save_x2, save_y2);
+    }
+
     CanvasMinimap->render_minimap(ajatekos, ppic, sarok, vx1, vy1, vx2, vy2);
 
     // Most kirajzoljuk food-okat:
@@ -332,6 +350,11 @@ static void kiview(bool ajatekos, pic8* ppic, double baljobb, vect2 motorkozep, 
     memset(sor, Lgr->minimap_border_palette_id, Viewxsize);
     sor = ppic->get_row(vy2) + vx1 + 1;
     memset(sor, Lgr->minimap_border_palette_id, Viewxsize);
+
+    // bring back pixels from the saved game scene based on opacity
+    if (opacity < 100) {
+        blit8_dither(ppic, save_pic, save_x1, save_y1, opacity);
+    }
 }
 
 // Mentes lemezre:

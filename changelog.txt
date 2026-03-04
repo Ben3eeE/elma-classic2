@@ -39,6 +39,7 @@
 * Internal editor allows Start object to be inside the ground
 * Improved lgr and level loading speeds
 * New setting to enable access to all internal levels without requiring them to be finished
+* Minimap opacity now can be configured from the options menu
 
 ## Minor Bug Fixes
 * Enforce lowercase LGR filenames to fix loading issues on case-sensitive filesystems
