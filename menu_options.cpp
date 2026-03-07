@@ -149,6 +149,8 @@ void menu_options() {
 
         BOOL_OPTION("Still Objects:", still_objects);
 
+        BOOL_OPTION("Disable Apple Bugs:", disable_apple_bugs);
+
         BOOL_OPTION("Access all internals:", all_internals_accessible);
 
         nav.add_row(
