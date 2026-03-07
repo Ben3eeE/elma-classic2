@@ -91,6 +91,7 @@ class eol_settings {
     Clamp<int> minimap_width_{140, 140, 420};
     Clamp<int> minimap_height_{70, 70, 210};
     Clamp<int> minimap_opacity_{25, 100, 100};
+    Default<bool> disable_apple_bugs_{false};
 
   public:
     static void read_settings();
@@ -136,6 +137,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(minimap_width);
     DECLARE_FIELD_FUNCS(minimap_height);
     DECLARE_FIELD_FUNCS(minimap_opacity);
+    DECLARE_FIELD_FUNCS(disable_apple_bugs);
 };
 
 #undef DECLARE_FIELD_FUNCS

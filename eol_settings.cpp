@@ -160,6 +160,8 @@ void eol_settings::set_minimap_height(int h) { minimap_height_ = h; }
 
 void eol_settings::set_minimap_opacity(int opacity) { minimap_opacity_ = opacity; }
 
+void eol_settings::set_disable_apple_bugs(bool disable) { disable_apple_bugs_ = disable; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -263,7 +265,8 @@ void from_json(const json& j, RendererType& r) {
     JSON_FIELD(show_total_time)                                                                    \
     JSON_FIELD(minimap_width)                                                                      \
     JSON_FIELD(minimap_height)                                                                     \
-    JSON_FIELD(minimap_opacity)
+    JSON_FIELD(minimap_opacity)                                                                    \
+    JSON_FIELD(disable_apple_bugs)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }
