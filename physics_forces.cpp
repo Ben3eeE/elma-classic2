@@ -1,5 +1,6 @@
 #include "physics_forces.h"
 #include "EDITUJ.H"
+#include "eol_settings.h"
 #include "level.h"
 #include "object.h"
 #include "physics_collision.h"
@@ -374,8 +375,16 @@ BikeState check_object_collision(motorst* mot) {
         object_indices[2] = get_touching_object(mot->head_r, HeadRadius);
         for (int i = 0; i < 3; i++) {
             if (object_indices[i] >= 0) {
-                add_event_buffer(WavEvent::None, 0.0, object_indices[i]);
                 object* obj = Ptop->get_object(object_indices[i]);
+
+                if (EolSettings->disable_apple_bugs()) {
+                    // Don't add objects already marked as inactive to the event buffer
+                    if (obj->type == object::Type::Food && !obj->active) {
+                        continue;
+                    }
+                }
+
+                add_event_buffer(WavEvent::None, 0.0, object_indices[i]);
                 if (obj->type == object::Type::Food) {
                     obj->active = false;
                     again = true;
