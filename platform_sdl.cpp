@@ -119,6 +119,11 @@ static void recalculate_viewport() {
             1.0f,
         };
     }
+
+    if (EolSettings->renderer() == RendererType::OpenGL && gl_is_initialized()) {
+        gl_set_viewport(native_w, native_h, CurrentViewport.offset_x, CurrentViewport.offset_y,
+                        CurrentViewport.scaled_w, CurrentViewport.scaled_h);
+    }
 }
 
 void platform_apply_fullscreen_mode() {

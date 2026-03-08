@@ -174,8 +174,6 @@ int gl_init(SDL_Window* sdl_window, int width, int height, int pitch) {
     glDisable(GL_CULL_FACE);
     glDisable(GL_DITHER);
 
-    glViewport(0, 0, width, height);
-
     // Disable VSync
     SDL_GL_SetSwapInterval(0);
     setup_vertex_data();
@@ -220,12 +218,36 @@ void gl_update_palette(const void* palette) {
     glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA, GL_UNSIGNED_BYTE, palette);
 }
 
-void gl_present() { glDrawArrays(GL_TRIANGLES, 0, 6); }
+static int ViewportX = 0;
+static int ViewportY = 0;
+static int ViewportW = 0;
+static int ViewportH = 0;
+static int NativeWidth = 0;
+static int NativeHeight = 0;
+
+void gl_set_viewport(int native_w, int native_h, int offset_x, int offset_y, int scaled_w,
+                     int scaled_h) {
+    NativeWidth = native_w;
+    NativeHeight = native_h;
+    ViewportX = offset_x;
+    ViewportY = native_h - offset_y - scaled_h;
+    ViewportW = scaled_w;
+    ViewportH = scaled_h;
+}
+
+bool gl_is_initialized() { return GLContext != nullptr; }
+
+void gl_present() {
+    glViewport(0, 0, NativeWidth, NativeHeight);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(ViewportX, ViewportY, ViewportW, ViewportH);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
 int gl_resize(int width, int height, int pitch) {
     FrameWidth = width;
     FrameHeight = height;
-    glViewport(0, 0, width, height);
 
     // Resize index texture
     glActiveTexture(GL_TEXTURE0);
