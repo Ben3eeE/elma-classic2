@@ -71,7 +71,16 @@ void eol_settings::set_renderer(RendererType r) {
     }
 }
 
-void eol_settings::set_fullscreen(FullscreenMode f) { fullscreen_ = f; }
+void eol_settings::set_fullscreen(FullscreenMode f) {
+    if (fullscreen_ == f) {
+        return;
+    }
+
+    fullscreen_ = f;
+    if (has_window()) {
+        platform_apply_fullscreen_mode();
+    }
+}
 
 void eol_settings::set_zoom(double z) {
     if (z != zoom_) {

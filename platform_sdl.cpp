@@ -94,7 +94,68 @@ static void apply_current_palette() {
 }
 
 static void recalculate_viewport() {
-    CurrentViewport = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 1.0f};
+    int native_w;
+    int native_h;
+    SDL_GetWindowSize(SDLWindow, &native_w, &native_h);
+
+    if (native_w == SCREEN_WIDTH && native_h == SCREEN_HEIGHT) {
+        CurrentViewport = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 1.0f};
+    } else if (EolSettings->renderer() == RendererType::OpenGL) {
+        int scale = std::min(native_w / SCREEN_WIDTH, native_h / SCREEN_HEIGHT);
+        scale = std::max(scale, 1);
+        int scaled_w = SCREEN_WIDTH * scale;
+        int scaled_h = SCREEN_HEIGHT * scale;
+
+        CurrentViewport = {
+            (native_w - scaled_w) / 2, (native_h - scaled_h) / 2, scaled_w, scaled_h,
+            static_cast<float>(scale),
+        };
+    } else {
+        CurrentViewport = {
+            (native_w - SCREEN_WIDTH) / 2,
+            (native_h - SCREEN_HEIGHT) / 2,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            1.0f,
+        };
+    }
+}
+
+void platform_apply_fullscreen_mode() {
+    if (!SDLWindow) {
+        return;
+    }
+
+    switch (EolSettings->fullscreen()) {
+    case FullscreenMode::Windowed:
+        SDL_SetWindowFullscreen(SDLWindow, 0);
+        SDL_SetWindowSize(SDLWindow, SCREEN_WIDTH, SCREEN_HEIGHT);
+        SDL_SetWindowPosition(SDLWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        break;
+    case FullscreenMode::Fullscreen: {
+        SDL_DisplayMode desired = {};
+        desired.w = SCREEN_WIDTH;
+        desired.h = SCREEN_HEIGHT;
+        SDL_DisplayMode closest;
+        if (SDL_GetClosestDisplayMode(0, &desired, &closest)) {
+            SDL_SetWindowDisplayMode(SDLWindow, &closest);
+            if (closest.w != SCREEN_WIDTH || closest.h != SCREEN_HEIGHT) {
+                update_resolution(closest.w, closest.h);
+            }
+        }
+        SDL_SetWindowFullscreen(SDLWindow, SDL_WINDOW_FULLSCREEN);
+        break;
+    }
+    case FullscreenMode::FullscreenDesktop:
+        SDL_SetWindowFullscreen(SDLWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        break;
+    }
+
+    if (EolSettings->renderer() == RendererType::Software) {
+        SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
+    }
+
+    recalculate_viewport();
 }
 
 void platform_init() {
@@ -111,7 +172,7 @@ void platform_init() {
     initialize_renderer();
     apply_current_palette();
     keyboard::init();
-    recalculate_viewport();
+    platform_apply_fullscreen_mode();
 }
 
 void platform_resize_window(int width, int height) {
@@ -131,7 +192,19 @@ void platform_resize_window(int width, int height) {
 
     SCREEN_WIDTH = width;
     SCREEN_HEIGHT = height;
-    SDL_SetWindowSize(SDLWindow, width, height);
+
+    if (EolSettings->fullscreen() == FullscreenMode::Fullscreen) {
+        SDL_DisplayMode desired = {};
+        desired.w = width;
+        desired.h = height;
+        SDL_DisplayMode closest;
+        if (SDL_GetClosestDisplayMode(0, &desired, &closest)) {
+            SDL_SetWindowDisplayMode(SDLWindow, &closest);
+            SDL_SetWindowFullscreen(SDLWindow, SDL_WINDOW_FULLSCREEN);
+        }
+    } else {
+        SDL_SetWindowSize(SDLWindow, width, height);
+    }
 
     SDL_FreeSurface(SDLSurfacePaletted);
     SDLSurfacePaletted = nullptr;
@@ -183,7 +256,7 @@ void platform_recreate_window() {
     create_palette_surface();
     initialize_renderer();
     apply_current_palette();
-    recalculate_viewport();
+    platform_apply_fullscreen_mode();
 }
 
 long long get_milliseconds() { return SDL_GetTicks64(); }
@@ -393,7 +466,7 @@ int get_mouse_wheel_delta() { return MouseWheelDelta; }
 
 bool is_fullscreen() {
     Uint32 flags = SDL_GetWindowFlags(SDLWindow);
-    return flags & SDL_WINDOW_FULLSCREEN;
+    return flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
 static SDL_AudioDeviceID SDLAudioDevice;
