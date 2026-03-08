@@ -10,6 +10,7 @@
 #include "M_PIC.H"
 #include "pic8.h"
 #include <directinput/scancodes.h>
+#include <algorithm>
 #include <SDL.h>
 #include <sdl/scancodes_windows.h>
 
@@ -17,6 +18,16 @@ static SDL_Window* SDLWindow = nullptr;
 static SDL_Surface* SDLSurfaceMain = nullptr;
 static SDL_Surface* SDLSurfacePaletted = nullptr;
 static palette* CurrentPalette = nullptr;
+
+struct Viewport {
+    int offset_x;
+    int offset_y;
+    int scaled_w;
+    int scaled_h;
+    float scale;
+};
+
+static Viewport CurrentViewport = {0, 0, 0, 0, 1.0f};
 
 static bool LeftMouseDown = false;
 static bool RightMouseDown = false;
@@ -82,6 +93,10 @@ static void apply_current_palette() {
     }
 }
 
+static void recalculate_viewport() {
+    CurrentViewport = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 1.0f};
+}
+
 void platform_init() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         internal_error(SDL_GetError());
@@ -96,6 +111,7 @@ void platform_init() {
     initialize_renderer();
     apply_current_palette();
     keyboard::init();
+    recalculate_viewport();
 }
 
 void platform_resize_window(int width, int height) {
@@ -136,6 +152,7 @@ void platform_resize_window(int width, int height) {
     }
 
     apply_current_palette();
+    recalculate_viewport();
 }
 
 void platform_recreate_window() {
@@ -166,6 +183,7 @@ void platform_recreate_window() {
     create_palette_surface();
     initialize_renderer();
     apply_current_palette();
+    recalculate_viewport();
 }
 
 long long get_milliseconds() { return SDL_GetTicks64(); }
@@ -266,6 +284,12 @@ void handle_events() {
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 invalidateegesz();
                 break;
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                if (EolSettings->renderer() == RendererType::Software) {
+                    SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
+                }
+                recalculate_viewport();
+                break;
             }
             break;
         case SDL_KEYDOWN: {
@@ -316,8 +340,19 @@ void handle_events() {
 void hide_cursor() { SDL_ShowCursor(SDL_DISABLE); }
 void show_cursor() { SDL_ShowCursor(SDL_ENABLE); }
 
-void get_mouse_position(int* x, int* y) { SDL_GetMouseState(x, y); }
-void set_mouse_position(int x, int y) { SDL_WarpMouseInWindow(NULL, x, y); }
+void get_mouse_position(int* x, int* y) {
+    SDL_GetMouseState(x, y);
+    *x = static_cast<int>((*x - CurrentViewport.offset_x) / CurrentViewport.scale);
+    *y = static_cast<int>((*y - CurrentViewport.offset_y) / CurrentViewport.scale);
+    *x = std::clamp(*x, 0, SCREEN_WIDTH - 1);
+    *y = std::clamp(*y, 0, SCREEN_HEIGHT - 1);
+}
+
+void set_mouse_position(int x, int y) {
+    x = static_cast<int>(x * CurrentViewport.scale) + CurrentViewport.offset_x;
+    y = static_cast<int>(y * CurrentViewport.scale) + CurrentViewport.offset_y;
+    SDL_WarpMouseInWindow(nullptr, x, y);
+}
 
 bool was_left_mouse_just_clicked() { return LeftMouseDown && !LeftMouseDownPrevFrame; }
 
