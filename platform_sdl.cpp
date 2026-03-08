@@ -288,8 +288,17 @@ void unlock_backbuffer() {
         gl_upload_frame((unsigned char*)SDLSurfacePaletted->pixels, SDLSurfacePaletted->pitch);
         gl_present();
         SDL_GL_SwapWindow(SDLWindow);
+    } else if (EolSettings->fullscreen() != FullscreenMode::Windowed) {
+        SDL_FillRect(SDLSurfaceMain, nullptr, 0);
+
+        int native_w = SDLSurfaceMain->w;
+        int native_h = SDLSurfaceMain->h;
+        SDL_Rect dst = {(native_w - SCREEN_WIDTH) / 2, (native_h - SCREEN_HEIGHT) / 2, SCREEN_WIDTH,
+                        SCREEN_HEIGHT};
+        SDL_BlitSurface(SDLSurfacePaletted, nullptr, SDLSurfaceMain, &dst);
+        SDL_UpdateWindowSurface(SDLWindow);
     } else {
-        SDL_BlitSurface(SDLSurfacePaletted, NULL, SDLSurfaceMain, NULL);
+        SDL_BlitSurface(SDLSurfacePaletted, nullptr, SDLSurfaceMain, nullptr);
         SDL_UpdateWindowSurface(SDLWindow);
     }
 }
