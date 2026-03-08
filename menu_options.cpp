@@ -99,6 +99,37 @@ static void menu_resolution() {
     nav.navigate();
 }
 
+static const char* fullscreen_mode_label(FullscreenMode mode) {
+    switch (mode) {
+    case FullscreenMode::Windowed:
+        return "Off";
+    case FullscreenMode::Fullscreen:
+        return "Exclusive";
+    case FullscreenMode::FullscreenDesktop:
+        return "Fullscreen (Desktop)";
+    }
+    return "";
+}
+
+static void menu_fullscreen() {
+    menu_nav nav("Pick a fullscreen mode!");
+
+    constexpr FullscreenMode MODES[] = {
+        FullscreenMode::Windowed,
+        FullscreenMode::Fullscreen,
+        FullscreenMode::FullscreenDesktop,
+    };
+
+    for (auto mode : MODES) {
+        nav.add_row(
+            fullscreen_mode_label(mode), NAV_FUNC(mode) { EolSettings->set_fullscreen(mode); });
+    }
+
+    nav.select_row(fullscreen_mode_label(EolSettings->fullscreen()));
+
+    nav.navigate();
+}
+
 #define BOOL_OPTION(text, setting)                                                                 \
     nav.add_row(                                                                                   \
         text, EolSettings->setting() ? "Yes" : "No",                                               \
@@ -286,6 +317,10 @@ void menu_options() {
                     return;
                 }
             });
+
+        nav.add_row(
+            "Fullscreen:", fullscreen_mode_label(EolSettings->fullscreen()),
+            NAV_FUNC() { menu_fullscreen(); });
 
         nav.add_row(
             "Turn Time:",
