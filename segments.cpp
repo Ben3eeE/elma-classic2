@@ -3,7 +3,6 @@
 #include "main.h"
 #include "polygon.h"
 #include <cmath>
-#include <cstring>
 
 constexpr int MAX_SEGMENTS = MAX_VERTICES;
 
@@ -27,7 +26,6 @@ segments::segments(level* lev) {
         external_error("segments::segments out of memory!");
         return;
     }
-    memset(seg_list, 0, sizeof(segment) * MAX_SEGMENTS);
     seg_list_allocated_length = MAX_SEGMENTS;
 
     // Load all solid polygons
