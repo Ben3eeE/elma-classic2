@@ -8,6 +8,7 @@
 #include "fs_utils.h"
 #include "sound_engine.h"
 #include "KIRAJZOL.H"
+#include "physics_collision.h"
 #include "physics_forces.h"
 #include "level.h"
 #include "lgr.h"
@@ -22,6 +23,8 @@
 #include <cstring>
 #include <directinput/scancodes.h>
 #include <filesystem>
+
+constexpr double ONE_WHEEL_GRACE = 10.0 / TimeToCentiseconds;
 
 // Jatek modja ket fele lehet:
 int Single = 1;
@@ -209,6 +212,18 @@ static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
         is_brake_down = false;
     }
     simulate_bike_physics(pmot, eddig, dt, is_gas_down, is_brake_down, ugrik1, ugrik2);
+
+    if (EolSettings->cripple_one_wheel() && eddig >= ONE_WHEEL_GRACE) {
+        vect2 p1, p2;
+        bool left_grounded =
+            get_two_anchor_points(pmot->left_wheel.r, pmot->left_wheel.radius, &p1, &p2) > 0;
+        bool right_grounded =
+            get_two_anchor_points(pmot->right_wheel.r, pmot->right_wheel.radius, &p1, &p2) > 0;
+        if (left_grounded && right_grounded) {
+            *pmeghalt = 1;
+            return;
+        }
+    }
 
     BikeState eredmeny = check_object_collision(pmot);
     if (eredmeny == BikeState::Dead) {
