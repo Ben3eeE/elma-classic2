@@ -103,6 +103,8 @@ class eol_settings {
     Default<bool> cripple_no_volt_{false};
     Default<bool> cripple_one_turn_{false};
     Default<bool> cripple_drunk_{false};
+    Default<bool> cripple_one_wheel_{false};
+    Default<bool> show_one_wheel_status_{false};
 
   public:
     static void read_settings();
@@ -159,6 +161,8 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(cripple_no_volt);
     DECLARE_FIELD_FUNCS(cripple_one_turn);
     DECLARE_FIELD_FUNCS(cripple_drunk);
+    DECLARE_FIELD_FUNCS(cripple_one_wheel);
+    DECLARE_FIELD_FUNCS(show_one_wheel_status);
 };
 
 #undef DECLARE_FIELD_FUNCS

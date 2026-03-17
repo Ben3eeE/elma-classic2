@@ -215,6 +215,10 @@ void eol_settings::set_cripple_one_turn(bool b) {
     }
 }
 
+void eol_settings::set_cripple_one_wheel(bool b) { cripple_one_wheel_ = b; }
+
+void eol_settings::set_show_one_wheel_status(bool b) { show_one_wheel_status_ = b; }
+
 /*
  * This uses the nlohmann json library to (de)serialise `eol_settings` to json.
  *
@@ -355,7 +359,9 @@ void from_json(const json& j, FullscreenMode& f) {
     JSON_FIELD(cripple_no_turn)                                                                    \
     JSON_FIELD(cripple_no_volt)                                                                    \
     JSON_FIELD(cripple_one_turn)                                                                   \
-    JSON_FIELD(cripple_drunk)
+    JSON_FIELD(cripple_drunk)                                                                      \
+    JSON_FIELD(cripple_one_wheel)                                                                  \
+    JSON_FIELD(show_one_wheel_status)
 
 #define JSON_FIELD(name) {#name, s.name()},
 void to_json(json& j, const eol_settings& s) { j = json{FIELD_LIST}; }
