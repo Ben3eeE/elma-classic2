@@ -12,6 +12,9 @@
 #include "pic8.h"
 #include <directinput/scancodes.h>
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <format>
 #include <SDL.h>
 #include <sdl/scancodes_windows.h>
 
@@ -559,4 +562,18 @@ void init_sound() {
         internal_error("Failed to get correct audio format");
     }
     SDL_PauseAudioDevice(SDLAudioDevice, 0);
+}
+
+bool platform_save_screenshot() {
+    if (!SDLSurfacePaletted) {
+        return false;
+    }
+
+    std::filesystem::create_directories("screenshots");
+
+    auto now = std::chrono::system_clock::now();
+    auto time = std::chrono::floor<std::chrono::seconds>(now);
+    std::string filename = std::format("screenshots/{:%Y-%m-%d_%H-%M-%S}.bmp", time);
+
+    return SDL_SaveBMP(SDLSurfacePaletted, filename.c_str()) == 0;
 }
