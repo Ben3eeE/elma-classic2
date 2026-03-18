@@ -17,6 +17,8 @@
 #include "main.h"
 #include "object.h"
 #include "pic8.h"
+#include "platform/implementation.h"
+#include "platform/utils.h"
 #include "physics_init.h"
 #include "renderer/object_overlay.h"
 #include "timer.h"
@@ -392,17 +394,7 @@ static void handle_screenshot(pic8* pic) {
 
     if (Legkozment) {
         Legkozment = 0;
-        int i = 0;
-        while (true) {
-            std::string filename = std::format("snp{:05}.pcx", i);
-            if (!std::filesystem::exists(filename)) {
-                pic->vertical_flip();
-                pic->save(filename.c_str(), Lgr->palette_data);
-                pic->vertical_flip();
-                break;
-            }
-            i++;
-        }
+        platform_save_screenshot();
     }
 }
 
