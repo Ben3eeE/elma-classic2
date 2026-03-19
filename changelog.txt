@@ -42,6 +42,7 @@
 * New setting to enable access to all internal levels without requiring them to be finished
 * Minimap opacity now can be configured from the options menu
 * Total time is now shown in the internal level list
+* Added option to show or hide cursor, affects windowed mode. Fullscreen mode always hides cursor regardless of setting
 
 ## Minor Bug Fixes
 * Enforce lowercase LGR filenames to fix loading issues on case-sensitive filesystems

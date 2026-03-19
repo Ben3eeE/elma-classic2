@@ -386,6 +386,7 @@ void menu_options() {
         BOOL_OPTION("Demo menu:", show_demo_menu);
         BOOL_OPTION("Help menu:", show_help_menu);
         BOOL_OPTION("Best Times menu:", show_best_times_menu);
+        BOOL_OPTION("Show OS cursor:", show_cursor);
 
         choice = nav.navigate();
 
