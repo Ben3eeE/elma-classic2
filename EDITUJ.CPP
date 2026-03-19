@@ -750,24 +750,7 @@ void editor() {
                 }
 
                 if (c == 'i') {
-                    // Kiirjuk kepet:
-                    int i = 0;
-                    while (1) {
-                        char filenev[20];
-                        if (i < 10) {
-                            sprintf(filenev, "snap0%d.pcx", i);
-                        } else {
-                            sprintf(filenev, "snap%d.pcx", i);
-                        }
-                        if (access(filenev, 0) != 0) {
-                            // Ez a nev nem foglalt:
-                            // ppic->vertical_flip();
-                            BufferMain->save(filenev, Pal_editor_byteok);
-                            // ppic->vertical_flip();
-                            break;
-                        }
-                        i++;
-                    }
+                    platform_save_screenshot();
                 }
             }
             // Csak debuggolashoz kellettek:
