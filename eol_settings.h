@@ -62,6 +62,7 @@ class eol_settings {
     Default<MapAlignment> map_alignment_{MapAlignment::None};
     Default<RendererType> renderer_{RendererType::Software};
     Default<FullscreenMode> fullscreen_{FullscreenMode::Windowed};
+    Default<bool> show_cursor_{true};
     Clamp<double> zoom_{0.25, 1.0, 3.0};
     Clamp<double> minimap_zoom_{0.25, 1.0, 3.0};
     Default<bool> zoom_textures_{true};
@@ -110,6 +111,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(map_alignment);
     DECLARE_FIELD_FUNCS(renderer);
     DECLARE_FIELD_FUNCS(fullscreen);
+    DECLARE_FIELD_FUNCS(show_cursor);
     DECLARE_FIELD_FUNCS(zoom);
     DECLARE_FIELD_FUNCS(minimap_zoom);
     DECLARE_FIELD_FUNCS(zoom_textures);

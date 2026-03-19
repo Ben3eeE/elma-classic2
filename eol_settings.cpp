@@ -82,6 +82,15 @@ void eol_settings::set_fullscreen(FullscreenMode f) {
     }
 }
 
+void eol_settings::set_show_cursor(bool show) {
+    show_cursor_ = show;
+    if (show) {
+        ::show_cursor();
+    } else {
+        ::hide_cursor();
+    }
+}
+
 void eol_settings::set_zoom(double z) {
     if (z != zoom_) {
         zoom_ = z;
@@ -284,6 +293,7 @@ void from_json(const json& j, FullscreenMode& f) {
     JSON_FIELD(zoom_grass)                                                                         \
     JSON_FIELD(renderer)                                                                           \
     JSON_FIELD(fullscreen)                                                                         \
+    JSON_FIELD(show_cursor)                                                                        \
     JSON_FIELD(turn_time)                                                                          \
     JSON_FIELD(lctrl_search)                                                                       \
     JSON_FIELD(alovolt_key_player_a)                                                               \
