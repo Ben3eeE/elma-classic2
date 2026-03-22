@@ -272,3 +272,43 @@ void menu_replay_level(int level_id) {
         }
     }
 }
+
+void menu_merge_level(int level_id, const std::string& merge_file) {
+    if (!ReplayCache.is_ready()) {
+        loading_screen();
+        while (!ReplayCache.is_ready()) {
+            handle_events();
+            if (is_key_down(DIK_ESCAPE)) {
+                return;
+            }
+        }
+    }
+
+    std::vector<std::string> replay_names = ReplayCache.filenames_for_level(level_id);
+    std::erase(replay_names, LAST_REC_FILENAME);
+
+    if (replay_names.empty()) {
+        return;
+    }
+
+    std::string picked_file;
+    menu_nav nav("Merge with");
+
+    for (const std::string& filename : replay_names) {
+        constexpr int EXT_LEN = 4;
+        std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
+        nav.add_row(short_name, NAV_FUNC(&picked_file, filename) { picked_file = filename; });
+    }
+
+    nav.search_pattern = SearchPattern::Sorted;
+    nav.max_search_len = MAX_REPLAY_NAME_LEN;
+    nav.sort_rows();
+
+    while (true) {
+        MenuPalette->set();
+        if (nav.navigate() < 0) {
+            return;
+        }
+        merge_play(merge_file, picked_file);
+    }
+}
