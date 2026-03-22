@@ -14,7 +14,8 @@
 #include "menu_pic.h"
 #include "platform_impl.h"
 #include "physics_init.h"
-#include "replay_menu.h"
+#include "recorder.h"
+#include "menu/replay.h"
 #include "util/util.h"
 #include "skip.h"
 #include "timer.h"
@@ -240,6 +241,10 @@ static text_line ExtraTimeText[14];
 MenuLevel menu_level(int internal_index, bool nav_on_play_next, const char* time_message,
                      const char* external_filename) {
     bool external_level = external_filename != nullptr;
+
+    if (!Rec1->is_empty()) {
+        recorder::save_rec_file(LAST_REC_FILENAME, Ptop->level_id);
+    }
 
     player* player1 = State->get_player(State->player1);
     player* player2 = State->get_player(State->player2);
