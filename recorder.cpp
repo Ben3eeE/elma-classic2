@@ -5,6 +5,7 @@
 #include "main.h"
 #include "physics_init.h"
 #include "qopen.h"
+#include "menu/replay_cache.h"
 #include "util/util.h"
 #include <algorithm>
 #include <cmath>
@@ -661,6 +662,7 @@ void recorder::save_rec_file(const char* filename, int level_id) {
     } else {
         Rec1->save(filename, nullptr, level_id);
     }
+    ReplayCache.upsert(filename, level_id);
 }
 
 // Max events in one frame: Triple apple bug x MAX_OBJECTS, turn, volt, bump x 2
