@@ -75,6 +75,7 @@ elma_sources = files(
     'gl_renderer.cpp',
     'src/debug/profiler.cpp',
     'src/eol/console.cpp',
+    'src/util/util.cpp',
     'src/glad/glad.c',
 )
 
