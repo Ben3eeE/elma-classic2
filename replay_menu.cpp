@@ -198,6 +198,7 @@ void menu_replay_all() {
 void menu_replay_level(int level_id) {
     ReplayCache.wait();
     std::vector<std::string> replay_names = ReplayCache.filenames_for_level(level_id);
+    std::erase(replay_names, LAST_REC_FILENAME);
 
     if (replay_names.empty()) {
         return;
