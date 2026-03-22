@@ -12,6 +12,7 @@
 #include "menu_pic.h"
 #include "menu_play.h"
 #include "recorder.h"
+#include "menu/replay_cache.h"
 #include "platform_impl.h"
 #include "util/util.h"
 #include <algorithm>
@@ -230,5 +231,43 @@ void menu_merge_replays() {
         }
 
         merge_play(file1, picked_file);
+    }
+}
+
+void menu_replay_level(int level_id) {
+    if (!ReplayCache.is_ready()) {
+        loading_screen();
+        while (!ReplayCache.is_ready()) {
+            handle_events();
+            if (is_key_down(DIK_ESCAPE)) {
+                return;
+            }
+        }
+    }
+
+    std::vector<std::string> replay_names = ReplayCache.filenames_for_level(level_id);
+
+    if (replay_names.empty()) {
+        return;
+    }
+
+    menu_nav nav("Level Replays");
+
+    for (const std::string& filename : replay_names) {
+        constexpr int EXT_LEN = 4;
+        std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
+        nav.add_row(short_name, NAV_FUNC(filename) { replay_row_handler(filename); });
+    }
+
+    nav.search_pattern = SearchPattern::Sorted;
+    nav.max_search_len = MAX_REPLAY_NAME_LEN;
+    nav.sort_rows();
+
+    while (true) {
+        MenuPalette->set();
+        int choice = nav.navigate();
+        if (choice < 0) {
+            return;
+        }
     }
 }
