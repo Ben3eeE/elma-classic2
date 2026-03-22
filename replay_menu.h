@@ -11,5 +11,6 @@ LoadReplayResult validate_replay_level(int level_id, const std::string& filename
 LoadReplayResult load_replay(const std::string& filename);
 
 void menu_replay_all();
+void menu_replay_level(int level_id);
 
 #endif
