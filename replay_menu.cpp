@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+enum class LoadReplayResult { Success, Fail, Abort };
+
 static void replay_time(const std::string& filename) {
     MenuPalette->set();
     loading_screen();
@@ -42,7 +44,7 @@ static void replay_time(const std::string& filename) {
     menu_dialog(filename.c_str(), "The time of this replay file is:", time_str);
 }
 
-LoadReplayResult validate_replay_level(int level_id, const std::string& filename) {
+static LoadReplayResult validate_replay_level(int level_id, const std::string& filename) {
     if (access_level_file(Rec1->level_filename) != 0) {
         DikScancode key =
             menu_dialog("Cannot find the lev file that corresponds", "to the record file!",
@@ -61,12 +63,38 @@ LoadReplayResult validate_replay_level(int level_id, const std::string& filename
     return LoadReplayResult::Success;
 }
 
-LoadReplayResult load_replay(const std::string& filename) {
+static LoadReplayResult load_replay(const std::string& filename) {
     MenuPalette->set();
     loading_screen();
 
     int level_id = recorder::load_rec_file(filename.c_str(), false);
     return validate_replay_level(level_id, filename);
+}
+
+static void merge_play(const std::string& file1, const std::string& file2) {
+    MenuPalette->set();
+    loading_screen();
+
+    recorder::merge_result result = recorder::load_merge(file1, file2);
+
+    if (result.rec1_was_multi || result.rec2_was_multi) {
+        menu_dialog("Note: Only player 1 used from multiplayer replays.");
+    }
+
+    if (result.level_id_mismatch) {
+        DikScancode key = menu_dialog("Warning: Replays are from different levels!",
+                                      "Press Enter to continue, ESC to cancel.");
+        if (key == DIK_ESCAPE) {
+            return;
+        }
+    }
+
+    LoadReplayResult loaded = validate_replay_level(result.level_id, file1);
+    if (loaded != LoadReplayResult::Success) {
+        return;
+    }
+
+    replay_from_file(Rec1->level_filename);
 }
 
 static void replay_play(const std::string& filename) {
@@ -115,7 +143,7 @@ static void replay_randomizer(std::vector<std::string>& filenames) {
     }
 }
 
-std::vector<std::string> find_replay_files() {
+static std::vector<std::string> find_replay_files() {
     std::vector<std::string> filenames;
     recname filename;
     bool done = find_first("rec/*.rec", filename, MAX_REPLAY_NAME_LEN);
@@ -193,5 +221,43 @@ void menu_replay_level(int level_id) {
         if (choice < 0) {
             return;
         }
+    }
+}
+
+void menu_merge_replays() {
+    std::string picked_file;
+    std::vector<std::string> replay_names = find_replay_files();
+
+    menu_nav nav("Select first replay");
+
+    for (const std::string& filename : replay_names) {
+        constexpr int EXT_LEN = 4;
+        std::string short_name = filename.substr(0, filename.size() - EXT_LEN);
+        nav.add_row(short_name, NAV_FUNC(&picked_file, filename) { picked_file = filename; });
+    }
+
+    nav.search_pattern = SearchPattern::Sorted;
+    nav.max_search_len = MAX_REPLAY_NAME_LEN;
+    nav.sort_rows();
+
+    if (nav.row_count() == 0) {
+        return;
+    }
+
+    while (true) {
+        nav.title = "Select first replay";
+        MenuPalette->set();
+        if (nav.navigate() < 0) {
+            return;
+        }
+        std::string file1 = picked_file;
+
+        nav.title = "Select second replay";
+        MenuPalette->set();
+        if (nav.navigate() < 0) {
+            continue;
+        }
+
+        merge_play(file1, picked_file);
     }
 }
