@@ -34,6 +34,7 @@ int VideoFrameIndex = 0;
 std::string VideoOutputDirectory;
 
 static int Kajakell;
+static bool CameraDetached = false;
 
 static bool handle_console_input() {
     bool was_active = Console->is_input_active();
@@ -46,35 +47,38 @@ static bool handle_console_input() {
 }
 
 static bool is_game_key_down(DikScancode code) {
-    if (Console->is_input_active()) {
+    if (Console->is_input_active() || CameraDetached) {
         return false;
     }
     return is_key_down(code);
 }
 
 static bool was_game_key_just_pressed(DikScancode code) {
-    if (Console->is_input_active()) {
+    if (Console->is_input_active() || CameraDetached) {
         return false;
     }
     return was_key_just_pressed(code);
 }
 
 static void update_freecam(double dt, camera& current_camera) {
+    if (Console->is_input_active()) {
+        return;
+    }
     double speed = 30.0;
-    if (is_game_key_down(DIK_LSHIFT) || is_game_key_down(DIK_RSHIFT)) {
+    if (is_key_down(DIK_LSHIFT) || is_key_down(DIK_RSHIFT)) {
         speed *= 4.0;
     }
     double move = speed * dt;
-    if (is_game_key_down(DIK_UP)) {
+    if (is_key_down(DIK_UP)) {
         current_camera.y += move;
     }
-    if (is_game_key_down(DIK_DOWN)) {
+    if (is_key_down(DIK_DOWN)) {
         current_camera.y -= move;
     }
-    if (is_game_key_down(DIK_LEFT)) {
+    if (is_key_down(DIK_LEFT)) {
         current_camera.x -= move;
     }
-    if (is_game_key_down(DIK_RIGHT)) {
+    if (is_key_down(DIK_RIGHT)) {
         current_camera.x += move;
     }
 
@@ -404,6 +408,8 @@ static void setup_gameloop(const char* filenev) {
     // Eloszor keretet tobbszor is kirakja kirajzol320:
     Kitoltestmegrak = Kitoltestmegrakkezd;
 
+    CameraDetached = false;
+
     flagtag_reset();
 
     Motor1->apple_count = Motor2->apple_count = 0;
@@ -516,6 +522,20 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
         bool console_was_active = handle_console_input();
 
+        if (current_camera.mode != CameraMode::MapViewer) {
+            if (!console_was_active && was_key_just_pressed(State->key_disconnect_camera)) {
+                if (current_camera.mode == CameraMode::Detached) {
+                    current_camera.mode = CameraMode::Normal;
+                    CameraDetached = false;
+                } else {
+                    current_camera.mode = CameraMode::Detached;
+                    CameraDetached = true;
+                    current_camera.x = Motor1->bike.r.x;
+                    current_camera.y = Motor1->bike.r.y;
+                }
+            }
+        }
+
         while (eddig <= cel - 0.000001) {
             // char tmp[10];
             // sprintf( tmp, "Gaz kodja: %d", (int)State->keys1.gas );
@@ -536,6 +556,10 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
                 update_freecam(dt, current_camera);
                 eddig += dt;
                 continue;
+            }
+
+            if (current_camera.mode == CameraMode::Detached) {
+                update_freecam(dt, current_camera);
             }
 
             if (!meghalt1) {
@@ -881,6 +905,13 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     camera current_camera;
     current_camera.mode = CameraMode::Normal;
 
+    double level_min_y;
+    double level_max_y;
+    Ptop->get_boundaries(&current_camera.min_x, &level_min_y, &current_camera.max_x, &level_max_y,
+                         false);
+    current_camera.min_y = -level_max_y;
+    current_camera.max_y = -level_min_y;
+
     initsoundlejatszoban();
     Mute = false;
     if (Single) {
@@ -901,9 +932,25 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         bool console_was_active = handle_console_input();
 
+        if (!console_was_active && was_key_just_pressed(State->key_disconnect_camera)) {
+            if (current_camera.mode == CameraMode::Detached) {
+                current_camera.mode = CameraMode::Normal;
+                CameraDetached = false;
+            } else {
+                current_camera.mode = CameraMode::Detached;
+                CameraDetached = true;
+                current_camera.x = Motor1->bike.r.x;
+                current_camera.y = Motor1->bike.r.y;
+            }
+        }
+
         double now = stopwatch();
         double dt = (now - last_stopwatch) * 0.0024;
         last_stopwatch = now;
+
+        if (current_camera.mode == CameraMode::Detached) {
+            update_freecam(dt, current_camera);
+        }
 
         double speed = 1.0;
 
