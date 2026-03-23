@@ -14,7 +14,7 @@ extern bool VideoRecordingMode;
 extern int VideoFrameIndex;
 extern std::string VideoOutputDirectory;
 
-enum class CameraMode { Normal, MapViewer };
+enum class CameraMode { Normal, MapViewer, Detached };
 
 struct camera {
     CameraMode mode;

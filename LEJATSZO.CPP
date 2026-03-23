@@ -493,6 +493,8 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
         start_motor_sound(false);
     }
 
+    player_keys current_keys1 = State->keys1;
+
     long l = 0;
     int mindjar = 1;
     while (1) {
@@ -516,6 +518,20 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
 
         bool console_was_active = handle_console_input();
 
+        if (current_camera.mode != CameraMode::MapViewer) {
+            if (!console_was_active && was_key_just_pressed(State->key_disconnect_camera)) {
+                if (current_camera.mode == CameraMode::Detached) {
+                    current_camera.mode = CameraMode::Normal;
+                    current_keys1 = State->keys1;
+                } else {
+                    current_camera.mode = CameraMode::Detached;
+                    memset(&current_keys1, 0, sizeof(player_keys));
+                    current_camera.x = Motor1->bike.r.x;
+                    current_camera.y = Motor1->bike.r.y;
+                }
+            }
+        }
+
         while (eddig <= cel - 0.000001) {
             // char tmp[10];
             // sprintf( tmp, "Gaz kodja: %d", (int)State->keys1.gas );
@@ -538,8 +554,12 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
                 continue;
             }
 
+            if (current_camera.mode == CameraMode::Detached) {
+                update_freecam(dt, current_camera);
+            }
+
             if (!meghalt1) {
-                belsoresz(Motor1, &State->keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
+                belsoresz(Motor1, &current_keys1, &valt1, Rec1, &megvanido1, &meghalt1, eddig, dt);
             }
 
             if (!Single && !meghalt2) {
@@ -632,7 +652,8 @@ long lejatszo(const char* filenev, CameraMode cameramode) {
             set_motor_frequency(false, valt2.inf.motor_frequency, valt2.inf.gas);
         }
 
-        kulsoresz(Motor1, &State->keys1, &valt1, Rec1, &Viewtime1, eddig, &valt2.showkep, meghalt1);
+        kulsoresz(Motor1, &current_keys1, &valt1, Rec1, &Viewtime1, eddig, &valt2.showkep,
+                  meghalt1);
 
         if (!Single) {
             kulsoresz(Motor2, &State->keys2, &valt2, Rec2, &Viewtime2, eddig, &valt1.showkep,
@@ -881,6 +902,13 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
     camera current_camera;
     current_camera.mode = CameraMode::Normal;
 
+    double level_min_y;
+    double level_max_y;
+    Ptop->get_boundaries(&current_camera.min_x, &level_min_y, &current_camera.max_x, &level_max_y,
+                         false);
+    current_camera.min_y = -level_max_y;
+    current_camera.max_y = -level_min_y;
+
     initsoundlejatszoban();
     Mute = false;
     if (Single) {
@@ -889,6 +917,8 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
         start_motor_sound(true);
         start_motor_sound(false);
     }
+
+    player_keys current_keys1 = State->keys1;
 
     long l = 0;
     int jar1 = 1, jar2 = 1;
@@ -901,9 +931,25 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         bool console_was_active = handle_console_input();
 
+        if (!console_was_active && was_key_just_pressed(State->key_disconnect_camera)) {
+            if (current_camera.mode == CameraMode::Detached) {
+                current_camera.mode = CameraMode::Normal;
+                current_keys1 = State->keys1;
+            } else {
+                current_camera.mode = CameraMode::Detached;
+                memset(&current_keys1, 0, sizeof(player_keys));
+                current_camera.x = Motor1->bike.r.x;
+                current_camera.y = Motor1->bike.r.y;
+            }
+        }
+
         double now = stopwatch();
         double dt = (now - last_stopwatch) * 0.0024;
         last_stopwatch = now;
+
+        if (current_camera.mode == CameraMode::Detached) {
+            update_freecam(dt, current_camera);
+        }
 
         double speed = 1.0;
 
@@ -942,7 +988,7 @@ long lejatszo_r(const char* filenev, int showkepmarad) {
 
         // recall koordokat es Hatra-t is beallitja:
         int befejezte1 =
-            !replaymag(Motor1, &State->keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
+            !replaymag(Motor1, &current_keys1, &valt1, Rec1, eddig, &Viewtime1, &valt2.showkep);
 
         int befejezte2 = 0;
         if (!Single) {
