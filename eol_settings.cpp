@@ -137,6 +137,8 @@ void eol_settings::set_one_frame_brake_key_player_b(DikScancode key) {
 
 void eol_settings::set_escape_alias_key(DikScancode key) { escape_alias_key_ = key; }
 
+void eol_settings::set_disconnect_camera_key(DikScancode key) { disconnect_camera_key_ = key; }
+
 void eol_settings::set_replay_fast_2x_key(DikScancode key) { replay_fast_2x_key_ = key; }
 
 void eol_settings::set_replay_fast_4x_key(DikScancode key) { replay_fast_4x_key_ = key; }
@@ -329,6 +331,7 @@ void from_json(const json& j, FullscreenMode& f) {
     JSON_FIELD(one_frame_brake_key_player_a)                                                       \
     JSON_FIELD(one_frame_brake_key_player_b)                                                       \
     JSON_FIELD(escape_alias_key)                                                                   \
+    JSON_FIELD(disconnect_camera_key)                                                              \
     JSON_FIELD(replay_fast_2x_key)                                                                 \
     JSON_FIELD(replay_fast_4x_key)                                                                 \
     JSON_FIELD(replay_fast_8x_key)                                                                 \
@@ -408,6 +411,7 @@ void eol_settings::sync_controls_to_state(state* s) {
     s->keys1.one_frame_brake = EolSettings->one_frame_brake_key_player_a();
     s->keys2.one_frame_brake = EolSettings->one_frame_brake_key_player_b();
     s->key_escape_alias = EolSettings->escape_alias_key();
+    s->key_disconnect_camera = EolSettings->disconnect_camera_key();
     s->key_replay_fast_2x = EolSettings->replay_fast_2x_key();
     s->key_replay_fast_4x = EolSettings->replay_fast_4x_key();
     s->key_replay_fast_8x = EolSettings->replay_fast_8x_key();
@@ -429,6 +433,7 @@ void eol_settings::sync_controls_from_state(state* s) {
     EolSettings->set_one_frame_brake_key_player_a(s->keys1.one_frame_brake);
     EolSettings->set_one_frame_brake_key_player_b(s->keys2.one_frame_brake);
     EolSettings->set_escape_alias_key(s->key_escape_alias);
+    EolSettings->set_disconnect_camera_key(s->key_disconnect_camera);
     EolSettings->set_replay_fast_2x_key(s->key_replay_fast_2x);
     EolSettings->set_replay_fast_4x_key(s->key_replay_fast_4x);
     EolSettings->set_replay_fast_8x_key(s->key_replay_fast_8x);

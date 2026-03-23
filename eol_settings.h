@@ -75,6 +75,7 @@ class eol_settings {
     Default<DikScancode> one_frame_brake_key_player_a_{DIK_UNKNOWN};
     Default<DikScancode> one_frame_brake_key_player_b_{DIK_UNKNOWN};
     Default<DikScancode> escape_alias_key_{DIK_UNKNOWN};
+    Default<DikScancode> disconnect_camera_key_{DIK_UNKNOWN};
     Default<DikScancode> replay_fast_2x_key_{DIK_UP};
     Default<DikScancode> replay_fast_4x_key_{DIK_RIGHT};
     Default<DikScancode> replay_fast_8x_key_{DIK_PRIOR};
@@ -131,6 +132,7 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(one_frame_brake_key_player_a);
     DECLARE_FIELD_FUNCS(one_frame_brake_key_player_b);
     DECLARE_FIELD_FUNCS(escape_alias_key);
+    DECLARE_FIELD_FUNCS(disconnect_camera_key);
     DECLARE_FIELD_FUNCS(replay_fast_2x_key);
     DECLARE_FIELD_FUNCS(replay_fast_4x_key);
     DECLARE_FIELD_FUNCS(replay_fast_8x_key);

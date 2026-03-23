@@ -422,6 +422,7 @@ void state::reset_keys() {
     key_decrease_screen_size = DIK_MINUS;
     key_screenshot = DIK_I;
     key_escape_alias = EolSettings->escape_alias_key_default();
+    key_disconnect_camera = EolSettings->disconnect_camera_key_default();
 
     key_replay_fast_2x = EolSettings->replay_fast_2x_key_default();
     key_replay_fast_4x = EolSettings->replay_fast_4x_key_default();
