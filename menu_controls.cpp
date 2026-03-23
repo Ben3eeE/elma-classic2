@@ -265,7 +265,7 @@ static key_pointers Player2Keys;
 static key_pointers ReplayKeys;
 
 constexpr int UNIVERSAL_KEYS_START = 4;
-constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 4;
+constexpr int UNIVERSAL_KEYS_END = UNIVERSAL_KEYS_START + 5;
 static_assert(KEY_POINTERS_MAX > UNIVERSAL_KEYS_END);
 
 constexpr int PLAYER_KEYS_START = 0;
@@ -335,6 +335,7 @@ static void load_universal_controls(menu_nav* nav) {
     load_control(nav, UniversalKeys, i++, "Dec. Screen Size", &State->key_decrease_screen_size);
     load_control(nav, UniversalKeys, i++, "Make a Screenshot", &State->key_screenshot);
     load_control(nav, UniversalKeys, i++, "Escape Alias", &State->key_escape_alias);
+    load_control(nav, UniversalKeys, i++, "Disconnect Camera", &State->key_disconnect_camera);
     if (i != UNIVERSAL_KEYS_END) {
         internal_error("UNIVERSAL_KEYS_END is misaligned!");
     }
