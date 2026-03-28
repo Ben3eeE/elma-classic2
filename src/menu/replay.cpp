@@ -224,6 +224,16 @@ void menu_merge_replays() {
 }
 
 void menu_replay_level(int level_id) {
+    if (!rec_list::is_cache_ready()) {
+        loading_screen();
+        while (!rec_list::is_cache_ready()) {
+            handle_events();
+            if (is_key_down(DIK_ESCAPE)) {
+                return;
+            }
+        }
+    }
+
     std::vector<std::string> replay_names = rec_list::replays_for_level(level_id);
     std::erase(replay_names, std::string(LAST_REC_FILENAME));
 
@@ -253,6 +263,16 @@ void menu_replay_level(int level_id) {
 }
 
 void menu_merge_level(int level_id, const std::string& merge_file) {
+    if (!rec_list::is_cache_ready()) {
+        loading_screen();
+        while (!rec_list::is_cache_ready()) {
+            handle_events();
+            if (is_key_down(DIK_ESCAPE)) {
+                return;
+            }
+        }
+    }
+
     std::vector<std::string> replay_names = rec_list::replays_for_level(level_id);
     std::erase(replay_names, std::string(LAST_REC_FILENAME));
 
