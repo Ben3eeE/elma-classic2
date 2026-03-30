@@ -22,7 +22,6 @@
 #include "eol_settings.h"
 #include "fs_utils.h"
 #include "directinput/scancodes.h"
-#include <cstdlib>
 #include <cstring>
 #include <directinput/scancodes.h>
 #include <format>
