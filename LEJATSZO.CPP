@@ -213,15 +213,18 @@ static void belsoresz(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
     }
     simulate_bike_physics(pmot, eddig, dt, is_gas_down, is_brake_down, ugrik1, ugrik2);
 
-    if (EolSettings->cripple_one_wheel() && eddig >= ONE_WHEEL_GRACE) {
+    if (eddig >= ONE_WHEEL_GRACE) {
         vect2 p1, p2;
         bool left_grounded =
             get_two_anchor_points(pmot->left_wheel.r, pmot->left_wheel.radius, &p1, &p2) > 0;
         bool right_grounded =
             get_two_anchor_points(pmot->right_wheel.r, pmot->right_wheel.radius, &p1, &p2) > 0;
         if (left_grounded && right_grounded) {
-            *pmeghalt = 1;
-            return;
+            pmot->one_wheel_failed = true;
+            if (EolSettings->cripple_one_wheel()) {
+                *pmeghalt = 1;
+                return;
+            }
         }
     }
 
@@ -427,6 +430,8 @@ static void setup_gameloop(const char* filenev) {
     Motor1->apple_bug_count = Motor2->apple_bug_count = 0;
 
     OutOfBounds = false;
+    Motor1->one_wheel_failed = false;
+    Motor2->one_wheel_failed = false;
 
     Lgr->pal->set();
 }
@@ -833,6 +838,18 @@ static bool replaymag(motorst* pmot, player_keys* popciok, valtozok* pvalt, reco
     // recall koordokat es Hatra-t is beallitja:
     bool visszaad = prec->recall_frame(pmot, eddig, &pvalt->inf);
     set_head_position(pmot); // mivel nincs leptet ami kiszamolna
+
+    if (eddig >= ONE_WHEEL_GRACE) {
+        vect2 p1, p2;
+        bool left_grounded =
+            get_two_anchor_points(pmot->left_wheel.r, pmot->left_wheel.radius, &p1, &p2) > 0;
+        bool right_grounded =
+            get_two_anchor_points(pmot->right_wheel.r, pmot->right_wheel.radius, &p1, &p2) > 0;
+        if (left_grounded && right_grounded) {
+            pmot->one_wheel_failed = true;
+        }
+    }
+
     // HANG ELINTEZES:
     WavEvent wavindex;
     double hangero;

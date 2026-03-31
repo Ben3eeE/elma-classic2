@@ -62,6 +62,8 @@ struct motorst {
     int last_apple_time;
     int apple_bug_count;
 
+    bool one_wheel_failed;
+
     bool prev_brake;
     double left_wheel_brake_rotation;
     double right_wheel_brake_rotation;

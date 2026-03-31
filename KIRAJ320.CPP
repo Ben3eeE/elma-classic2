@@ -825,16 +825,28 @@ static void kirakegyjatekost(bool ajatekos, pic8* ppic, double t, motorst* pmot,
         }
     }
 
-    if (pmot->apple_count && EolSettings->show_last_apple_time()) {
-        char tmp[100];
-        sprintf(tmp, "last apple (%d)        ", pmot->apple_count - pmot->apple_bug_count);
-        util::text::centiseconds_to_string(pmot->last_apple_time, tmp + strlen(tmp), true, true);
+    constexpr int RIGHT_MARGIN = 10;
+    constexpr int BOTTOM_MARGIN = 10;
+    constexpr int LABEL_OFFSET = 180;
+    int status_y = BOTTOM_MARGIN;
+    int value_x = Cxsize - RIGHT_MARGIN;
+    int label_x = Cxsize - LABEL_OFFSET;
 
-        constexpr int RIGHT_MARGIN = 5;
-        constexpr int BOTTOM_MARGIN = 5;
-        int x = Cxsize - RIGHT_MARGIN;
-        int y = BOTTOM_MARGIN;
-        SmallFont->write_right_align(ppic, x, y, tmp);
+    if (EolSettings->show_one_wheel_status()) {
+        SmallFont->write(ppic, label_x, status_y, "one wheel");
+        SmallFont->write_right_align(ppic, value_x, status_y,
+                                     pmot->one_wheel_failed ? "no" : "yes");
+        status_y += SmallFont->line_height();
+    }
+
+    if (pmot->apple_count && EolSettings->show_last_apple_time()) {
+        char label[100];
+        sprintf(label, "last apple (%d)", pmot->apple_count - pmot->apple_bug_count);
+        SmallFont->write(ppic, label_x, status_y, label);
+
+        char time[20];
+        util::text::centiseconds_to_string(pmot->last_apple_time, time, true, true);
+        SmallFont->write_right_align(ppic, value_x, status_y, time);
     }
 }
 
