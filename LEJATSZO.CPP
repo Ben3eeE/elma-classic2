@@ -131,6 +131,18 @@ static BikeState spritefeldolgoz(int sorszam, int* pkajaszam, motorst* pmot) {
         case object::Property::GravityRight:
             pmot->gravity_direction = MotorGravity::Right;
             break;
+        case object::Property::GravityDouble:
+            pmot->gravity_multiplier = 2.0;
+            break;
+        case object::Property::GravityHalf:
+            pmot->gravity_multiplier = 0.5;
+            break;
+        case object::Property::GravityNone:
+            pmot->gravity_multiplier = 0.0;
+            break;
+        case object::Property::GravityNormal:
+            pmot->gravity_multiplier = 1.0;
+            break;
         }
         return BikeState::Normal;
     }
