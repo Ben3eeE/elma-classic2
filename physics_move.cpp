@@ -250,7 +250,8 @@ static void body_boundaries(motorst* mot, vect2 i, vect2 j) {
 }
 
 // Adjust the body position
-void body_movement(motorst* mot, vect2 gravity, vect2 i, vect2 j, double dt) {
+void body_movement(motorst* mot, vect2 gravity, vect2 i, vect2 j, double dt,
+                   double effective_gravity) {
     // Teleport the body to be within acceptable bounds
     body_boundaries(mot, i, j);
 
@@ -282,7 +283,7 @@ void body_movement(motorst* mot, vect2 gravity, vect2 i, vect2 j, double dt) {
     vect2 force_damping = relative_v * SpringResistanceCoefficient * 3.0;
 
     // Calculate gravity and then get the net force
-    vect2 force_total = force_spring - force_damping + gravity * mot->bike.mass * Gravity;
+    vect2 force_total = force_spring - force_damping + gravity * mot->bike.mass * effective_gravity;
 
     // Update velocity and position
     vect2 a = force_total * (1.0 / mot->bike.mass);

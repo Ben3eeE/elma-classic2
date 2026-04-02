@@ -333,16 +333,17 @@ void simulate_bike_physics(motorst* mot, double time, double dt, bool gas, bool 
         direction = vect2(1.0, 0.0);
         break;
     }
-    body_movement(mot, direction, i1, j1, dt);
+    double effective_gravity = Gravity * mot->gravity_multiplier;
+    body_movement(mot, direction, i1, j1, dt, effective_gravity);
     rigidbody_movement(&mot->bike,
                        force_body_from_left_wheel + force_body_from_right_wheel +
-                           direction * mot->bike.mass * Gravity,
+                           direction * mot->bike.mass * effective_gravity,
                        torque_body_from_left_wheel + torque_body_from_right_wheel, dt, false);
     rigidbody_movement(&mot->left_wheel,
-                       force_left_wheel + direction * mot->left_wheel.mass * Gravity,
+                       force_left_wheel + direction * mot->left_wheel.mass * effective_gravity,
                        torque_left_wheel, dt, true);
     rigidbody_movement(&mot->right_wheel,
-                       force_right_wheel + direction * mot->right_wheel.mass * Gravity,
+                       force_right_wheel + direction * mot->right_wheel.mass * effective_gravity,
                        torque_right_wheel, dt, true);
 
     // Lastly, calculate the head position based on the body position
