@@ -430,6 +430,18 @@ void kikereknev(object::Type tipus, object::Property kajatipus, int foodsorszam)
         if (kajatipus == object::Property::GravityRight) {
             sprintf(tmp, "Grav. Right");
         }
+        if (kajatipus == object::Property::GravityDouble) {
+            sprintf(tmp, "Grav. 2x");
+        }
+        if (kajatipus == object::Property::GravityHalf) {
+            sprintf(tmp, "Grav. 1/2");
+        }
+        if (kajatipus == object::Property::GravityNone) {
+            sprintf(tmp, "Grav. 0");
+        }
+        if (kajatipus == object::Property::GravityNormal) {
+            sprintf(tmp, "Grav. 1x");
+        }
 
         Pabc1->write(Pspritenevbuffer, 130, 14, "Anim num:");
         char tmp2[10];

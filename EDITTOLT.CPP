@@ -1745,7 +1745,7 @@ void set_kerek_tipus(const char* fejlec, object::Property* pkajatipus, int* pfoo
     invalidateegesz();
 
     // Koordok megadasa:
-    int listaszam = 5;
+    int listaszam = 9;
     int dy = 20;
 
     int x1 = 200;
@@ -1794,6 +1794,18 @@ void set_kerek_tipus(const char* fejlec, object::Property* pkajatipus, int* pfoo
             break;
         case 4:
             Pabc2->write_centered(BufferMain, lx, ly, "Gravity Right");
+            break;
+        case 5:
+            Pabc2->write_centered(BufferMain, lx, ly, "Gravity Double");
+            break;
+        case 6:
+            Pabc2->write_centered(BufferMain, lx, ly, "Gravity Half");
+            break;
+        case 7:
+            Pabc2->write_centered(BufferMain, lx, ly, "Gravity None");
+            break;
+        case 8:
+            Pabc2->write_centered(BufferMain, lx, ly, "Gravity Normal");
             break;
         default:
             internal_error("yuiwegfyjkweg");
@@ -1873,6 +1885,18 @@ void set_kerek_tipus(const char* fejlec, object::Property* pkajatipus, int* pfoo
                     break;
                 case 4:
                     *pkajatipus = object::Property::GravityRight;
+                    break;
+                case 5:
+                    *pkajatipus = object::Property::GravityDouble;
+                    break;
+                case 6:
+                    *pkajatipus = object::Property::GravityHalf;
+                    break;
+                case 7:
+                    *pkajatipus = object::Property::GravityNone;
+                    break;
+                case 8:
+                    *pkajatipus = object::Property::GravityNormal;
                     break;
                 default:
                     internal_error("0893ytpoerhg");
