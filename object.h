@@ -13,7 +13,11 @@ class object {
         GravityUp = 1,
         GravityDown = 2,
         GravityLeft = 3,
-        GravityRight = 4
+        GravityRight = 4,
+        GravityDouble = 5,
+        GravityHalf = 6,
+        GravityNone = 7,
+        GravityNormal = 8
     };
 
     vect2 r;                                // Position in meters
