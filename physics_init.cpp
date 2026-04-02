@@ -45,6 +45,7 @@ void init_motor(motorst* motor) {
     motor->flipped_bike = 0;
     motor->flipped_camera = 0;
     motor->gravity_direction = MotorGravity::Down;
+    motor->gravity_multiplier = 1.0;
     motor->prev_brake = false;
 
     motor->bike.rotation = 0.0;
