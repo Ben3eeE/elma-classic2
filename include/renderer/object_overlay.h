@@ -7,4 +7,7 @@ class pic8;
 
 void init_gravity_arrows();
 void draw_gravity_arrow(pic8* pic, int obj_i, int obj_j, object::Property property);
+
+void init_gravity_overlays();
+void draw_gravity_overlay(pic8* pic, int obj_i, int obj_j, object::Property property);
 #endif

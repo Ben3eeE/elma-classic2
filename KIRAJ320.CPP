@@ -87,6 +87,7 @@ static void init_shirt() {
 void init_renderer() {
     init_shirt();
     init_gravity_arrows();
+    init_gravity_overlays();
 
     SmallFont = new abc8("small.abc");
     SmallFont->set_spacing(1);
@@ -750,8 +751,14 @@ static void kirakegyjatekost(bool ajatekos, pic8* ppic, double t, motorst* pmot,
 
         if (EolSettings->show_gravity_arrows() && pker->type == object::Type::Food &&
             pker->property != object::Property::None) {
-            draw_gravity_arrow(ppic, pker->canvas_x - balalsox, pker->canvas_y - balalsoy + dy,
-                               pker->property);
+            int overlay_x = pker->canvas_x - balalsox;
+            int overlay_y = pker->canvas_y - balalsoy + dy;
+            if (pker->property >= object::Property::GravityUp &&
+                pker->property <= object::Property::GravityRight) {
+                draw_gravity_arrow(ppic, overlay_x, overlay_y, pker->property);
+            } else {
+                draw_gravity_overlay(ppic, overlay_x, overlay_y, pker->property);
+            }
         }
     }
 

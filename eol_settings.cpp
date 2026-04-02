@@ -87,6 +87,7 @@ void eol_settings::set_zoom(double z) {
         set_zoom_factor();
         invalidate_lgr_cache();
         init_gravity_arrows();
+        init_gravity_overlays();
     }
 }
 
