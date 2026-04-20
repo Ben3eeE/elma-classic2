@@ -313,10 +313,21 @@ static void render_minimap(bool player1, pic8* pic, double camera_turn_phase, ve
             break;
         }
 
-        int draw_food = obj->type == object::Type::Food && obj->active;
-        int draw_exit = (Single || !Tag) && obj->type == object::Type::Exit;
-
-        if (!draw_food && !draw_exit) {
+        unsigned char palette_id;
+        switch (obj->type) {
+        case object::Type::Food:
+            if (!obj->active) {
+                continue;
+            }
+            palette_id = Lgr->minimap_food_palette_id;
+            break;
+        case object::Type::Exit:
+            if (!Single && Tag) {
+                continue;
+            }
+            palette_id = Lgr->minimap_exit_palette_id;
+            break;
+        default:
             continue;
         }
 
@@ -327,15 +338,8 @@ static void render_minimap(bool player1, pic8* pic, double camera_turn_phase, ve
             continue;
         }
 
-        if (obj->type == object::Type::Food) {
-            render_minimap_icon(pic, obj->minimap_canvas_x - corner_x + minimap_x1,
-                                obj->minimap_canvas_y - corner_y + minimap_y1,
-                                Lgr->minimap_food_palette_id);
-        } else {
-            render_minimap_icon(pic, obj->minimap_canvas_x - corner_x + minimap_x1,
-                                obj->minimap_canvas_y - corner_y + minimap_y1,
-                                Lgr->minimap_exit_palette_id);
-        }
+        render_minimap_icon(pic, obj->minimap_canvas_x - corner_x + minimap_x1,
+                            obj->minimap_canvas_y - corner_y + minimap_y1, palette_id);
     }
 
     // Select the correct color for each bike
@@ -675,8 +679,13 @@ static void render_view(bool player1, pic8* pic, double time, motorst* mot, valt
             break;
         }
 
-        if (obj->type == object::Type::Start || (obj->type == object::Type::Food && !obj->active) ||
-            (!Single && Tag && obj->type == object::Type::Exit)) {
+        if (obj->type == object::Type::Start) {
+            continue;
+        }
+        if (obj->type == object::Type::Food && !obj->active) {
+            continue;
+        }
+        if (obj->type == object::Type::Exit && !Single && Tag) {
             continue;
         }
 
