@@ -1,5 +1,6 @@
 #include "eol/console.h"
 #include "abc8.h"
+#include "eol/fps.h"
 #include "eol/eol.h"
 #include "eol/status_messages.h"
 #include "eol_settings.h"
@@ -113,6 +114,31 @@ void console::register_console_commands() {
     REGISTER_SETTINGS_BOOL(cripple_drunk);
     register_alias("drunk", "cripple_drunk");
     register_alias("dr", "cripple_drunk");
+
+    // eol-client !fps aggregate:
+    //   fps         -> toggle show_fps_info
+    //   fps on/off  -> queue limiter on/off
+    //   fps <N>     -> queue numeric limit (auto-enables); accepts float
+    register_command("fps", [](std::string_view text) {
+        if (text.empty()) {
+            EolSettings->set_show_fps_info(!EolSettings->show_fps_info());
+            StatusMessages->add(EolSettings->show_fps_info() ? "FPS info shown"
+                                                             : "FPS info hidden");
+            return;
+        }
+        std::string s(text);
+        if (strcmpi(s.c_str(), "on") == 0) {
+            fps::request_on();
+        } else if (strcmpi(s.c_str(), "off") == 0) {
+            fps::request_off();
+        } else {
+            char* end = nullptr;
+            float v = std::strtof(s.c_str(), &end);
+            if (end != s.c_str() && v >= 30.0f && v <= 1000.0f) {
+                fps::put_change_pending(v);
+            }
+        }
+    });
 }
 
 void console::add_line(std::string text, LineType type) {
