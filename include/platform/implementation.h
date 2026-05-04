@@ -63,6 +63,8 @@ bool is_shortcut_modifier_down();
 bool is_fullscreen();
 long long get_milliseconds();
 
+void platform_sleep_us(int microseconds);
+
 void platform_apply_fullscreen_mode();
 std::vector<std::pair<int, int>> platform_get_display_modes();
 std::pair<int, int> platform_get_desktop_resolution();

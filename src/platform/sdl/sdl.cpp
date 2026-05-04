@@ -13,6 +13,7 @@
 #include <directinput/scancodes.h>
 #include <algorithm>
 #include <chrono>
+#include <thread>
 #include <filesystem>
 #include <format>
 #include <SDL.h>
@@ -42,6 +43,10 @@ void message_box(const char* text) {
 }
 
 long long get_milliseconds() { return SDL_GetTicks64(); }
+
+void platform_sleep_us(int microseconds) {
+    std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
+}
 
 static void refresh_software_surface() {
     SDLSurfaceMain = SDL_GetWindowSurface(SDLWindow);
