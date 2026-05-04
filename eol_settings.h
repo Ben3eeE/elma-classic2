@@ -110,6 +110,9 @@ class eol_settings {
     Default<bool> show_last_apple_time_{true};
     Default<bool> show_gravity_arrows_{true};
     Clamp<int> recording_fps_{30, 30, 120};
+    Default<bool> fps_limit_enabled_{false};
+    Clamp<float> fps_limit_{30.0f, 100.0f, 1000.0f};
+    Default<bool> show_fps_info_{false};
     Default<bool> show_demo_menu_{true};
     Default<bool> show_help_menu_{true};
     Default<bool> show_best_times_menu_{true};
@@ -175,6 +178,9 @@ class eol_settings {
     DECLARE_FIELD_FUNCS(show_last_apple_time);
     DECLARE_FIELD_FUNCS(show_gravity_arrows);
     DECLARE_FIELD_FUNCS(recording_fps);
+    DECLARE_FIELD_FUNCS(fps_limit_enabled);
+    DECLARE_FIELD_FUNCS(fps_limit);
+    DECLARE_FIELD_FUNCS(show_fps_info);
     DECLARE_FIELD_FUNCS(show_demo_menu);
     DECLARE_FIELD_FUNCS(show_help_menu);
     DECLARE_FIELD_FUNCS(show_best_times_menu);
