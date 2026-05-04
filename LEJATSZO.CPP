@@ -2,6 +2,7 @@
 #include "EDITUJ.H"
 #include "eol/console.h"
 #include "eol/eol.h"
+#include "eol/pacer.h"
 #include "eol/status_messages.h"
 #include "eol_settings.h"
 #include "flagtag.h"
@@ -394,6 +395,8 @@ static void setup_gameloop(const char* filename) {
 
     OutOfBounds = false;
 
+    pacer::reset();
+
     Lgr->pal->set();
 }
 
@@ -466,18 +469,14 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         // Get timestep
         double target_time = stopwatch() * 0.0024;
         target_time = std::max(0.000001, target_time);
+        pacer::set_time_passed(target_time);
 
         handle_events();
 
         bool console_was_active = handle_console_input();
 
-        while (time <= target_time - 0.000001) {
-            // Cap slowest frame to 0.0055 (approximately 12.6 milliseconds or 79.4 fps)
-            double dt = 0.0055;
-            if (time + dt > target_time) {
-                dt = target_time - time;
-            }
-
+        double dt = 0.0;
+        while (pacer::phys_step_next(&dt)) {
             if (current_camera.mode == CameraMode::MapViewer) {
                 update_freecam(dt, current_camera);
                 time += dt;

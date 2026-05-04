@@ -81,6 +81,7 @@ elma_sources = files(
     'src/eol/eol.cpp',
     'src/eol/battle.cpp',
     'src/eol/eol_table.cpp',
+    'src/eol/pacer.cpp',
     'src/util/util.cpp',
     'src/glad/glad.c',
 )
