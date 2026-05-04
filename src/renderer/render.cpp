@@ -2,6 +2,7 @@
 #include "editor/editor.h"
 #include "eol/console.h"
 #include "eol/eol.h"
+#include "eol/fps.h"
 #include "eol/settings.h"
 #include "eol/status_messages.h"
 #include "game/driver.h"
@@ -816,6 +817,25 @@ static void render_view(bool player1, pic8* pic, double time, driver& driv, driv
     // Build the bottom-right info panel rows.
     // rows are rendered in the order they were added (last added on top)
     std::vector<info_panel_row> info_rows;
+
+    if (player1 && EolSettings->show_fps_info()) {
+        std::string fps_text = CurrentFps == 0 ? "" : std::format("{}", CurrentFps);
+        bool pending_enabled = EolSettings->fps_limit_enabled();
+        float pending_limit = EolSettings->fps_limit();
+        std::string limit_text;
+        if (LiveFpsLimitEnabled && pending_enabled) {
+            if (LiveFpsLimit == pending_limit) {
+                limit_text = std::format(" ({:g})", LiveFpsLimit);
+            } else {
+                limit_text = std::format(" ({:g} -> {:g})", LiveFpsLimit, pending_limit);
+            }
+        } else if (LiveFpsLimitEnabled && !pending_enabled) {
+            limit_text = std::format(" ({:g} -> off)", LiveFpsLimit);
+        } else if (!LiveFpsLimitEnabled && pending_enabled) {
+            limit_text = std::format(" (off -> {:g})", pending_limit);
+        }
+        info_rows.push_back({"FPS", fps_text + limit_text});
+    }
 
     if (driv.mot->apple_count && EolSettings->show_last_apple_time()) {
         char apple_time[32];
