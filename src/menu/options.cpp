@@ -414,6 +414,31 @@ void menu_options() {
                 EolSettings->persist_recording_fps(new_fps);
             });
 
+        nav.add_row(
+            "FPS Limit:",
+            EolSettings->fps_limit_enabled_persisted()
+                ? std::format("{:g}", EolSettings->fps_limit_persisted())
+                : std::string("Off"),
+            NAV_FUNC() {
+                static constexpr float steps[] = {60.0f, 100.0f, 144.0f, 240.0f, 500.0f, 1000.0f};
+                if (!EolSettings->fps_limit_enabled_persisted()) {
+                    EolSettings->persist_fps_limit_enabled(true);
+                    EolSettings->persist_fps_limit(steps[0]);
+                    return;
+                }
+                float cur = EolSettings->fps_limit_persisted();
+                for (size_t i = 0; i < std::size(steps); ++i) {
+                    if (steps[i] == cur && i + 1 < std::size(steps)) {
+                        EolSettings->persist_fps_limit(steps[i + 1]);
+                        return;
+                    }
+                }
+                EolSettings->persist_fps_limit_enabled(false);
+                EolSettings->persist_fps_limit(steps[0]);
+            });
+
+        BOOL_OPTION("Show FPS:", show_fps_info);
+
         BOOL_OPTION("Show Total Time:", show_total_time);
         BOOL_OPTION("Demo menu:", show_demo_menu);
         BOOL_OPTION("Help menu:", show_help_menu);
