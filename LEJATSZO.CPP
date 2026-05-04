@@ -498,18 +498,15 @@ int game_loop(const char* filename, CameraMode camera_mode) {
 
     bool both_bikes_alive = true;
     while (true) {
-        // Get timestep
-        double target_time = stopwatch() * 0.0024;
-        target_time = std::max(0.000001, target_time);
-        pacer::set_time_passed(target_time);
-
         handle_events();
 
         bool console_was_active = handle_console_input();
 
-        sample_phys_input(PhysInput1, State->keys1);
-        if (!Single) {
-            sample_phys_input(PhysInput2, State->keys2);
+        if (pacer::try_real_frame()) {
+            sample_phys_input(PhysInput1, State->keys1);
+            if (!Single) {
+                sample_phys_input(PhysInput2, State->keys2);
+            }
         }
 
         double dt = 0.0;
