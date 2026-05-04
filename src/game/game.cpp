@@ -470,8 +470,6 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         EolClient->enter_level(filename, Level, camera_mode == CameraMode::MapViewer);
     }
 
-    stopwatch_reset();
-
     driver driv1(Motor1, Rec1, &State->keys1, &HudGame1);
     driver driv2(Motor2, Rec2, &State->keys2, &HudGame2);
 
@@ -498,14 +496,11 @@ int game_loop(const char* filename, CameraMode camera_mode) {
 
     bool both_bikes_alive = true;
     while (true) {
-        // Get timestep
-        double target_time = stopwatch() * 0.0024;
-        target_time = std::max(0.000001, target_time);
-        pacer::set_time_passed(target_time);
-
         handle_events();
 
         bool console_was_active = handle_console_input();
+
+        pacer::tick();
 
         double dt = 0.0;
         while (pacer::phys_step_next(&dt)) {
