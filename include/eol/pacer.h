@@ -7,9 +7,11 @@ constexpr double PHYS_MAX_DELTA = 0.0055;
 
 void reset();
 
-// Tell the pacer that wall-clock time has advanced to `cel` cel-units. Used as
-// the catch-up target by phys_step_next.
-void set_time_passed(double cel);
+// Per-iter pacer tick. Advances `time_passed_` to current wall-clock-derived cel time and
+// ticks the fps counter, unless the fps_limit cel-freeze check says this iter is over
+// budget — in which case `time_passed_` is left where it was and the next phys_step_next
+// will be a no-op. Mirrors eol-client's LimitFPS accept branch.
+void tick();
 
 // Catch-up iterator. Writes the next physics dt into *out_dt and advances the
 // internal time cursor. Returns false when time has caught up to time_passed.
