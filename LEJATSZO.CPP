@@ -502,15 +502,18 @@ int game_loop(const char* filename, CameraMode camera_mode) {
 
         bool console_was_active = handle_console_input();
 
+        bool did_work = false;
         if (pacer::try_real_frame()) {
             sample_phys_input(PhysInput1, State->keys1);
             if (!Single) {
                 sample_phys_input(PhysInput2, State->keys2);
             }
+            did_work = true;
         }
 
         double dt = 0.0;
         while (pacer::phys_step_next(&dt)) {
+            did_work = true;
             if (current_camera.mode == CameraMode::MapViewer) {
                 update_freecam(dt, current_camera);
                 time += dt;
@@ -604,6 +607,14 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         render_game(time, &metadata1, &metadata2, HudVisibility1.game_minimap,
                     HudVisibility1.game_timer, HudVisibility2.game_minimap,
                     HudVisibility2.game_timer, current_camera);
+
+        // Sleep when ahead of schedule. Slow hardware (where every iter has
+        // work) never sleeps; fast hardware sleeps on iters frozen by the
+        // limiter to avoid burning CPU. Render fired before this so the back
+        // buffer is fresh.
+        if (!did_work) {
+            platform_sleep_us(700);
+        }
 
         // Universal controls
         if (was_game_key_just_pressed(State->key_increase_screen_size)) {
