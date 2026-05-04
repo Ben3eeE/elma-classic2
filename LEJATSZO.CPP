@@ -34,19 +34,28 @@ std::string VideoOutputDirectory;
 
 static int TotalApples;
 
-// Per-player physics input, captured once per outer iter and read without
-// modification across every sub-step in the catch-up loop that follows.
-// Aliased keys (brake_alias, alovolt) are folded in at sample time so subframe
-// physics reads named action bits rather than scancodes.
+// Per-player physics input, captured once per accepted real frame and read
+// without modification across every sub-step in the catch-up burst that
+// follows. Aliased keys (brake_alias, alovolt) and the one-frame-brake latch
+// are folded in at sample time so subframe physics reads named action bits
+// rather than scancodes.
 struct phys_input {
     bool gas;
-    bool brake;      // brake | brake_alias | was_just_pressed(one_frame_brake)
+    bool brake;      // brake | brake_alias | one_frame_brake_pending
     bool right_volt; // right_volt | alovolt
     bool left_volt;  // left_volt  | alovolt
     bool turn;
 };
 static phys_input PhysInput1;
 static phys_input PhysInput2;
+
+// Sticky one-frame-brake latch. The brake key only fires was_just_pressed for
+// one outer iter; at low fps_limit that iter rarely lines up with an accepted
+// real frame, so without this latch ~95% of presses miss. update_one_frame
+// _brake_pending() sets the flag, sample_phys_input() ORs it into
+// `phys_input.brake`, and the catch-up loop clears the flag once at least one
+// subframe has actually consumed it.
+static bool OneFrameBrakePending[2] = {false, false};
 
 // Returns whether console was active at the beginning of this frame,
 // to prevent key presses from affecting the gameplay.
@@ -74,17 +83,27 @@ static bool was_game_key_just_pressed(DikScancode code) {
     return was_key_just_pressed(code);
 }
 
+// Latch a one-frame-brake key press. Called every outer iter so the press
+// survives until the next sub-step consumes it.
+static void update_one_frame_brake_pending() {
+    if (was_game_key_just_pressed(State->keys1.one_frame_brake)) {
+        OneFrameBrakePending[0] = true;
+    }
+    if (!Single && was_game_key_just_pressed(State->keys2.one_frame_brake)) {
+        OneFrameBrakePending[1] = true;
+    }
+}
+
 // Capture physics-relevant keys into a per-player snapshot once at the start
 // of each accepted catch-up burst.
-static void sample_phys_input(phys_input& inp, const player_keys& k) {
+static void sample_phys_input(phys_input& inp, const player_keys& k, bool brake_pending) {
     if (Console->is_input_active()) {
         inp = {};
         return;
     }
     bool alov = is_key_down(k.alovolt);
     inp.gas = is_key_down(k.gas);
-    inp.brake = is_key_down(k.brake) || is_key_down(k.brake_alias) ||
-                was_key_just_pressed(k.one_frame_brake);
+    inp.brake = is_key_down(k.brake) || is_key_down(k.brake_alias) || brake_pending;
     inp.right_volt = is_key_down(k.right_volt) || alov;
     inp.left_volt = is_key_down(k.left_volt) || alov;
     inp.turn = is_key_down(k.turn);
@@ -426,6 +445,8 @@ static void setup_gameloop(const char* filename) {
 
     PhysInput1 = {};
     PhysInput2 = {};
+    OneFrameBrakePending[0] = false;
+    OneFrameBrakePending[1] = false;
 
     pacer::reset();
 
@@ -502,12 +523,21 @@ int game_loop(const char* filename, CameraMode camera_mode) {
 
         bool console_was_active = handle_console_input();
 
+        // Latch one-frame-brake AFTER console toggle so a same-iter F9 close
+        // releases the brake key into the latch as expected.
+        update_one_frame_brake_pending();
+
         bool did_work = false;
         if (pacer::try_real_frame()) {
-            sample_phys_input(PhysInput1, State->keys1);
+            sample_phys_input(PhysInput1, State->keys1, OneFrameBrakePending[0]);
             if (!Single) {
-                sample_phys_input(PhysInput2, State->keys2);
+                sample_phys_input(PhysInput2, State->keys2, OneFrameBrakePending[1]);
             }
+            // Clear the latch now that sample has consumed it. Done here, not
+            // after the catch-up loop, so a press that landed on a frozen iter
+            // survives until the next real frame samples it.
+            OneFrameBrakePending[0] = false;
+            OneFrameBrakePending[1] = false;
             did_work = true;
         }
 
