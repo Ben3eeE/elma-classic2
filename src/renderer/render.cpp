@@ -6,6 +6,7 @@
 #include "EDITUJ.H"
 #include "eol/console.h"
 #include "eol/eol.h"
+#include "eol/fps.h"
 #include "eol/status_messages.h"
 #include "eol_settings.h"
 #include "flagtag.h"
@@ -784,16 +785,44 @@ static void render_view(bool player1, pic8* pic, double time, motorst* mot, bike
     }
 
     // Draw the bottom-right info panel
+    constexpr int RIGHT_MARGIN = 5;
+    constexpr int BOTTOM_MARGIN = 5;
+    int info_x = GameViewWidth - RIGHT_MARGIN;
+    int info_y = BOTTOM_MARGIN;
+
     if (mot->apple_count && EolSettings->show_last_apple_time()) {
         char tmp[100];
         sprintf(tmp, "last apple (%d)        ", mot->apple_count - mot->apple_bug_count);
         util::text::centiseconds_to_string(mot->last_apple_time, tmp + strlen(tmp), true, true);
+        SmallFont->write_right_align(pic, info_x, info_y, tmp);
+        info_y += SmallFont->line_height();
+    }
 
-        constexpr int RIGHT_MARGIN = 5;
-        constexpr int BOTTOM_MARGIN = 5;
-        int x = GameViewWidth - RIGHT_MARGIN;
-        int y = BOTTOM_MARGIN;
-        SmallFont->write_right_align(pic, x, y, tmp);
+    if (player1 && EolSettings->show_fps_info()) {
+        bool pending_enabled = EolSettings->fps_limit_enabled();
+        float pending_limit = EolSettings->fps_limit();
+        char fps_text[16];
+        if (CurrentFps == 0) {
+            fps_text[0] = '\0';
+        } else {
+            snprintf(fps_text, sizeof(fps_text), "%d", CurrentFps);
+        }
+        char limit_text[48] = "";
+        if (LiveFpsLimitEnabled && pending_enabled) {
+            if (LiveFpsLimit == pending_limit) {
+                snprintf(limit_text, sizeof(limit_text), " (%g)", LiveFpsLimit);
+            } else {
+                snprintf(limit_text, sizeof(limit_text), " (%g -> %g)", LiveFpsLimit,
+                         pending_limit);
+            }
+        } else if (LiveFpsLimitEnabled && !pending_enabled) {
+            snprintf(limit_text, sizeof(limit_text), " (%g -> off)", LiveFpsLimit);
+        } else if (!LiveFpsLimitEnabled && pending_enabled) {
+            snprintf(limit_text, sizeof(limit_text), " (off -> %g)", pending_limit);
+        }
+        char buf[64];
+        snprintf(buf, sizeof(buf), "FPS %s%s", fps_text, limit_text);
+        SmallFont->write_right_align(pic, info_x, info_y, buf);
     }
 }
 
