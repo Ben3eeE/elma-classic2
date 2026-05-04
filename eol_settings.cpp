@@ -59,6 +59,7 @@ template struct Default<FullscreenMode>;
 template struct Default<DikScancode>;
 template struct Default<std::string>;
 template struct Clamp<int>;
+template struct Clamp<float>;
 template struct Clamp<double>;
 
 void eol_settings::set_screen_width(int w) { screen_width_ = w; }
@@ -176,6 +177,12 @@ void eol_settings::set_show_last_apple_time(bool show) { show_last_apple_time_ =
 void eol_settings::set_show_gravity_arrows(bool b) { show_gravity_arrows_ = b; }
 
 void eol_settings::set_recording_fps(int fps) { recording_fps_ = fps; }
+
+void eol_settings::set_fps_limit_enabled(bool b) { fps_limit_enabled_ = b; }
+
+void eol_settings::set_fps_limit(float v) { fps_limit_ = v; }
+
+void eol_settings::set_show_fps_info(bool b) { show_fps_info_ = b; }
 
 void eol_settings::set_show_demo_menu(bool show) { show_demo_menu_ = show; }
 void eol_settings::set_show_help_menu(bool show) { show_help_menu_ = show; }
@@ -371,6 +378,9 @@ void from_json(const json& j, FullscreenMode& f) {
     JSON_FIELD(show_last_apple_time)                                                               \
     JSON_FIELD(show_gravity_arrows)                                                                \
     JSON_FIELD(recording_fps)                                                                      \
+    JSON_FIELD(fps_limit_enabled)                                                                  \
+    JSON_FIELD(fps_limit)                                                                          \
+    JSON_FIELD(show_fps_info)                                                                      \
     JSON_FIELD(show_demo_menu)                                                                     \
     JSON_FIELD(show_help_menu)                                                                     \
     JSON_FIELD(show_best_times_menu)                                                               \
