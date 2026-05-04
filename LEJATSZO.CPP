@@ -518,6 +518,7 @@ int game_loop(const char* filename, CameraMode camera_mode) {
     }
 
     bool both_bikes_alive = true;
+    bool any_step_fired = false;
     while (true) {
         handle_events();
 
@@ -544,6 +545,7 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         double dt = 0.0;
         while (pacer::phys_step_next(&dt)) {
             did_work = true;
+            any_step_fired = true;
             if (current_camera.mode == CameraMode::MapViewer) {
                 update_freecam(dt, current_camera);
                 time += dt;
@@ -634,9 +636,16 @@ int game_loop(const char* filename, CameraMode camera_mode) {
                               time, &metadata1.draw_view, dead2);
         }
 
-        render_game(time, &metadata1, &metadata2, HudVisibility1.game_minimap,
-                    HudVisibility1.game_timer, HudVisibility2.game_minimap,
-                    HudVisibility2.game_timer, current_camera);
+        // Skip render until the first physics sub-step has fired. Without
+        // this gate, the initial render at level entry can show stale state
+        // from the previous run (e.g. head pose) before any physics has
+        // updated it. Once started, render fires every outer iter at hardware
+        // rate so camera/HUD/world stay hot at low fps_limit.
+        if (any_step_fired) {
+            render_game(time, &metadata1, &metadata2, HudVisibility1.game_minimap,
+                        HudVisibility1.game_timer, HudVisibility2.game_minimap,
+                        HudVisibility2.game_timer, current_camera);
+        }
 
         // Sleep when ahead of schedule. Slow hardware (where every iter has
         // work) never sleeps; fast hardware sleeps on iters frozen by the
