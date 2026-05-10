@@ -33,6 +33,20 @@ std::string VideoOutputDirectory;
 
 static int TotalApples;
 
+// Per-player physics input, captured once per outer iter and read without
+// modification across every sub-step in the catch-up loop that follows.
+// Aliased keys (brake_alias, alovolt) are folded in at sample time so subframe
+// physics reads named action bits rather than scancodes.
+struct phys_input {
+    bool gas;
+    bool brake;      // brake | brake_alias | was_just_pressed(one_frame_brake)
+    bool right_volt; // right_volt | alovolt
+    bool left_volt;  // left_volt  | alovolt
+    bool turn;
+};
+static phys_input PhysInput1;
+static phys_input PhysInput2;
+
 // Returns whether console was active at the beginning of this frame,
 // to prevent key presses from affecting the gameplay.
 static bool handle_console_input() {
@@ -57,6 +71,22 @@ static bool was_game_key_just_pressed(DikScancode code) {
         return false;
     }
     return was_key_just_pressed(code);
+}
+
+// Capture physics-relevant keys into a per-player snapshot once at the start
+// of each accepted catch-up burst.
+static void sample_phys_input(phys_input& inp, const player_keys& k) {
+    if (Console->is_input_active()) {
+        inp = {};
+        return;
+    }
+    bool alov = is_key_down(k.alovolt);
+    inp.gas = is_key_down(k.gas);
+    inp.brake = is_key_down(k.brake) || is_key_down(k.brake_alias) ||
+                was_key_just_pressed(k.one_frame_brake);
+    inp.right_volt = is_key_down(k.right_volt) || alov;
+    inp.left_volt = is_key_down(k.left_volt) || alov;
+    inp.turn = is_key_down(k.turn);
 }
 
 static void update_freecam(double dt, camera& current_camera) {
@@ -156,14 +186,13 @@ static double calculate_camera_phase(double elapsed_time, int flipped) {
 }
 
 // Subframe physics calculation. Contains all the physics calculations except for bike turning
-static void physics_subframe(motorst* mot, player_keys* keys, bike_metadata* metadata,
+static void physics_subframe(motorst* mot, const phys_input& inp, bike_metadata* metadata,
                              recorder* rec, int* finish_time, bool* dead, double time, double dt) {
     // Adjust key inputs to only allow valid inputs, accounting for volt delay and cripples
-    bool is_gas_down = is_game_key_down(keys->gas);
-    bool is_brake_down = is_game_key_down(keys->brake) || is_game_key_down(keys->brake_alias) ||
-                         was_game_key_just_pressed(keys->one_frame_brake);
-    bool is_right_volt_down = is_game_key_down(keys->right_volt);
-    bool is_left_volt_down = is_game_key_down(keys->left_volt);
+    bool is_gas_down = inp.gas;
+    bool is_brake_down = inp.brake;
+    bool is_right_volt_down = inp.right_volt;
+    bool is_left_volt_down = inp.left_volt;
 
     if (EolSettings->cripple_drunk() && ((mot->apple_count - mot->apple_bug_count) & 1)) {
         std::swap(is_gas_down, is_brake_down);
@@ -183,13 +212,13 @@ static void physics_subframe(motorst* mot, player_keys* keys, bike_metadata* met
     bool right_volt = false;
     bool left_volt = false;
     if (time > metadata->volt_time + VoltDelay && !EolSettings->cripple_no_volt()) {
-        if (is_right_volt_down || is_game_key_down(keys->alovolt)) {
+        if (is_right_volt_down) {
             right_volt = true;
             metadata->volt_time = time;
             metadata->volt_is_right = true;
             add_event_buffer(WavEvent::RightVolt, 0.99, -1);
         }
-        if (is_left_volt_down || is_game_key_down(keys->alovolt)) {
+        if (is_left_volt_down) {
             left_volt = true;
             metadata->volt_time = time;
             metadata->volt_is_right = false;
@@ -328,15 +357,15 @@ static void update_turning_data(turning_data* data, recorder* rec, double time, 
 
 // The only physics-relevant part of this function is turning the bike. The rest is "cosmetic" for
 // rendering the frame.
-static void physics_frame_end(motorst* mot, player_keys* keys, bike_metadata* metadata,
-                              recorder* rec, hud_visibility* hud, double time,
-                              bool* other_draw_view, bool dead) {
+static void physics_frame_end(motorst* mot, player_keys* keys, const phys_input& inp,
+                              bike_metadata* metadata, recorder* rec, hud_visibility* hud,
+                              double time, bool* other_draw_view, bool dead) {
     // Update the hud and player visibility
     update_view_settings(keys, metadata, &hud->game_minimap, &hud->game_timer, other_draw_view);
 
     // Check for bike turn and update turn graphics
     if (!dead) {
-        bool is_turn_down = is_game_key_down(keys->turn);
+        bool is_turn_down = inp.turn;
         if (EolSettings->cripple_no_turn()) {
             is_turn_down = false;
         }
@@ -393,6 +422,9 @@ static void setup_gameloop(const char* filename) {
     Motor2->apple_bug_count = 0;
 
     OutOfBounds = false;
+
+    PhysInput1 = {};
+    PhysInput2 = {};
 
     Lgr->pal->set();
 }
@@ -471,6 +503,11 @@ int game_loop(const char* filename, CameraMode camera_mode) {
 
         bool console_was_active = handle_console_input();
 
+        sample_phys_input(PhysInput1, State->keys1);
+        if (!Single) {
+            sample_phys_input(PhysInput2, State->keys2);
+        }
+
         while (time <= target_time - 0.000001) {
             // Cap slowest frame to 0.0055 (approximately 12.6 milliseconds or 79.4 fps)
             double dt = 0.0055;
@@ -485,12 +522,12 @@ int game_loop(const char* filename, CameraMode camera_mode) {
             }
 
             if (!dead1) {
-                physics_subframe(Motor1, &State->keys1, &metadata1, Rec1, &finish_time1, &dead1,
-                                 time, dt);
+                physics_subframe(Motor1, PhysInput1, &metadata1, Rec1, &finish_time1, &dead1, time,
+                                 dt);
             }
             if (!Single && !dead2) {
-                physics_subframe(Motor2, &State->keys2, &metadata2, Rec2, &finish_time2, &dead2,
-                                 time, dt);
+                physics_subframe(Motor2, PhysInput2, &metadata2, Rec2, &finish_time2, &dead2, time,
+                                 dt);
             }
 
             if (!Single && both_bikes_alive) {
@@ -561,11 +598,11 @@ int game_loop(const char* filename, CameraMode camera_mode) {
             set_motor_frequency(false, metadata2.sound.motor_frequency, metadata2.sound.gas);
         }
 
-        physics_frame_end(Motor1, &State->keys1, &metadata1, Rec1, &HudVisibility1, time,
-                          &metadata2.draw_view, dead1);
+        physics_frame_end(Motor1, &State->keys1, PhysInput1, &metadata1, Rec1, &HudVisibility1,
+                          time, &metadata2.draw_view, dead1);
         if (!Single) {
-            physics_frame_end(Motor2, &State->keys2, &metadata2, Rec2, &HudVisibility2, time,
-                              &metadata1.draw_view, dead2);
+            physics_frame_end(Motor2, &State->keys2, PhysInput2, &metadata2, Rec2, &HudVisibility2,
+                              time, &metadata1.draw_view, dead2);
         }
 
         render_game(time, &metadata1, &metadata2, HudVisibility1.game_minimap,
