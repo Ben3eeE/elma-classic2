@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "fps3"
     paths-ignore:
       - "**.md"
       - "**/docs/**"
