@@ -34,6 +34,13 @@ std::string VideoOutputDirectory;
 
 static int TotalApples;
 
+// Sticky one-frame-brake latch. was_just_pressed for one_frame_brake fires for only one
+// outer iter; at low fps_limit that iter rarely lines up with a sub-step actually firing, so
+// without this latch ~95% of presses miss. update_one_frame_brake_pending() sets the flag
+// every outer iter, and physics_subframe consumes (ORs into is_brake_down and clears) it
+// when a sub-step runs.
+static bool OneFrameBrakePending[2] = {false, false};
+
 // Returns whether console was active at the beginning of this frame,
 // to prevent key presses from affecting the gameplay.
 static bool handle_console_input() {
@@ -58,6 +65,17 @@ static bool was_game_key_just_pressed(DikScancode code) {
         return false;
     }
     return was_key_just_pressed(code);
+}
+
+// Latch a one-frame-brake key press. Called every outer iter so the press survives until the
+// next sub-step consumes it.
+static void update_one_frame_brake_pending() {
+    if (was_game_key_just_pressed(State->keys1.one_frame_brake)) {
+        OneFrameBrakePending[0] = true;
+    }
+    if (!Single && was_game_key_just_pressed(State->keys2.one_frame_brake)) {
+        OneFrameBrakePending[1] = true;
+    }
 }
 
 static void update_freecam(double dt, camera& current_camera) {
@@ -157,12 +175,15 @@ static double calculate_camera_phase(double elapsed_time, int flipped) {
 }
 
 // Subframe physics calculation. Contains all the physics calculations except for bike turning
-static void physics_subframe(motorst* mot, player_keys* keys, bike_metadata* metadata,
-                             recorder* rec, int* finish_time, bool* dead, double time, double dt) {
+static void physics_subframe(motorst* mot, player_keys* keys, int player_id,
+                             bike_metadata* metadata, recorder* rec, int* finish_time, bool* dead,
+                             double time, double dt) {
     // Adjust key inputs to only allow valid inputs, accounting for volt delay and cripples
     bool is_gas_down = is_game_key_down(keys->gas);
     bool is_brake_down = is_game_key_down(keys->brake) || is_game_key_down(keys->brake_alias) ||
-                         was_game_key_just_pressed(keys->one_frame_brake);
+                         was_game_key_just_pressed(keys->one_frame_brake) ||
+                         OneFrameBrakePending[player_id];
+    OneFrameBrakePending[player_id] = false;
     bool is_right_volt_down = is_game_key_down(keys->right_volt);
     bool is_left_volt_down = is_game_key_down(keys->left_volt);
 
@@ -395,6 +416,9 @@ static void setup_gameloop(const char* filename) {
 
     OutOfBounds = false;
 
+    OneFrameBrakePending[0] = false;
+    OneFrameBrakePending[1] = false;
+
     pacer::reset();
 
     Lgr->pal->set();
@@ -470,6 +494,10 @@ int game_loop(const char* filename, CameraMode camera_mode) {
 
         bool console_was_active = handle_console_input();
 
+        // Latch one-frame-brake AFTER console toggle so a same-iter F9 close releases the
+        // brake key into the latch as expected.
+        update_one_frame_brake_pending();
+
         pacer::tick();
 
         double dt = 0.0;
@@ -481,11 +509,11 @@ int game_loop(const char* filename, CameraMode camera_mode) {
             }
 
             if (!dead1) {
-                physics_subframe(Motor1, &State->keys1, &metadata1, Rec1, &finish_time1, &dead1,
+                physics_subframe(Motor1, &State->keys1, 0, &metadata1, Rec1, &finish_time1, &dead1,
                                  time, dt);
             }
             if (!Single && !dead2) {
-                physics_subframe(Motor2, &State->keys2, &metadata2, Rec2, &finish_time2, &dead2,
+                physics_subframe(Motor2, &State->keys2, 1, &metadata2, Rec2, &finish_time2, &dead2,
                                  time, dt);
             }
 
