@@ -527,21 +527,22 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         // Latch one-frame-brake AFTER console toggle so a same-iter F9 close
         // releases the brake key into the latch as expected.
         update_one_frame_brake_pending();
+        
+        sample_phys_input(PhysInput1, State->keys1, OneFrameBrakePending[0]);
 
-        bool did_work = false;
+        if (!Single) {
+            sample_phys_input(PhysInput2, State->keys2, OneFrameBrakePending[1]);
+        }
+
         if (pacer::try_real_frame()) {
-            sample_phys_input(PhysInput1, State->keys1, OneFrameBrakePending[0]);
-            if (!Single) {
-                sample_phys_input(PhysInput2, State->keys2, OneFrameBrakePending[1]);
-            }
             // Clear the latch now that sample has consumed it. Done here, not
             // after the catch-up loop, so a press that landed on a frozen iter
             // survives until the next real frame samples it.
             OneFrameBrakePending[0] = false;
             OneFrameBrakePending[1] = false;
-            did_work = true;
         }
 
+        bool did_work = false;
         double dt = 0.0;
         while (pacer::phys_step_next(&dt)) {
             did_work = true;
@@ -641,11 +642,11 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         // from the previous run (e.g. head pose) before any physics has
         // updated it. Once started, render fires every outer iter at hardware
         // rate so camera/HUD/world stay hot at low fps_limit.
-        if (any_step_fired) {
+        //if (any_step_fired) {
             render_game(time, &metadata1, &metadata2, HudVisibility1.game_minimap,
                         HudVisibility1.game_timer, HudVisibility2.game_minimap,
                         HudVisibility2.game_timer, current_camera);
-        }
+       // }
 
         // Sleep when ahead of schedule. Slow hardware (where every iter has
         // work) never sleeps; fast hardware sleeps on iters frozen by the
