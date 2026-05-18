@@ -62,6 +62,16 @@ static bool was_game_key_just_pressed(DikScancode code) {
     return was_key_just_pressed(code);
 }
 
+// Latch a one-frame-brake key press onto the driver. was_just_pressed for one_frame_brake fires
+// for only one outer iter; at low fps_limit that iter rarely lines up with a sub-step actually
+// firing, so without this latch ~95% of presses miss. Called every outer iter so the press
+// survives until physics_subframe consumes (ORs into is_brake_down and clears) it.
+static void latch_one_frame_brake(driver& driv) {
+    if (was_game_key_just_pressed(driv.keys->one_frame_brake)) {
+        driv.one_frame_brake_pending = true;
+    }
+}
+
 static void update_freecam(double dt, camera& current_camera) {
     double speed = 30.0;
     if (is_game_key_down(DIK_LSHIFT) || is_game_key_down(DIK_RSHIFT)) {
@@ -141,7 +151,9 @@ static void physics_subframe(driver& driv, double time, double dt) {
     // Adjust key inputs to only allow valid inputs, accounting for volt delay and cripples
     bool is_gas_down = is_game_key_down(keys->gas);
     bool is_brake_down = is_game_key_down(keys->brake) || is_game_key_down(keys->brake_alias) ||
-                         was_game_key_just_pressed(keys->one_frame_brake);
+                         was_game_key_just_pressed(keys->one_frame_brake) ||
+                         driv.one_frame_brake_pending;
+    driv.one_frame_brake_pending = false;
     bool is_right_volt_down = is_game_key_down(keys->right_volt);
     bool is_left_volt_down = is_game_key_down(keys->left_volt);
 
@@ -499,6 +511,13 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         handle_events();
 
         bool console_was_active = handle_console_input();
+
+        // Latch one-frame-brake AFTER console toggle so a same-iter F9 close releases the
+        // brake key into the latch as expected.
+        latch_one_frame_brake(driv1);
+        if (!Single) {
+            latch_one_frame_brake(driv2);
+        }
 
         pacer::tick();
 
