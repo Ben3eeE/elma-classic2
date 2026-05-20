@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
       - "fps7"
+      - "fix-sdl-textinput-ctrl-duplicate"
     paths-ignore:
       - "**.md"
       - "**/docs/**"
