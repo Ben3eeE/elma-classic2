@@ -49,10 +49,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install clang-tidy 19
+      - name: Install clang-tidy
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-tidy-19 libgl1-mesa-dev
+          sudo apt-get install -y clang-tidy-21 libgl1-mesa-dev
 
       - name: Set up Python
         uses: actions/setup-python@v6
