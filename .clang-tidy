@@ -4,6 +4,7 @@ Checks: >
   bugprone-integer-division,
   bugprone-macro-parentheses,
   misc-unused-parameters,
+  misc-include-cleaner,
   modernize-deprecated-headers,
   modernize-make-shared,
   modernize-make-unique,
@@ -34,3 +35,5 @@ Checks: >
 WarningsAsErrors: ''
 HeaderFilterRegex: '^(?!.*(subprojects|include/glad|include/directinput/scancodes\.h|include/sdl/scancodes_windows\.h)).*'
 FormatStyle: file
+CheckOptions:
+  misc-include-cleaner.MissingIncludes: 'false'
