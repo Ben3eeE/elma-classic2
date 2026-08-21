@@ -20,7 +20,6 @@
 #include "platform/implementation.h"
 #include "platform/scancode.h"
 #include "platform/text_input.h"
-#include "platform/utils.h"
 #include <climits>
 #include <cstring>
 #include <format>

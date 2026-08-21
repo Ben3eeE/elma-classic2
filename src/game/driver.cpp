@@ -1,6 +1,5 @@
 #include "game/driver.h"
 #include "physics/forces.h"
-#include <cmath>
 #include <format>
 
 constexpr double PHYSICS_SPEED_TO_EOL_SPEED = 5.0;

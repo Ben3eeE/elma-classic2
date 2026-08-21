@@ -6,7 +6,6 @@
 #include "menu/ball.h"
 #include "menu/controls.h"
 #include "menu/dialog.h"
-#include "menu/main.h"
 #include "menu/nav.h"
 #include "menu/pic.h"
 #include "menu/player.h"

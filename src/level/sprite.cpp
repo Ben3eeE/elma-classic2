@@ -3,7 +3,6 @@
 #include "main.h"
 #include "physics/init.h"
 #include "pic/lgr.h"
-#include "util/file_iter.h"
 #include "util/util.h"
 #include <cstring>
 

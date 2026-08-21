@@ -2,7 +2,6 @@
 #include "eol/settings.h"
 #include "eol/status_messages.h"
 #include "game/fps.h"
-#include "main.h"
 #include "platform/implementation.h"
 #include <format>
 

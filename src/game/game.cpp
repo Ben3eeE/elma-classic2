@@ -23,7 +23,6 @@
 #include "sound/engine.h"
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <filesystem>
 #include <optional>
 #include <utility>

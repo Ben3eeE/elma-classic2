@@ -7,7 +7,6 @@
 #include "platform/scancode.h"
 #include "platform/text_input.h"
 #include "platform/utils.h"
-#include "util/file_iter.h"
 #include "util/util.h"
 #include <algorithm>
 #include <cstring>

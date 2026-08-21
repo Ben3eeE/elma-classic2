@@ -5,8 +5,6 @@
 #include "menu/nav.h"
 #include "platform/implementation.h"
 #include "platform/scancode.h"
-#include "platform/text_input.h"
-#include <cstring>
 #include <format>
 #include <ranges>
 #include <vector>

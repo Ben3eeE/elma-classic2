@@ -17,7 +17,6 @@
 #include "renderer/canvas.h"
 #include "renderer/grass.h"
 #include "renderer/render.h"
-#include "util/file_iter.h"
 #include <algorithm>
 #include <cstring>
 #include <filesystem>

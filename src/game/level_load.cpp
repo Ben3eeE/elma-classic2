@@ -10,7 +10,6 @@
 #include "pic/lgr.h"
 #include "platform/utils.h"
 #include "renderer/canvas.h"
-#include "util/file_iter.h"
 #include <cstring>
 
 static bool ReloadLevel = false;

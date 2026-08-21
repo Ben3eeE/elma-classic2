@@ -15,7 +15,6 @@
 #include "platform/implementation.h"
 #include "util/util.h"
 #include <algorithm>
-#include <cstdlib>
 #include <cstring>
 #include <format>
 #include <string>

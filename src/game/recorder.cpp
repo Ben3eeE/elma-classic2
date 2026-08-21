@@ -5,7 +5,6 @@
 #include "main.h"
 #include "menu/rec_list.h"
 #include "physics/flagtag.h"
-#include "util/file_iter.h"
 #include "util/util.h"
 #include <algorithm>
 #include <cmath>

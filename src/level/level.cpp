@@ -13,7 +13,6 @@
 #include "physics/init.h"
 #include "pic/lgr.h"
 #include "platform/utils.h"
-#include "util/file_iter.h"
 #include "util/util.h"
 #include <algorithm>
 #include <cmath>

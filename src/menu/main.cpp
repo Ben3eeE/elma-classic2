@@ -15,7 +15,6 @@
 #include "menu/play.h"
 #include "menu/replay.h"
 #include "platform/implementation.h"
-#include "util/file_iter.h"
 #include "util/util.h"
 #include <string>
 
