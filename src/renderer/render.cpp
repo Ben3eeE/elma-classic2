@@ -54,9 +54,7 @@ void increase_view_size() {
 
 void decrease_view_size() {
     VisibleFraction /= VISIBLE_FRACTION_SCALING_FACTOR;
-    if (VisibleFraction < 0.7) {
-        VisibleFraction = 0.7;
-    }
+    VisibleFraction = std::max(VisibleFraction, 0.7);
     reset_game_background();
 }
 
