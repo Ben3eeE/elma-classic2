@@ -37,6 +37,9 @@ int main() {
 
     EolSettings = new eol_settings();
     eol_settings::read_settings();
+    if (const char* overrides = std::getenv("EOL_SETTINGS_OVERRIDES")) {
+        eol_settings::read_overrides(overrides);
+    }
 
     SCREEN_WIDTH = EolSettings->screen_width();
     SCREEN_HEIGHT = EolSettings->screen_height();
