@@ -38,6 +38,7 @@
 * Minimap may be made partially opaque via Options
 * Foreground and background textures may be individually forced to "ground" and "sky"
 * Recorded replays are saved in the renders/rec_filename subfolder
+* Replays may be rendered straight to a video file with sound using the new rec2vid command line tool (requires ffmpeg)
 * Screenshots are timestamped and saved as .bmp in the screenshots/ subfolder
 * Significantly improved level and lgr loading speeds
 * Front grass in front of the bike is properly zoomed
