@@ -21,6 +21,10 @@ constexpr double STOPWATCH_MULTIPLIER = 0.182;
 constexpr double STOPWATCH_TO_PHYS_TIME = 0.0024;
 extern bool ErrorGraphicsLoaded;
 
+// When true, fatal errors are printed to stderr and exit with a non-zero status
+// instead of opening a message box. Set by command line tools.
+extern bool CliMode;
+
 [[noreturn]] void quit();
 
 double stopwatch();

@@ -5,6 +5,7 @@
 #include "menu/pic.h"
 #include "platform/implementation.h"
 #include "platform/scancode.h"
+#include <cstdio>
 #include <cstdlib>
 #include <format>
 #include <string>
@@ -26,6 +27,10 @@ void delay(int milliseconds) {
 eol_settings* EolSettings = nullptr;
 eol* EolClient = nullptr;
 
+// Set by command line tools so that fatal errors are reported on stderr with a
+// non-zero exit code instead of opening a message box.
+bool CliMode = false;
+
 void quit() { exit(0); }
 
 bool ErrorGraphicsLoaded = false;
@@ -34,6 +39,11 @@ bool ErrorGraphicsLoaded = false;
                                       std::source_location loc) {
     static bool InError = false;
     logger::instance().write(LogLevel::Fatal, loc, std::format("{} {}", prefix, message));
+
+    if (CliMode) {
+        fprintf(stderr, "%s %s\n", prefix.c_str(), message.c_str());
+        exit(1);
+    }
 
     if (InError) {
         message_box("A fatal error occurred. Details written to eol.log.");
