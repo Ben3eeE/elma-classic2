@@ -20,6 +20,10 @@
 #include <format>
 #include <string>
 
+#ifdef CLI_MODE
+#include <cstdio>
+#endif
+
 static double StopwatchStartTime = 0.0;
 
 double stopwatch() { return get_milliseconds() * STOPWATCH_MULTIPLIER - StopwatchStartTime; }
@@ -92,8 +96,7 @@ void quit() {
 bool ErrorGraphicsLoaded = false;
 
 void internal_error(const std::string& message, std::source_location loc) {
-    logger::instance().write(LogLevel::Fatal, loc,
-                             std::format("Sorry, internal error. {}", message));
+    logger::instance().write(LogLevel::Fatal, loc, std::format("{}", message));
 
 #ifdef CLI_MODE
     fprintf(stderr, "%s\n", message.c_str());
@@ -126,4 +129,5 @@ void internal_error(const std::string& message, std::source_location loc) {
     }
 
     quit();
+#endif
 }
