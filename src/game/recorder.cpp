@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
 #include <memory>
 
 recorder* Rec1 = nullptr;
@@ -576,19 +577,13 @@ std::vector<uint8_t> recorder::to_bytes(int level_id) const {
 }
 
 int recorder::load_rec_file(const char* filename, bool demo) {
-    FILE* h = nullptr;
-    if (demo) {
-        h = qopen(filename, "rb");
-        if (!h) {
-            external_error(std::string("Failed to open demo file: ") + filename);
-        }
-    } else {
-        recpath path;
-        sprintf(path, "rec/%s", filename);
-        h = fopen(path, "rb");
-        if (!h) {
-            external_error(std::string("Failed to open rec file: ") + path);
-        }
+    if (!demo) {
+        return load_rec_path(std::string("rec/") + filename);
+    }
+
+    FILE* h = qopen(filename, "rb");
+    if (!h) {
+        external_error(std::string("Failed to open demo file: ") + filename);
     }
 
     int level_id = Rec1->load(filename, h, true);
@@ -596,11 +591,26 @@ int recorder::load_rec_file(const char* filename, bool demo) {
         Rec2->load(filename, h, false);
     }
 
-    if (demo) {
-        qclose(h);
-    } else {
-        fclose(h);
+    qclose(h);
+
+    return level_id;
+}
+
+int recorder::load_rec_path(const std::string& path) {
+    FILE* h = fopen(path.c_str(), "rb");
+    if (!h) {
+        external_error("Failed to open rec file: " + path);
     }
+
+    // load() stores the name in a fixed size buffer, so only pass the file name
+    std::string name = std::filesystem::path(path).filename().string();
+
+    int level_id = Rec1->load(name.c_str(), h, true);
+    if (MultiplayerRec) {
+        Rec2->load(name.c_str(), h, false);
+    }
+
+    fclose(h);
 
     return level_id;
 }
