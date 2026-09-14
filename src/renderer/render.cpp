@@ -9,6 +9,7 @@
 #include "game/game.h"
 #include "game/ghost_list.h"
 #include "game/level_load.h"
+#include "game/video_export.h"
 #include "level/level.h"
 #include "level/object.h"
 #include "main.h"
@@ -390,6 +391,11 @@ static void render_minimap(bool player1, pic8* pic, double camera_turn_phase, ve
 
 static void handle_screenshot(pic8* pic) {
     if (VideoRecordingMode) {
+        if (VideoEncoder) {
+            VideoEncoder->write_frame(*pic, Lgr->palette_data);
+            return;
+        }
+
         std::string filename = std::format("snp{:05}.pcx", VideoFrameIndex);
         std::filesystem::path path = std::filesystem::path(VideoOutputDirectory) / filename;
         pic->vertical_flip();

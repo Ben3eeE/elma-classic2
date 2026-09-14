@@ -8,6 +8,7 @@
 #include "game/driver.h"
 #include "game/fps.h"
 #include "game/ghost_list.h"
+#include "game/video_export.h"
 #include "level/level.h"
 #include "level/object.h"
 #include "level/segments.h"
@@ -37,6 +38,7 @@ bool OutOfBounds = false;
 
 bool ScreenshotRequested = false;
 bool VideoRecordingMode = false;
+video_encoder* VideoEncoder = nullptr;
 int VideoFrameIndex = 0;
 std::string VideoOutputDirectory;
 
@@ -1161,7 +1163,7 @@ void setup_render_directory(const std::string& replay_filename) {
     VideoOutputDirectory = out_dir.string();
 }
 
-void render_replay(const char* level_filename) {
+bool render_replay(const char* level_filename) {
     // Disable screensaver during gameplay.
     ScreensaverSuspend screensaver_suspend;
 
@@ -1181,15 +1183,36 @@ void render_replay(const char* level_filename) {
     driver driv2(Motor2, Rec2, &State->keys2, HudSlot::Replay2);
     Ghosts.rewind();
 
+    const double fps = EolSettings->recording_fps();
+
+    // Only drive the sound engine when an encoder is capturing it. The frame by
+    // frame render runs faster than real time, so an audio device playing along
+    // would only produce noise.
+    const bool capture_audio = VideoEncoder != nullptr;
+    if (capture_audio) {
+        sound_init();
+        Mute = false;
+        start_motor_sound(true);
+        if (!Single) {
+            start_motor_sound(false);
+        }
+    }
+
+    // Audio is pulled from the mixer in step with the rendered frames. The
+    // number of samples per frame is rarely a whole number, so track the total
+    // instead of accumulating a rounded per-frame count.
+    long long samples_written = 0;
+
+    bool aborted = false;
     fps::reset();
     while (true) {
         handle_events();
-        if (is_game_key_down(DIK_ESCAPE)) {
+        if (is_game_key_down(DIK_ESCAPE) || (VideoEncoder && VideoEncoder->failed())) {
+            aborted = true;
             break;
         }
 
-        double time = (double)VideoFrameIndex * (pacer::MILLISECONDS_TO_PHYS_TIME * 1000.0) /
-                      EolSettings->recording_fps();
+        double time = (double)VideoFrameIndex * (pacer::MILLISECONDS_TO_PHYS_TIME * 1000.0) / fps;
 
         bool ghosts_finished = Ghosts.advance(time, false);
         bool finished1 = !replay_frame(driv1, time, &driv2.draw_view);
@@ -1213,11 +1236,39 @@ void render_replay(const char* level_filename) {
             flagtag_replay(time);
         }
 
+        if (capture_audio) {
+            sync_replay_death(driv1, finished1, true);
+            if (!Single) {
+                sync_replay_death(driv2, finished2, false);
+            }
+            set_motor_frequency(true, driv1.sound.motor_frequency, driv1.sound.gas);
+            if (Single) {
+                set_friction_volume(driv1.sound.friction_volume);
+            } else {
+                set_motor_frequency(false, driv2.sound.motor_frequency, driv2.sound.gas);
+                set_friction_volume(driv1.sound.friction_volume + driv2.sound.friction_volume);
+            }
+
+            long long target = llround((double)(VideoFrameIndex + 1) * SOUND_SAMPLE_RATE / fps);
+            VideoEncoder->write_audio((int)(target - samples_written));
+            samples_written = target;
+        }
+
         render_game(time, driv1, driv2, current_camera, GameLoop::Render);
 
         VideoFrameIndex++;
     }
 
+    if (capture_audio) {
+        set_motor_frequency(true, 1.0, 0);
+        set_motor_frequency(false, 1.0, 0);
+        stop_motor_sound(true);
+        stop_motor_sound(false);
+        set_friction_volume(0.0);
+        Mute = true;
+    }
+
     VideoRecordingMode = false;
     Level->unflip_objects();
+    return !aborted;
 }
