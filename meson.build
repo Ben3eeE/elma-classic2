@@ -81,6 +81,7 @@ elma_sources = files(
     'src/platform/sdl/keyboard.cpp',
     'src/platform/sdl/scancode.cpp',
     'src/platform/sdl/sdl.cpp',
+    'src/platform/process.cpp',
     'src/platform/text_input.cpp',
     'src/platform/utils.cpp',
     'src/renderer/affine.cpp',
