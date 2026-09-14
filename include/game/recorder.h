@@ -86,6 +86,8 @@ class recorder {
     static int load_rec_file(const char* filename, bool demo);
     // Load the first bike of a rec into `into`, leaving Rec1/Rec2 untouched
     static int load_single(const std::string& path, recorder& into);
+    // Load a rec from an arbitrary path instead of the rec/ folder
+    static int load_rec_path(const std::string& path);
     // Save a singleplayer or multiplayer replay
     static void save_rec_file(const char* filename, int level_id);
     // Read only the header (level_id + level_filename) from a .rec file
