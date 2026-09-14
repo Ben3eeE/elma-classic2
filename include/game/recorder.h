@@ -92,6 +92,8 @@ class recorder {
 
     // Load a singleplayer or multiplayer replay
     static int load_rec_file(const char* filename, bool demo);
+    // Load a rec from an arbitrary path instead of the rec/ folder
+    static int load_rec_path(const std::string& path);
     // Save a singleplayer or multiplayer replay
     static void save_rec_file(const char* filename, int level_id);
     // Load two replay files and merge them into a multiplayer replay
