@@ -11,6 +11,7 @@ if get_option('profile_performance') == true
 endif
 
 elma_sources = files(
+    'src/app.cpp',
     'src/debug/profiler.cpp',
     'src/editor/canvas.cpp',
     'src/editor/dialog.cpp',
@@ -41,7 +42,6 @@ elma_sources = files(
     'src/level/segments.cpp',
     'src/level/sprite.cpp',
     'src/log.cpp',
-    'src/main.cpp',
     'src/menu/ball_collision.cpp',
     'src/menu/ball_handler.cpp',
     'src/menu/ball.cpp',
@@ -135,12 +135,21 @@ nlohmann_json_dep = dependency('nlohmann_json')
 
 deps += [nlohmann_json_dep, gl_dep, sdl2_dep]
 
-executable(
-    'elma',
+elma_core = static_library(
+    'elma_core',
     elma_sources,
     include_directories: inc,
     cpp_args: cpp_args,
+    dependencies: deps,
+)
+
+executable(
+    'elma',
+    'src/main.cpp',
+    include_directories: inc,
+    cpp_args: cpp_args,
     link_args: link_args,
+    link_whole: elma_core,
     dependencies: deps,
     win_subsystem: win_subsystem,
 )
