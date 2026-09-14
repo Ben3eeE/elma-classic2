@@ -148,5 +148,7 @@ jobs:
           path: |
             build/elma
             build/elma.exe
+            build/rec2vid
+            build/rec2vid.exe
           retention-days: 5
           if-no-files-found: ignore
