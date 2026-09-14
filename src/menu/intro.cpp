@@ -26,7 +26,10 @@ static void show_intro_screen() {
     unlock_backbuffer_pic();
 }
 
-void menu_intro() {
+// Everything both the game and the command line tools need before a level can
+// be loaded and rendered. Deliberately excludes the intro screen, the player
+// selection, the replay cache and the audio device.
+void game_init_common() {
     init_qopen();
 
     init_menu_pictures();
@@ -40,6 +43,24 @@ void menu_intro() {
     eol_settings::sync_controls_to_state(State);
 
     init_physics_data();
+
+    // Load globals
+    EditorWhiteFont = new abc8("kisbetu1.abc", 1, 19); // "small letter 1"
+    EditorBlackFont = new abc8("kisbetu2.abc", 1, 19); // "small letter 2"
+
+    init_renderer();
+
+    Rec1 = new recorder;
+    Rec2 = new recorder;
+
+    create_editor_palette();
+
+    // Initialize stopwatch, just in case
+    stopwatch_reset();
+}
+
+void menu_intro() {
+    game_init_common();
 
     rec_list::build_cache();
 
@@ -59,20 +80,6 @@ void menu_intro() {
     }
 
     init_sound();
-
-    // Load globals
-    EditorWhiteFont = new abc8("kisbetu1.abc", 1, 19); // "small letter 1"
-    EditorBlackFont = new abc8("kisbetu2.abc", 1, 19); // "small letter 2"
-
-    init_renderer();
-
-    Rec1 = new recorder;
-    Rec2 = new recorder;
-
-    create_editor_palette();
-
-    // Initialize stopwatch, just in case
-    stopwatch_reset();
 
     // Await for key input before scrolling intro.pcx
     if (!EolSettings->skip_intro()) {
