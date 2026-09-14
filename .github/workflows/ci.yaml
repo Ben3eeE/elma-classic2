@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "rec2vid"
     paths-ignore:
       - "**.md"
       - "**/docs/**"
