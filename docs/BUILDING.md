@@ -69,6 +69,30 @@ This project uses [Meson](https://mesonbuild.com/) as its build system.
    ./elma
    ```
 
+The build produces two executables: `elma`, the game, and `rec2vid`, a command line
+tool that renders a replay to a video file. Both read their data from the current
+working directory, so run them from the folder you copied the game files into.
+
+### Rendering a replay to a video
+
+`rec2vid` needs [ffmpeg](https://ffmpeg.org/) on your `PATH`.
+
+```
+cd build
+./rec2vid rec/blabla.rec out/video.avi
+```
+
+Anything after `--` is passed on to ffmpeg and overrides the built-in encoding
+defaults (`-c:v libx264 -pix_fmt yuv420p -crf 18`):
+
+```
+./rec2vid rec/blabla.rec out/video.mp4 --fps 60 --size 1920x1080 -- -crf 22 -preset slow
+```
+
+Run `./rec2vid --help` for the full list of options. Resolution, zoom and frame rate
+default to the values in `settings.json`, and the options override them for that one
+render without changing the file.
+
 ### Configuration
 
 You can list all of the options using `meson configure build` and set an option using `meson configure build -Doption=value`

@@ -155,6 +155,16 @@ executable(
     win_subsystem: win_subsystem,
 )
 
+executable(
+    'rec2vid',
+    ['src/tools/rec2vid.cpp', 'src/tools/ffmpeg_encoder.cpp'],
+    include_directories: inc,
+    cpp_args: cpp_args,
+    link_whole: elma_core,
+    dependencies: deps,
+    win_subsystem: 'console',
+)
+
 clang_tidy = find_program('clang-tidy', 'clang-tidy-21', required: false)
 lint_files = run_command('git', '-C', meson.project_source_root(), 'ls-files', '*.cpp', '*.c', 'include/*.h', check: false)
 if clang_tidy.found() and lint_files.returncode() == 0
