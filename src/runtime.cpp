@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "api/api.h"
+#include "editor/canvas.h"
 #include "editor/editor.h"
 #include "eol/eol.h"
 #include "eol/settings.h"
@@ -11,8 +12,10 @@
 #include "menu/pic.h"
 #include "physics/init.h"
 #include "pic/abc8.h"
+#include "pic/surface.h"
 #include "platform/implementation.h"
 #include "renderer/render.h"
+#include "util/util.h"
 #include <cstdlib>
 #include <format>
 #include <string>
@@ -34,7 +37,22 @@ void delay(int milliseconds) {
 eol_settings* EolSettings = nullptr;
 eol* EolClient = nullptr;
 
+void runtime::init_settings() {
+    util::random::seed();
+
+    EolSettings = new eol_settings();
+    eol_settings::read_settings();
+    if (const char* overrides = std::getenv("EOL_SETTINGS_OVERRIDES")) {
+        eol_settings::read_overrides(overrides);
+    }
+
+    SCREEN_WIDTH = EolSettings->screen_width();
+    SCREEN_HEIGHT = EolSettings->screen_height();
+}
+
 void runtime::init_data() {
+    editor_canvas_update_resolution();
+
     EolClient = new eol();
 
     init_qopen();
