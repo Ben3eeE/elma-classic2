@@ -180,6 +180,9 @@ int main(int argc, char** argv) {
     // Frames are rendered at times 0, 1/fps, 2/fps ... up to the end of the
     // replay. Only an estimate, used for the progress display.
     int total_frames = (int)std::floor((double)replay_frames / FRAME_RATE * fps) + 1;
+    if (EolSettings->pause_replay_for_1s()) {
+        total_frames += fps;
+    }
 
     printf("Rendering %s to %s at %dx%d, %d fps%s\n", replay_path->c_str(), output.string().c_str(),
            SCREEN_WIDTH, SCREEN_HEIGHT, fps, opts.audio ? "" : ", no audio");
