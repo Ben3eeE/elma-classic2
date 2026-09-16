@@ -889,7 +889,9 @@ static void reverse_events(driver& driv, double time) {
 
 static void handle_object_event(driver& driv, const event& ev) {
     int prev_apple_count = driv.mot->apple_count;
-    handle_object_interaction(driv, ev.object_id);
+    if (handle_object_interaction(driv, ev.object_id) == BikeState::Finish) {
+        driv.finish_time = (int)(ev.time * TIME_TO_CENTISECONDS);
+    }
     if (prev_apple_count < driv.mot->apple_count) {
         driv.mot->last_apple_time = (int)(ev.time * TIME_TO_CENTISECONDS);
     }
@@ -1214,11 +1216,16 @@ bool render_replay(const char* level_filename) {
 
         double time = (double)VideoFrameIndex * (pacer::MILLISECONDS_TO_PHYS_TIME * 1000.0) / fps;
 
+        bool was_finished = driv1.finish_time || driv2.finish_time;
         bool ghosts_finished = Ghosts.advance(time, false);
         bool finished1 = !replay_frame(driv1, time, &driv2.draw_view);
         bool finished2 = false;
         if (!Single) {
             finished2 = !replay_frame(driv2, time, &driv1.draw_view);
+        }
+
+        if (capture_audio && !was_finished && (driv1.finish_time || driv2.finish_time)) {
+            start_wav(WavEvent::Win, 0.999);
         }
 
         if (((Single && finished1) || (!Single && finished1 && finished2)) && ghosts_finished) {
