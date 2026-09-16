@@ -401,6 +401,15 @@ static void handle_screenshot(pic8* pic) {
     }
 }
 
+void repeat_last_video_frame(int count) {
+    pic8* pic = lock_backbuffer_pic(true);
+    for (int i = 0; i < count; i++) {
+        handle_screenshot(pic);
+        VideoFrameIndex++;
+    }
+    unlock_backbuffer_pic();
+}
+
 // Cover the screen with qframe
 static void render_background(pic8* pic) {
     for (int i = 0; i < pic->get_height(); i += Lgr->qframe->get_height()) {

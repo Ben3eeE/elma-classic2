@@ -1234,13 +1234,13 @@ bool render_replay(const char* level_filename) {
             finished2 = !replay_frame(driv2, time, &driv1.draw_view);
         }
 
+        if ((Single && finished1) || (!Single && finished1 && finished2)) {
+            break;
+        }
+
         update_graphical_metadata(driv1, false, time);
         if (!Single) {
             update_graphical_metadata(driv2, false, time);
-        }
-
-        if ((Single && finished1) || (!Single && finished1 && finished2)) {
-            break;
         }
 
         if (!Single) {
@@ -1264,6 +1264,22 @@ bool render_replay(const char* level_filename) {
         render_game(time, driv1, driv2, current_camera, GameLoop::Render);
 
         VideoFrameIndex++;
+    }
+
+    if (!aborted && EolSettings->pause_replay_for_1s()) {
+        const int hold_frames = (int)fps;
+        if (capture_audio) {
+            // The picture is frozen, so cut the motor and let the finish sound play out
+            stop_motor_sound(true);
+            stop_motor_sound(false);
+            set_friction_volume(0.0);
+            for (int i = 1; i <= hold_frames; i++) {
+                long long target = llround((double)(VideoFrameIndex + i) * SOUND_SAMPLE_RATE / fps);
+                VideoEncoder->write_audio((int)(target - samples_written));
+                samples_written = target;
+            }
+        }
+        repeat_last_video_frame(hold_frames);
     }
 
     if (capture_audio) {
