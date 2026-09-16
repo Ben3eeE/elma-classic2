@@ -947,7 +947,9 @@ static bool replay_frame(driver& driv, double time, bool* other_draw_view) {
     while (std::optional<event> ev = rec->recall_event(time)) {
         if (ev->object_id >= 0) {
             int prev_apple_count = mot->apple_count;
-            handle_object_interaction(driv, ev->object_id);
+            if (handle_object_interaction(driv, ev->object_id) == BikeState::Finish) {
+                driv.finish_time = (int)(ev->time * TIME_TO_CENTISECONDS);
+            }
             if (prev_apple_count < mot->apple_count) {
                 mot->last_apple_time = (int)(ev->time * TIME_TO_CENTISECONDS);
             }
@@ -1273,6 +1275,9 @@ bool render_replay(const char* level_filename) {
             stop_motor_sound(true);
             stop_motor_sound(false);
             set_friction_volume(0.0);
+            if (driv1.finish_time || driv2.finish_time) {
+                start_wav(WavEvent::Win, 0.999);
+            }
             for (int i = 1; i <= hold_frames; i++) {
                 long long target = llround((double)(VideoFrameIndex + i) * SOUND_SAMPLE_RATE / fps);
                 VideoEncoder->write_audio((int)(target - samples_written));
