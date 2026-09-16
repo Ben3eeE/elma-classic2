@@ -1259,6 +1259,22 @@ bool render_replay(const char* level_filename) {
         VideoFrameIndex++;
     }
 
+    if (!aborted && EolSettings->pause_replay_for_1s()) {
+        const int hold_frames = (int)fps;
+        if (capture_audio) {
+            // The picture is frozen, so cut the motor and let the finish sound play out
+            stop_motor_sound(true);
+            stop_motor_sound(false);
+            set_friction_volume(0.0);
+            for (int i = 1; i <= hold_frames; i++) {
+                long long target = llround((double)(VideoFrameIndex + i) * SOUND_SAMPLE_RATE / fps);
+                VideoEncoder->write_audio((int)(target - samples_written));
+                samples_written = target;
+            }
+        }
+        repeat_last_video_frame(hold_frames);
+    }
+
     if (capture_audio) {
         set_motor_frequency(true, 1.0, 0);
         set_motor_frequency(false, 1.0, 0);

@@ -179,6 +179,9 @@ int main(int argc, char** argv) {
     }
 
     int total_frames = (int)std::ceil((double)(replay_frames - 1) / FRAME_RATE * fps);
+    if (EolSettings->pause_replay_for_1s()) {
+        total_frames += fps;
+    }
 
     printf("Rendering %s to %s at %dx%d, %d fps%s\n", replay_path->c_str(), output.string().c_str(),
            SCREEN_WIDTH, SCREEN_HEIGHT, fps, opts.audio ? "" : ", no audio");
