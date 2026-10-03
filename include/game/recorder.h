@@ -82,21 +82,12 @@ class recorder {
 
     recorder();
 
-    struct merge_result {
-        int level_id;           // level_id from the first replay
-        bool rec1_was_multi;    // first file was already a multiplayer replay
-        bool rec2_was_multi;    // second file was already a multiplayer replay
-        bool level_id_mismatch; // the two replays are from different levels
-    };
-
     // Load a singleplayer or multiplayer replay
     static int load_rec_file(const char* filename, bool demo);
     // Load the first bike of a rec into `into`, leaving Rec1/Rec2 untouched
     static int load_single(const std::string& path, recorder& into);
     // Save a singleplayer or multiplayer replay
     static void save_rec_file(const char* filename, int level_id);
-    // Load two replay files and merge them into a multiplayer replay
-    static merge_result load_merge(const std::string& filename1, const std::string& filename2);
     // Read only the header (level_id + level_filename) from a .rec file
     static std::optional<rec_header> read_header(const std::string& filename);
 
@@ -145,7 +136,6 @@ static_assert(sizeof(recorder::level_filename) == 16);
 extern recorder* Rec1;
 extern recorder* Rec2;
 extern int MultiplayerRec;
-extern bool MergedRec;
 
 void add_event_buffer(WavEvent event_id, double volume, int object_id);
 void reset_event_buffer();

@@ -15,7 +15,6 @@
 recorder* Rec1 = nullptr;
 recorder* Rec2 = nullptr;
 int MultiplayerRec = 0;
-bool MergedRec = false;
 
 constexpr int MAGIC_NUMBER = 4796277;
 
@@ -428,7 +427,6 @@ int recorder::load(const char* filename, FILE* h, bool is_first_replay) {
     }
     if (is_first_replay) {
         MultiplayerRec = multiplayer_rec;
-        MergedRec = false;
         Ghosts.reset_to(std::filesystem::path(filename).stem().string());
     }
     if (fread(&flagtag_, 1, sizeof(flagtag_), h) != 4) {
@@ -616,34 +614,6 @@ int recorder::load_single(const std::string& path, recorder& into) {
     fclose(h);
 
     return level_id;
-}
-
-recorder::merge_result recorder::load_merge(const std::string& filename1,
-                                            const std::string& filename2) {
-    std::string path = "rec/" + filename1;
-    FILE* h1 = fopen(path.c_str(), "rb");
-    if (!h1) {
-        internal_error("Failed to open rec file: " + path);
-    }
-    int level_id1 = Rec1->load(filename1.c_str(), h1, true);
-    bool was_multi = MultiplayerRec != 0;
-    fclose(h1);
-
-    path = "rec/" + filename2;
-    FILE* h2 = fopen(path.c_str(), "rb");
-    if (!h2) {
-        internal_error("Failed to open rec file: " + path);
-    }
-    int level_id2 = Rec2->load(filename2.c_str(), h2, true);
-    bool was_multi2 = MultiplayerRec != 0;
-    fclose(h2);
-
-    MultiplayerRec = 1;
-    MergedRec = true;
-    Rec1->set_flagtag(false);
-    Rec2->set_flagtag(false);
-
-    return {level_id1, was_multi, was_multi2, level_id1 != level_id2};
 }
 
 std::optional<rec_header> recorder::read_header(const std::string& filename) {

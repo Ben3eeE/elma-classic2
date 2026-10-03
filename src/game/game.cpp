@@ -989,7 +989,6 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
     driver driv2(Motor2, Rec2, &State->keys2, HudSlot::Replay2);
     Ghosts.rewind();
 
-    driv2.draw_view = !MergedRec;
     if (restore_player_visibility) {
         driv1.draw_view = PreviousReplayDrawView1;
         driv2.draw_view = PreviousReplayDrawView2;
