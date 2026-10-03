@@ -81,7 +81,6 @@ class recorder {
     char level_filename[16];
 
     recorder();
-    ~recorder();
 
     struct merge_result {
         int level_id;           // level_id from the first replay

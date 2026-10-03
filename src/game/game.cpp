@@ -893,6 +893,39 @@ static void handle_object_event(driver& driv, const event& ev) {
     }
 }
 
+// Rebuild the level state the followed replay has produced up to `time`
+static void seek_replay(driver& driv, double time) {
+    driv.rec->rewind();
+    recall_recorded_frame(*driv.rec, *driv.mot, driv.meta, driv.sound, time, [&](const event& ev) {
+        if (ev.object_id >= 0) {
+            handle_object_event(driv, ev);
+        }
+    });
+    rewind_override_animations(driv.meta, driv.mot, driv.rec, time);
+}
+
+static void follow_ghost(driver& driv, double time, bool next) {
+    // Undo everything the replay no longer followed did to the level
+    reverse_events(driv, -1.0);
+
+    Ghosts.swap_followed(driv, next);
+
+    seek_replay(driv, time);
+    StatusMessages->add(std::format("now observing {}", Ghosts.followed_name()));
+}
+
+static void handle_ghost_follow_keys(driver& driv, double time) {
+    if (Ghosts.empty()) {
+        return;
+    }
+    if (was_game_key_just_pressed(State->key_spy_next_kuski)) {
+        follow_ghost(driv, time, true);
+    }
+    if (was_game_key_just_pressed(State->key_spy_prev_kuski)) {
+        follow_ghost(driv, time, false);
+    }
+}
+
 // Load replay data (instead of simulating bike physics)
 static bool replay_frame(driver& driv, double time, bool* other_draw_view) {
     update_view_settings(driv, other_draw_view);
@@ -1090,6 +1123,7 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
         }
 
         handle_eol_inputs();
+        handle_ghost_follow_keys(driv1, time);
 
         if (!console_was_active && is_key_down(DIK_ESCAPE)) {
             set_motor_frequency(true, 1.0, 0);

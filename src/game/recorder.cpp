@@ -45,8 +45,6 @@ recorder::recorder() {
     events.reserve(INITIAL_EVENTS);
 }
 
-recorder::~recorder() = default;
-
 void recorder::erase(const char* lev_filename) {
     if (strlen(lev_filename) > MAX_FILENAME_LEN + 4) {
         internal_error("recorder::erase strlen");
@@ -431,7 +429,7 @@ int recorder::load(const char* filename, FILE* h, bool is_first_replay) {
     if (is_first_replay) {
         MultiplayerRec = multiplayer_rec;
         MergedRec = false;
-        Ghosts.clear();
+        Ghosts.reset_to(std::filesystem::path(filename).stem().string());
     }
     if (fread(&flagtag_, 1, sizeof(flagtag_), h) != 4) {
         read_error(filename);
