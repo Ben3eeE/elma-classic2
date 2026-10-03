@@ -1,4 +1,5 @@
 #include "game/recorder.h"
+#include "game/ghost_list.h"
 #include "game/qopen.h"
 #include "level/level.h"
 #include "level/object.h"
@@ -430,6 +431,7 @@ int recorder::load(const char* filename, FILE* h, bool is_first_replay) {
     if (is_first_replay) {
         MultiplayerRec = multiplayer_rec;
         MergedRec = false;
+        Ghosts.clear();
     }
     if (fread(&flagtag_, 1, sizeof(flagtag_), h) != 4) {
         read_error(filename);

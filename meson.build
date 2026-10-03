@@ -36,6 +36,7 @@ elma_sources = files(
     'src/game/driver.cpp',
     'src/game/fps.cpp',
     'src/game/game.cpp',
+    'src/game/ghost_list.cpp',
     'src/game/level_load.cpp',
     'src/game/qopen.cpp',
     'src/game/recorded_bike.cpp',

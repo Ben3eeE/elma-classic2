@@ -7,6 +7,7 @@
 #include "eol/status_messages.h"
 #include "game/driver.h"
 #include "game/fps.h"
+#include "game/ghost_list.h"
 #include "level/level.h"
 #include "level/object.h"
 #include "level/segments.h"
@@ -953,6 +954,7 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
 
     driver driv1(Motor1, Rec1, &State->keys1, HudSlot::Replay1);
     driver driv2(Motor2, Rec2, &State->keys2, HudSlot::Replay2);
+    Ghosts.rewind();
 
     driv2.draw_view = !MergedRec;
     if (restore_player_visibility) {
@@ -1016,6 +1018,7 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
         double time = current_replay_time;
 
         // Load replay data
+        bool ghosts_finished = Ghosts.advance(time, rewinding);
         bool finished1 = !replay_frame(driv1, time, &driv2.draw_view);
         bool finished2 = false;
         if (!Single) {
@@ -1038,7 +1041,7 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
         }
 
         // End of replay
-        if ((Single && finished1) || (!Single && finished1 && finished2)) {
+        if (((Single && finished1) || (!Single && finished1 && finished2)) && ghosts_finished) {
             set_motor_frequency(true, 1.0, 0);
             set_motor_frequency(false, 1.0, 0);
             stop_motor_sound(true);
@@ -1141,6 +1144,7 @@ void render_replay(const char* level_filename) {
 
     driver driv1(Motor1, Rec1, &State->keys1, HudSlot::Replay1);
     driver driv2(Motor2, Rec2, &State->keys2, HudSlot::Replay2);
+    Ghosts.rewind();
 
     fps::reset();
     while (true) {
@@ -1152,6 +1156,7 @@ void render_replay(const char* level_filename) {
         double time = (double)VideoFrameIndex * (pacer::MILLISECONDS_TO_PHYS_TIME * 1000.0) /
                       EolSettings->recording_fps();
 
+        bool ghosts_finished = Ghosts.advance(time, false);
         bool finished1 = !replay_frame(driv1, time, &driv2.draw_view);
         bool finished2 = false;
         if (!Single) {
@@ -1163,7 +1168,7 @@ void render_replay(const char* level_filename) {
             update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, false, time);
         }
 
-        if ((Single && finished1) || (!Single && finished1 && finished2)) {
+        if (((Single && finished1) || (!Single && finished1 && finished2)) && ghosts_finished) {
             break;
         }
 
