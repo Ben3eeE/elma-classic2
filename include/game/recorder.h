@@ -14,6 +14,8 @@ class level;
 
 constexpr const char LAST_REC_FILENAME[] = "!last.rec";
 
+constexpr int FRAME_RATE = 30;
+
 struct rec_header {
     int level_id;
     char level_filename[16];
