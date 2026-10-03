@@ -144,6 +144,13 @@ echo '{"recording_fps": 60, "screen_width": 1920, "screen_height": 1080}' > hd.j
 EOL_SETTINGS_OVERRIDES=hd.json ./rec2vid rec/blabla.rec out/video.mp4
 ```
 
+`--headless` renders without opening a window, for machines without a display such
+as a server or CI runner:
+
+```
+./rec2vid rec/blabla.rec out/video.mp4 --headless
+```
+
 Run `./rec2vid --help` for the remaining options.
 
 ### Configuration

@@ -29,6 +29,7 @@ struct options {
     std::string input;
     std::string output;
     bool audio = true;
+    bool headless = false;
     std::vector<std::string> ffmpeg_args;
 };
 
@@ -39,6 +40,7 @@ void print_usage() {
            "\n"
            "Options:\n"
            "  --no-audio     render video only\n"
+           "  --headless     render without opening a window\n"
            "  -h, --help     show this help\n"
            "\n"
            "Resolution, zoom and frame rate come from settings.json. Point\n"
@@ -66,6 +68,8 @@ bool parse_arguments(int argc, char** argv, options& opts) {
             exit(0);
         } else if (arg == "--no-audio") {
             opts.audio = false;
+        } else if (arg == "--headless") {
+            opts.headless = true;
         } else if (arg.starts_with("-")) {
             fprintf(stderr, "rec2vid: unknown option: %s\n", arg.c_str());
             return false;
@@ -122,7 +126,11 @@ int main(int argc, char** argv) {
     }
 
     runtime::init_settings();
-    platform_init();
+    if (opts.headless) {
+        platform_init_headless();
+    } else {
+        platform_init();
+    }
     runtime::init_data();
 
     // The sound mixer is pulled directly instead of through an audio device
