@@ -22,6 +22,17 @@ void bike_metadata::reset() {
     camera_turning.turn_phase = 0.0;
 }
 
+void bike_metadata::note_volt(const event& ev, double time) {
+    if (ev.event_id == WavEvent::RightVolt) {
+        volt_is_right = true;
+        volt_time = time;
+    }
+    if (ev.event_id == WavEvent::LeftVolt) {
+        volt_is_right = false;
+        volt_time = time;
+    }
+}
+
 // The `rec` argument is only used for game play, not when playing a replay.
 static void update_bike_turn_phase(bike_metadata& meta, recorder* rec, bool update_rec, double time,
                                    int flipped) {

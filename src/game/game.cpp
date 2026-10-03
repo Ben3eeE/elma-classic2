@@ -907,14 +907,7 @@ static bool replay_frame(driver& driv, double time, bool* other_draw_view) {
             }
         } else {
             start_wav(ev->event_id, ev->volume);
-            if (ev->event_id == WavEvent::RightVolt) {
-                metadata->volt_is_right = true;
-                metadata->volt_time = time;
-            }
-            if (ev->event_id == WavEvent::LeftVolt) {
-                metadata->volt_is_right = false;
-                metadata->volt_time = time;
-            }
+            metadata->note_volt(*ev, time);
         }
     }
     return alive;
