@@ -22,6 +22,8 @@ struct bike_metadata {
 
     turning_data bike_turning;
     turning_data camera_turning;
+
+    void reset();
 };
 
 void update_graphical_metadata(bike_metadata& meta, motorst* mot, recorder* rec, bool update_rec,

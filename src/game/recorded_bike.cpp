@@ -4,6 +4,24 @@
 #include "sound/engine.h"
 #include <algorithm>
 
+void bike_metadata::reset() {
+    volt_time = -100.0;
+    volt_is_right = false;
+
+    turn_key_previous = false;
+    one_turn_used = false;
+
+    arm_position = 0.0;
+
+    bike_turning.flipped = 0;
+    bike_turning.turn_time = -1000.0;
+    bike_turning.turn_phase = 0.0;
+
+    camera_turning.flipped = 0;
+    camera_turning.turn_time = -1000.0;
+    camera_turning.turn_phase = 0.0;
+}
+
 // The `rec` argument is only used for game play, not when playing a replay.
 static void update_bike_turn_phase(bike_metadata& meta, recorder* rec, bool update_rec, double time,
                                    int flipped) {
