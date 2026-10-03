@@ -425,6 +425,15 @@ static void physics_frame_turn(driver& driv) {
     }
 }
 
+static void handle_spy_keys() {
+    if (was_game_key_just_pressed(State->key_spy_next_kuski)) {
+        EolClient->spy_next_kuski();
+    }
+    if (was_game_key_just_pressed(State->key_spy_prev_kuski)) {
+        EolClient->spy_prev_kuski();
+    }
+}
+
 static void handle_eol_inputs() {
     if (was_game_key_just_pressed(State->key_show_others)) {
         EolSettings->set_show_others(!EolSettings->show_others());
@@ -434,13 +443,6 @@ static void handle_eol_inputs() {
 
     if (was_game_key_just_pressed(State->key_shown_to)) {
         EolClient->cycle_shown_to();
-    }
-
-    if (was_game_key_just_pressed(State->key_spy_next_kuski)) {
-        EolClient->spy_next_kuski();
-    }
-    if (was_game_key_just_pressed(State->key_spy_prev_kuski)) {
-        EolClient->spy_prev_kuski();
     }
 
     if (was_game_key_just_pressed(State->key_battle_queue)) {
@@ -838,6 +840,7 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         }
 
         handle_eol_inputs();
+        handle_spy_keys();
 
         if (!console_was_active &&
             (was_key_just_pressed(DIK_ESCAPE) || was_key_just_pressed(State->key_escape_alias))) {
