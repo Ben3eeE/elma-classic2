@@ -400,71 +400,6 @@ static void update_view_settings(driver& driv, bool* other_draw_view) {
     }
 }
 
-// The `rec` argument is only used for game play, not when playing a replay.
-static void update_bike_turn_phase(driver& driv, bool update_rec, double time, int flipped) {
-    turning_data* data = &driv.meta.bike_turning;
-
-    if (data->flipped != flipped) {
-        // New flip this frame
-        data->flipped = flipped;
-        data->turn_time = time;
-        if (update_rec) {
-            start_wav(WavEvent::Turn, 0.99);
-            driv.rec->store_event(time, WavEvent::Turn, 0.99, -1);
-        }
-    }
-
-    double turn_time = EolSettings->turn_time();
-    if (turn_time == 0.0) {
-        // Instant turn
-        data->turn_phase = 1.0;
-    } else {
-        data->turn_phase = (time - data->turn_time) / turn_time;
-        data->turn_phase = std::clamp(data->turn_phase, 0.0, 1.0);
-    }
-}
-
-static void update_camera_turn_phase(turning_data* data, double time, int flipped) {
-    double camera_flip_time = EolSettings->turn_time() + 0.15;
-    if (data->flipped != flipped) {
-        // New flip this frame
-        data->flipped = flipped;
-        double time_since_prev_turn = time - data->turn_time;
-        if (camera_flip_time > 0.0 && time_since_prev_turn < camera_flip_time) {
-            // If camera is mid-turn, calculate camera start time so it seamlessly continues from
-            // the mid-turn position
-            data->turn_time = time + time_since_prev_turn - camera_flip_time;
-        } else {
-            // Camera is not mid-turn, so just set the camera turn time normally
-            data->turn_time = time;
-        }
-    }
-
-    double elapsed_time = std::max(0.0, time - data->turn_time);
-    data->turn_phase = std::min(1.0, elapsed_time / camera_flip_time);
-    if (flipped) {
-        data->turn_phase = 1.0 - data->turn_phase;
-    }
-}
-
-static void update_graphical_metadata(driver& driv, bool update_rec, double time) {
-    motorst& mot = *driv.mot;
-    bike_metadata& metadata = driv.meta;
-
-    // Update bike turn data
-    update_bike_turn_phase(driv, update_rec, time, mot.flipped_bike);
-
-    // Update camera position
-    int flipped_camera = mot.flipped_bike;
-    if (mot.gravity_direction == MotorGravity::Up) {
-        flipped_camera = !flipped_camera;
-    }
-    update_camera_turn_phase(&metadata.camera_turning, time, flipped_camera);
-
-    // Update arm position
-    metadata.arm_position = std::max(0.0, 1.0 - (time - metadata.volt_time) / VoltDelay);
-}
-
 static void physics_frame_turn(driver& driv) {
     motorst* mot = driv.mot;
     player_keys* keys = driv.keys;
@@ -877,9 +812,9 @@ int game_loop(const char* filename, CameraMode camera_mode) {
         }
 
         // Turn phase and arm position
-        update_graphical_metadata(driv1, true, time);
+        update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, true, time);
         if (!Single) {
-            update_graphical_metadata(driv2, true, time);
+            update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, true, time);
         }
         EolClient->update_spy_kuskis();
 
@@ -944,27 +879,6 @@ static void reverse_events(driver& driv, double time) {
             }
         }
     }
-}
-
-// During rewind, compute animation state from the recorder's event list
-// instead of relying on the forward-only state machine.
-static void rewind_override_animations(driver& driv, double time) {
-    bike_metadata* metadata = &driv.meta;
-    motorst* mot = driv.mot;
-    recorder* rec = driv.rec;
-
-    double turn_time = rec->find_last_turn_frame_time(time).value_or(-1000.0);
-    metadata->bike_turning.flipped = mot->flipped_bike;
-    metadata->bike_turning.turn_time = turn_time;
-
-    metadata->camera_turning.turn_time = -1000.0;
-    int flipped_camera = mot->flipped_bike;
-    if (mot->gravity_direction == MotorGravity::Up) {
-        flipped_camera = !flipped_camera;
-    }
-    metadata->camera_turning.flipped = flipped_camera;
-
-    metadata->volt_time = rec->last_volt_time(&metadata->volt_is_right).value_or(-1000.0);
 }
 
 // Load replay data (instead of simulating bike physics)
@@ -1123,16 +1037,16 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
         // Reverse events if rewinding
         if (rewinding) {
             reverse_events(driv1, time);
-            rewind_override_animations(driv1, time);
+            rewind_override_animations(driv1.meta, driv1.mot, driv1.rec, time);
             if (!Single) {
                 reverse_events(driv2, time);
-                rewind_override_animations(driv2, time);
+                rewind_override_animations(driv2.meta, driv2.mot, driv2.rec, time);
             }
         }
 
-        update_graphical_metadata(driv1, false, time);
+        update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, false, time);
         if (!Single) {
-            update_graphical_metadata(driv2, false, time);
+            update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, false, time);
         }
 
         // End of replay
@@ -1256,9 +1170,9 @@ void render_replay(const char* level_filename) {
             finished2 = !replay_frame(driv2, time, &driv1.draw_view);
         }
 
-        update_graphical_metadata(driv1, false, time);
+        update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, false, time);
         if (!Single) {
-            update_graphical_metadata(driv2, false, time);
+            update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, false, time);
         }
 
         if ((Single && finished1) || (!Single && finished1 && finished2)) {

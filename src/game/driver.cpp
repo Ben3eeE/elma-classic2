@@ -1,9 +1,9 @@
 #include "game/driver.h"
 #include "eol/settings.h"
 #include "physics/forces.h"
+#include "physics/init.h"
 #include "renderer/timer.h"
 #include <algorithm>
-#include <cstdint>
 #include <format>
 
 constexpr double PHYSICS_SPEED_TO_EOL_SPEED = 5.0;

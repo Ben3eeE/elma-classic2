@@ -38,6 +38,7 @@ elma_sources = files(
     'src/game/game.cpp',
     'src/game/level_load.cpp',
     'src/game/qopen.cpp',
+    'src/game/recorded_bike.cpp',
     'src/game/recorder.cpp',
     'src/game/state.cpp',
     'src/glad/glad.c',
