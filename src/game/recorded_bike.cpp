@@ -1,6 +1,5 @@
 #include "game/recorded_bike.h"
 #include "eol/settings.h"
-#include "physics/init.h"
 #include "sound/engine.h"
 #include <algorithm>
 
@@ -112,4 +111,11 @@ void rewind_override_animations(bike_metadata& meta, motorst* mot, recorder* rec
     meta.camera_turning.flipped = flipped_camera;
 
     meta.volt_time = rec->last_volt_time(&meta.volt_is_right).value_or(-1000.0);
+}
+
+recorded_bike::recorded_bike()
+    : mot{},
+      sound{} {
+    init_motor(&mot);
+    meta.reset();
 }

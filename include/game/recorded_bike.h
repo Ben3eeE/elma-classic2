@@ -2,8 +2,10 @@
 #define GAME_RECORDED_BIKE_H
 
 #include "game/recorder.h"
-
-struct motorst;
+#include "physics/forces.h"
+#include "physics/init.h"
+#include <concepts>
+#include <optional>
 
 struct turning_data {
     int flipped;
@@ -26,6 +28,31 @@ struct bike_metadata {
     void reset();
     void note_volt(const event& ev, double time);
 };
+
+// A bike and the recorder that drives it
+struct recorded_bike {
+    recorder rec;
+    motorst mot;
+    bike_metadata meta;
+    bike_sound sound;
+
+    recorded_bike();
+};
+
+// Returns false once the replay has run out of frames
+template <std::invocable<const event&> OnEvent>
+bool recall_recorded_frame(recorder& rec, motorst& mot, bike_metadata& meta, bike_sound& sound,
+                           double time, OnEvent&& on_event) {
+    bool alive = rec.recall_frame(&mot, time, &sound);
+    set_head_position(&mot);
+    while (std::optional<event> ev = rec.recall_event(time)) {
+        if (ev->object_id < 0) {
+            meta.note_volt(*ev, time);
+        }
+        on_event(*ev);
+    }
+    return alive;
+}
 
 void update_graphical_metadata(bike_metadata& meta, motorst* mot, recorder* rec, bool update_rec,
                                double time);

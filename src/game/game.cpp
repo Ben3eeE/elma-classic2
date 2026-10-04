@@ -884,33 +884,25 @@ static void reverse_events(driver& driv, double time) {
     }
 }
 
+static void handle_object_event(driver& driv, const event& ev) {
+    int prev_apple_count = driv.mot->apple_count;
+    handle_object_interaction(driv, ev.object_id);
+    if (prev_apple_count < driv.mot->apple_count) {
+        driv.mot->last_apple_time = (int)(ev.time * TIME_TO_CENTISECONDS);
+    }
+}
+
 // Load replay data (instead of simulating bike physics)
 static bool replay_frame(driver& driv, double time, bool* other_draw_view) {
-    motorst* mot = driv.mot;
-    bike_metadata* metadata = &driv.meta;
-    recorder* rec = driv.rec;
-
-    // Update the hud and player visibility
     update_view_settings(driv, other_draw_view);
-
-    // Load replay data
-    bool alive = rec->recall_frame(mot, time, &driv.sound);
-    set_head_position(mot);
-
-    // Play events
-    while (std::optional<event> ev = rec->recall_event(time)) {
-        if (ev->object_id >= 0) {
-            int prev_apple_count = mot->apple_count;
-            handle_object_interaction(driv, ev->object_id);
-            if (prev_apple_count < mot->apple_count) {
-                mot->last_apple_time = (int)(ev->time * TIME_TO_CENTISECONDS);
-            }
-        } else {
-            start_wav(ev->event_id, ev->volume);
-            metadata->note_volt(*ev, time);
-        }
-    }
-    return alive;
+    return recall_recorded_frame(*driv.rec, *driv.mot, driv.meta, driv.sound, time,
+                                 [&](const event& ev) {
+                                     if (ev.object_id >= 0) {
+                                         handle_object_event(driv, ev);
+                                     } else {
+                                         start_wav(ev.event_id, ev.volume);
+                                     }
+                                 });
 }
 
 static void sync_replay_death(driver& driv, bool finished, bool is_motor1) {
