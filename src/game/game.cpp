@@ -1067,8 +1067,10 @@ int replay_loop(const char* filename, bool restore_player_visibility) {
             }
         }
 
-        update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, false, time);
-        if (!Single) {
+        if (!finished1) {
+            update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, false, time);
+        }
+        if (!Single && !finished2) {
             update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, false, time);
         }
 
@@ -1196,13 +1198,15 @@ void render_replay(const char* level_filename) {
             finished2 = !replay_frame(driv2, time, &driv1.draw_view);
         }
 
-        update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, false, time);
-        if (!Single) {
-            update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, false, time);
-        }
-
         if (((Single && finished1) || (!Single && finished1 && finished2)) && ghosts_finished) {
             break;
+        }
+
+        if (!finished1) {
+            update_graphical_metadata(driv1.meta, driv1.mot, driv1.rec, false, time);
+        }
+        if (!Single && !finished2) {
+            update_graphical_metadata(driv2.meta, driv2.mot, driv2.rec, false, time);
         }
 
         if (!Single) {
