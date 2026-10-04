@@ -1,4 +1,5 @@
 #include "game/ghost_list.h"
+#include "eol/eol.h"
 #include "game/driver.h"
 #include <algorithm>
 #include <filesystem>
@@ -11,13 +12,17 @@ void ghost_list::reset_to(const std::string& followed_name) {
     followed_name_ = followed_name;
 }
 
-bool ghost_list::add(const std::string& path, int level_id) {
+bool ghost_list::add(const std::string& path, int level_id, const std::string& nick) {
     replay_bike& ghost = ghosts.emplace_back();
     if (recorder::load_single(path, ghost.bike.rec) != level_id) {
         ghosts.pop_back();
         return false;
     }
     ghost.name = std::filesystem::path(path).stem().string();
+    ghost.nick = nick;
+    if (!nick.empty()) {
+        ghost.shirt.reset(eol::load_shirt(nick));
+    }
     return true;
 }
 

@@ -821,7 +821,8 @@ static void render_view(bool player1, bool bottom_player, pic8* pic, double time
 
     for (const replay_bike& g : Ghosts.all()) {
         if (bike_in_view(&g.bike.mot, center)) {
-            render_bike(pic, false, bottomleft_corner, &g.bike.mot, &g.bike.meta, bike2, nullptr);
+            render_bike(pic, false, bottomleft_corner, &g.bike.mot, &g.bike.meta, bike2,
+                        g.shirt.get());
         }
     }
 
