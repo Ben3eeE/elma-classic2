@@ -1,4 +1,5 @@
 #include "editor/editor.h"
+#include "eol/kuski.h"
 #include "eol/settings.h"
 #include "ffmpeg_encoder.h"
 #include "game/game.h"
@@ -20,6 +21,7 @@
 #include <optional>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -27,12 +29,18 @@ namespace {
 constexpr int EXIT_USAGE = 1;
 constexpr int EXIT_FFMPEG = 2;
 
+struct merge_replay {
+    std::string path;
+    std::string nick;
+};
+
 struct options {
     std::string input;
     std::string output;
+    std::string nick;
     bool audio = true;
     bool headless = false;
-    std::vector<std::string> merge;
+    std::vector<merge_replay> merge;
     std::vector<std::string> ffmpeg_args;
 };
 
@@ -45,6 +53,7 @@ void print_usage() {
            "  --no-audio     render video only\n"
            "  --headless     render without opening a window\n"
            "  --merge <rec>  draw another replay as a ghost (repeatable)\n"
+           "  --nick <nick>  shirt (bmp/<nick>.bmp) for the replay named before it\n"
            "  -h, --help     show this help\n"
            "\n"
            "Resolution, zoom and frame rate come from settings.json. Point\n"
@@ -54,7 +63,8 @@ void print_usage() {
            "\n"
            "Examples:\n"
            "  rec2vid rec/blabla.rec out/video.avi -- -c:v libx264 -crf 22\n"
-           "  rec2vid rec/a.rec out/a.mp4 --merge rec/b.rec --merge c.rec\n");
+           "  rec2vid rec/a.rec out/a.mp4 --merge rec/b.rec --merge c.rec\n"
+           "  rec2vid a.rec out/a.mp4 --nick Bene --merge b.rec --nick Zweq\n");
 }
 
 bool parse_arguments(int argc, char** argv, options& opts) {
@@ -80,7 +90,19 @@ bool parse_arguments(int argc, char** argv, options& opts) {
                 fprintf(stderr, "rec2vid: --merge needs a replay\n");
                 return false;
             }
-            opts.merge.emplace_back(argv[++i]);
+            opts.merge.push_back({argv[++i], ""});
+        } else if (arg == "--nick") {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "rec2vid: --nick needs a nick\n");
+                return false;
+            }
+            std::string nick = argv[++i];
+            if (nick.size() >= sizeof(kuski::nick)) {
+                fprintf(stderr, "rec2vid: nick too long: %s\n", nick.c_str());
+                return false;
+            }
+            std::string& target = opts.merge.empty() ? opts.nick : opts.merge.back().nick;
+            target = std::move(nick);
         } else if (arg.starts_with("-")) {
             fprintf(stderr, "rec2vid: unknown option: %s\n", arg.c_str());
             return false;
@@ -137,6 +159,9 @@ int main(int argc, char** argv) {
     }
 
     runtime::init_settings();
+    if (!opts.nick.empty()) {
+        EolSettings->set_nick(opts.nick);
+    }
     if (opts.headless) {
         platform_init_headless();
     } else {
@@ -168,13 +193,13 @@ int main(int argc, char** argv) {
     }
 
     // Loading the main replay resets the ghost list, so the ghosts come after it
-    for (const std::string& merge : opts.merge) {
-        std::optional<std::string> ghost_path = resolve_replay(merge);
+    for (const merge_replay& merge : opts.merge) {
+        std::optional<std::string> ghost_path = resolve_replay(merge.path);
         if (!ghost_path) {
-            fprintf(stderr, "rec2vid: replay not found: %s\n", merge.c_str());
+            fprintf(stderr, "rec2vid: replay not found: %s\n", merge.path.c_str());
             return EXIT_USAGE;
         }
-        if (!Ghosts.add(*ghost_path, level_id)) {
+        if (!Ghosts.add(*ghost_path, level_id, merge.nick)) {
             fprintf(stderr, "rec2vid: %s is not a replay of %s\n", ghost_path->c_str(),
                     Rec1->level_filename);
             return EXIT_USAGE;

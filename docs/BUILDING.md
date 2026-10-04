@@ -151,6 +151,14 @@ as a server or CI runner:
 ./rec2vid rec/blabla.rec out/video.mp4 --headless
 ```
 
+`--merge` draws another replay of the same level as a ghost and can be repeated.
+`--nick` gives the replay named before it a shirt, read from `bmp/<nick>.bmp` in the
+working directory like EOL does. Before any `--merge` it applies to the main replay:
+
+```
+./rec2vid rec/a.rec out/a.mp4 --nick Bene --merge rec/b.rec --nick Zweq --merge rec/c.rec
+```
+
 Run `./rec2vid --help` for the remaining options.
 
 ### Configuration
