@@ -2,6 +2,7 @@
 #include "eol/settings.h"
 #include "ffmpeg_encoder.h"
 #include "game/game.h"
+#include "game/ghost_list.h"
 #include "game/level_load.h"
 #include "game/recorder.h"
 #include "game/state.h"
@@ -11,6 +12,7 @@
 #include "platform/implementation.h"
 #include "runtime.h"
 #include "sound/engine.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -30,6 +32,7 @@ struct options {
     std::string output;
     bool audio = true;
     bool headless = false;
+    std::vector<std::string> merge;
     std::vector<std::string> ffmpeg_args;
 };
 
@@ -41,6 +44,7 @@ void print_usage() {
            "Options:\n"
            "  --no-audio     render video only\n"
            "  --headless     render without opening a window\n"
+           "  --merge <rec>  draw another replay as a ghost (repeatable)\n"
            "  -h, --help     show this help\n"
            "\n"
            "Resolution, zoom and frame rate come from settings.json. Point\n"
@@ -48,8 +52,9 @@ void print_usage() {
            "Arguments after -- are passed to ffmpeg and override the built-in\n"
            "encoding defaults (-c:v libx264 -pix_fmt yuv420p -crf 18).\n"
            "\n"
-           "Example:\n"
-           "  rec2vid rec/blabla.rec out/video.avi -- -c:v libx264 -crf 22\n");
+           "Examples:\n"
+           "  rec2vid rec/blabla.rec out/video.avi -- -c:v libx264 -crf 22\n"
+           "  rec2vid rec/a.rec out/a.mp4 --merge rec/b.rec --merge c.rec\n");
 }
 
 bool parse_arguments(int argc, char** argv, options& opts) {
@@ -70,6 +75,12 @@ bool parse_arguments(int argc, char** argv, options& opts) {
             opts.audio = false;
         } else if (arg == "--headless") {
             opts.headless = true;
+        } else if (arg == "--merge") {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "rec2vid: --merge needs a replay\n");
+                return false;
+            }
+            opts.merge.emplace_back(argv[++i]);
         } else if (arg.starts_with("-")) {
             fprintf(stderr, "rec2vid: unknown option: %s\n", arg.c_str());
             return false;
@@ -156,6 +167,20 @@ int main(int argc, char** argv) {
         return EXIT_USAGE;
     }
 
+    // Loading the main replay resets the ghost list, so the ghosts come after it
+    for (const std::string& merge : opts.merge) {
+        std::optional<std::string> ghost_path = resolve_replay(merge);
+        if (!ghost_path) {
+            fprintf(stderr, "rec2vid: replay not found: %s\n", merge.c_str());
+            return EXIT_USAGE;
+        }
+        if (!Ghosts.add(*ghost_path, level_id)) {
+            fprintf(stderr, "rec2vid: %s is not a replay of %s\n", ghost_path->c_str(),
+                    Rec1->level_filename);
+            return EXIT_USAGE;
+        }
+    }
+
     Rec1->rewind();
     Rec2->rewind();
 
@@ -185,14 +210,21 @@ int main(int argc, char** argv) {
     if (MultiplayerRec && Rec2->frame_count() > replay_frames) {
         replay_frames = Rec2->frame_count();
     }
+    for (const replay_bike& g : Ghosts.all()) {
+        replay_frames = std::max(replay_frames, g.bike.rec.frame_count());
+    }
 
     int total_frames = (int)std::ceil((double)(replay_frames - 1) / FRAME_RATE * fps);
     if (EolSettings->pause_replay_for_1s()) {
         total_frames += fps;
     }
 
-    printf("Rendering %s to %s at %dx%d, %d fps%s\n", replay_path->c_str(), output.string().c_str(),
+    printf("Rendering %s to %s at %dx%d, %d fps%s", replay_path->c_str(), output.string().c_str(),
            SCREEN_WIDTH, SCREEN_HEIGHT, fps, opts.audio ? "" : ", no audio");
+    if (!Ghosts.empty()) {
+        printf(", %zu ghost%s", Ghosts.all().size(), Ghosts.all().size() == 1 ? "" : "s");
+    }
+    printf("\n");
     fflush(stdout);
 
     ffmpeg_encoder encoder(SCREEN_WIDTH, SCREEN_HEIGHT, fps, video_target, opts.ffmpeg_args,
