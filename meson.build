@@ -40,6 +40,7 @@ elma_sources = files(
     'src/game/qopen.cpp',
     'src/game/recorded_bike.cpp',
     'src/game/recorder.cpp',
+    'src/game/replay_bike.cpp',
     'src/game/state.cpp',
     'src/glad/glad.c',
     'src/level/level.cpp',
